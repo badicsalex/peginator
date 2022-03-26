@@ -1,0 +1,22 @@
+Grammar = rules:Rule {";" rules:Rule} ;
+
+Rule = name:Identifier [":" type:Identifier] "=" definition:Expression;
+
+Expression = {parts:Choice | parts:Optional | parts:Closure | parts:Regex | parts:Literal | parts:Field}+;
+
+Choice:ExpressionPart = choices:Expression {"|" choices:Expression}+;
+
+Optional:ExpressionPart = "[" body:Expression "]";
+
+Closure:ExpressionPart = "{" body: Expression "}" [modifier:ClosureModifier];
+ClosureModifier:str = "+" | "*"
+
+Regex:ExpressionPart = body:RegexBody;
+RegexBody:str = /\/(\\.|[^\/\\])*\\//;
+
+Literal:ExpressionPart = LiteralBody;
+LiteralBody = /"(\\.|[^"\\])*"/;
+
+Field:ExpressionPart = [name:Identifier ":"] Identifier;
+
+Identifier = /[a-zA-Z0-9_]+/;
