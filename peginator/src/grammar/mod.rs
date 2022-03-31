@@ -5,7 +5,7 @@
 /*
 Grammar = {rules:Rule ";"} ;
 
-Rule = {directives:Directive} name:Identifier [":" typ:Identifier] "=" definition:Choice;
+Rule = {directives:Directive} name:Identifier "=" definition:Choice;
 
 Choice = choices:Sequence {"|" choices:Sequence};
 
@@ -23,27 +23,27 @@ DelimitedExpression =
     @:Field
 ;
 
-Optional:Expression = "[" body:Choice "]";
+Optional = "[" body:Choice "]";
 
-ClosureAtLeastOne:Expression = "{" body:Choice "}+";
-Closure:Expression = "{" body:Choice "}";
+ClosureAtLeastOne = "{" body:Choice "}+";
+Closure = "{" body:Choice "}";
 
-NegativeLookahead:Expression = "!" expr:DelimitedExpression;
+NegativeLookahead = "!" expr:DelimitedExpression;
 
-CharacterRange:Expression = from:CharacterLiteral ".." to:CharacterLiteral;
+CharacterRange = from:CharacterLiteral ".." to:CharacterLiteral;
 
-Character:Expression = chr:CharacterLiteral;
+Character = chr:CharacterLiteral;
 
 CharacterLiteral = "'" @:ANY_CHARACTER "'";
 
-StringLiteral:Expression = '"' body:StringLiteralBody '"';
+StringLiteral = '"' body:StringLiteralBody '"';
 
 @string
 StringLiteralBody = { "\\\"" | !'"' ANY_CHARACTER };
 
-OverrideField:Expression = "@" ":" typ:Identifier;
+OverrideField = "@" ":" typ:Identifier;
 
-Field:Expression = [name:Identifier ":"] typ:Identifier;
+Field = [name:Identifier ":"] typ:Identifier;
 
 @string
 Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9'}+;
@@ -60,7 +60,6 @@ pub struct Grammar {
 struct Rule {
     directives: Vec<Directive>,
     name: Identifier,
-    typ: Option<Box<Identifier>>,
     definition: Choice,
 }
 
@@ -69,70 +68,112 @@ struct Choice {
 }
 
 struct Sequence {
-    parts: Vec<Expression>,
+    parts: Vec<DetailedExpression>,
 }
 
-enum Expression {
-    Optional {
-        body: Choice,
-    },
-    ClosureAtLeastOne {
-        body: Choice,
-    },
-    Closure {
-        body: Choice,
-    },
-    NegativeLookahead {
-        expr: Box<Expression>,
-    },
-    CharacterRange {
-        from: char,
-        to: char,
-    },
-    Character {
-        chr: char,
-    },
-    StringLiteral {
-        body: StringLiteralBody,
-    },
-    OverrideField {
-        typ: Identifier,
-    },
-    Field {
-        name: Option<Box<Identifier>>,
-        typ: Identifier,
-    },
+enum DetailedExpression {
+    Optional(Optional),
+    ClosureAtLeastOne(ClosureAtLeastOne),
+    Closure(Closure),
+    NegativeLookahead(NegativeLookahead),
+    CharacterRange(CharacterRange),
+    Character(Character),
+    StringLiteral(StringLiteral),
+    OverrideField(OverrideField),
+    Field(Field),
 }
 
-use Expression::*;
+macro_rules! detailed_expression_helper {
+    ($TheType:ident) => {
+        impl From<$TheType> for DetailedExpression {
+            fn from(v: $TheType) -> Self {
+                DetailedExpression::$TheType(v)
+            }
+        }
+
+        impl From<$TheType> for Vec<DetailedExpression> {
+            fn from(v: $TheType) -> Self {
+                vec![DetailedExpression::$TheType(v)]
+            }
+        }
+    };
+}
+
+detailed_expression_helper!(Optional);
+detailed_expression_helper!(ClosureAtLeastOne);
+detailed_expression_helper!(Closure);
+detailed_expression_helper!(NegativeLookahead);
+detailed_expression_helper!(CharacterRange);
+detailed_expression_helper!(Character);
+detailed_expression_helper!(StringLiteral);
+detailed_expression_helper!(OverrideField);
+detailed_expression_helper!(Field);
+
+struct Optional {
+    body: Choice,
+}
+
+struct ClosureAtLeastOne {
+    body: Choice,
+}
+
+struct Closure {
+    body: Choice,
+}
+
+struct NegativeLookahead {
+    expr: Box<DetailedExpression>,
+}
+
+struct CharacterRange {
+    from: char,
+    to: char,
+}
+
+struct Character {
+    chr: char,
+}
+
+struct StringLiteral {
+    body: StringLiteralBody,
+}
+
+struct OverrideField {
+    typ: Identifier,
+}
+
+struct Field {
+    name: Option<Box<Identifier>>,
+    typ: Identifier,
+}
 
 type StringLiteralBody = String;
 type Identifier = String;
 
-enum Directive {
-    StringDirective,
-}
+type Directive = StringDirective;
 
-fn simple_sequence(parts: Vec<Expression>) -> Choice {
+struct StringDirective {}
+
+fn simple_sequence(parts: Vec<DetailedExpression>) -> Choice {
     Choice {
         choices: vec![Sequence { parts }],
     }
 }
 
-fn simple_rule(name: &str, typ: Option<&str>, parts: Vec<Expression>) -> Rule {
+fn simple_rule(name: &str, parts: Vec<DetailedExpression>) -> Rule {
     Rule {
         directives: vec![],
         name: name.into(),
-        typ: typ.map(|s| Box::new(s.into())),
         definition: simple_sequence(parts),
     }
 }
 
-fn field(name: &str, typ: &str) -> Expression {
+fn field(name: &str, typ: &str) -> DetailedExpression {
     Field {
         name: Some(Box::new(name.into())),
         typ: typ.into(),
     }
+    .into()
 }
 
 fn bootstrap_parsinator_grammar() -> Grammar {
@@ -140,265 +181,259 @@ fn bootstrap_parsinator_grammar() -> Grammar {
         rules: vec![
             simple_rule(
                 "Grammar",
-                None,
-                vec![Closure {
+                Closure {
                     body: simple_sequence(vec![
                         field("rules", "Rule"),
-                        StringLiteral { body: ";".into() },
+                        StringLiteral { body: ";".into() }.into(),
                     ]),
-                }],
+                }
+                .into(),
             ),
             simple_rule(
                 "Rule",
-                None,
                 vec![
                     Closure {
                         body: simple_sequence(vec![field("directives", "Directive")]),
-                    },
+                    }
+                    .into(),
                     field("name", "Identifier"),
-                    Optional {
-                        body: simple_sequence(vec![
-                            StringLiteral { body: ":".into() },
-                            field("typ", "Identifier"),
-                        ]),
-                    },
-                    StringLiteral { body: "=".into() },
+                    StringLiteral { body: "=".into() }.into(),
                     field("definition", "Choice"),
                 ],
             ),
             simple_rule(
                 "Choice",
-                None,
                 vec![
                     field("choices", "Sequence"),
                     Closure {
                         body: simple_sequence(vec![
-                            StringLiteral { body: "|".into() },
+                            StringLiteral { body: "|".into() }.into(),
                             field("choices", "Sequence"),
                         ]),
-                    },
+                    }
+                    .into(),
                 ],
             ),
             simple_rule(
                 "Sequence",
-                None,
-                vec![ClosureAtLeastOne {
+                ClosureAtLeastOne {
                     body: simple_sequence(vec![field("parts", "DelimitedExpression")]),
-                }],
+                }
+                .into(),
             ),
             Rule {
                 directives: vec![],
                 name: "DelimitedExpression".into(),
-                typ: None,
                 definition: Choice {
                     choices: vec![
                         Sequence {
-                            parts: vec![OverrideField {
+                            parts: OverrideField {
                                 typ: "Optional".into(),
-                            }],
+                            }
+                            .into(),
                         },
                         Sequence {
-                            parts: vec![OverrideField {
+                            parts: OverrideField {
                                 typ: "ClosureAtLeastOne".into(),
-                            }],
+                            }
+                            .into(),
                         },
                         Sequence {
-                            parts: vec![OverrideField {
+                            parts: OverrideField {
                                 typ: "Closure".into(),
-                            }],
+                            }
+                            .into(),
                         },
                         Sequence {
-                            parts: vec![OverrideField {
+                            parts: OverrideField {
                                 typ: "NegativeLookahead".into(),
-                            }],
+                            }
+                            .into(),
                         },
                         Sequence {
-                            parts: vec![OverrideField {
+                            parts: OverrideField {
                                 typ: "CharacterRange".into(),
-                            }],
+                            }
+                            .into(),
                         },
                         Sequence {
-                            parts: vec![OverrideField {
+                            parts: OverrideField {
                                 typ: "Character".into(),
-                            }],
+                            }
+                            .into(),
                         },
                         Sequence {
-                            parts: vec![OverrideField {
+                            parts: OverrideField {
                                 typ: "Literal".into(),
-                            }],
+                            }
+                            .into(),
                         },
                         Sequence {
-                            parts: vec![OverrideField {
+                            parts: OverrideField {
                                 typ: "OverrideField".into(),
-                            }],
+                            }
+                            .into(),
                         },
                         Sequence {
-                            parts: vec![OverrideField {
+                            parts: OverrideField {
                                 typ: "Field".into(),
-                            }],
+                            }
+                            .into(),
                         },
                     ],
                 },
             },
             simple_rule(
                 "Optional",
-                Some("Expression"),
                 vec![
-                    StringLiteral { body: "[".into() },
+                    StringLiteral { body: "[".into() }.into(),
                     field("body", "Choice"),
-                    StringLiteral { body: "]".into() },
+                    StringLiteral { body: "]".into() }.into(),
                 ],
             ),
             simple_rule(
                 "ClosureAtLeastOne",
-                Some("Expression"),
                 vec![
-                    StringLiteral { body: "{".into() },
+                    StringLiteral { body: "{".into() }.into(),
                     field("body", "Choice"),
-                    StringLiteral { body: "}+".into() },
+                    StringLiteral { body: "}+".into() }.into(),
                 ],
             ),
             simple_rule(
                 "Closure",
-                Some("Expression"),
                 vec![
-                    StringLiteral { body: "{".into() },
+                    StringLiteral { body: "{".into() }.into(),
                     field("body", "Choice"),
-                    StringLiteral { body: "}".into() },
+                    StringLiteral { body: "}".into() }.into(),
                 ],
             ),
             simple_rule(
                 "NegativeLookahead",
-                Some("Expression"),
                 vec![
-                    StringLiteral { body: "!".into() },
+                    StringLiteral { body: "!".into() }.into(),
                     field("expr", "DelimitedExpression"),
                 ],
             ),
             simple_rule(
                 "CharacterRange",
-                Some("Expression"),
                 vec![
                     field("from", "CharacterLiteral"),
-                    StringLiteral { body: "..".into() },
+                    StringLiteral { body: "..".into() }.into(),
                     field("to", "CharacterLiteral"),
                 ],
             ),
-            simple_rule(
-                "Character",
-                Some("Expression"),
-                vec![field("chr", "CharacterLiteral")],
-            ),
+            simple_rule("Character", vec![field("chr", "CharacterLiteral")]),
             simple_rule(
                 "CharacterLiteral",
-                None,
                 vec![
-                    StringLiteral { body: "'".into() },
+                    StringLiteral { body: "'".into() }.into(),
                     OverrideField {
                         typ: "ANY_CHARACTER".into(),
-                    },
-                    StringLiteral { body: "'".into() },
+                    }
+                    .into(),
+                    StringLiteral { body: "'".into() }.into(),
                 ],
             ),
             simple_rule(
                 "StringLiteral",
-                Some("Expression"),
                 vec![
-                    Character { chr: '"' },
+                    Character { chr: '"' }.into(),
                     field("body", "StringLiteralBody"),
-                    Character { chr: '"' },
+                    Character { chr: '"' }.into(),
                 ],
             ),
             Rule {
-                directives: vec![Directive::StringDirective],
+                directives: vec![StringDirective {}],
                 name: "StringLiteralBody".into(),
-                typ: None,
                 definition: Choice {
                     choices: vec![Sequence {
-                        parts: vec![Closure {
+                        parts: Closure {
                             body: Choice {
                                 choices: vec![
                                     Sequence {
-                                        parts: vec![StringLiteral {
+                                        parts: StringLiteral {
                                             body: "\\\"".into(),
-                                        }],
+                                        }
+                                        .into(),
                                     },
                                     Sequence {
                                         parts: vec![
                                             NegativeLookahead {
-                                                expr: Box::new(Character { chr: '"' }),
-                                            },
+                                                expr: Box::new(Character { chr: '"' }.into()),
+                                            }
+                                            .into(),
                                             Field {
                                                 name: None,
                                                 typ: "ANY_CHARACTER".into(),
-                                            },
+                                            }
+                                            .into(),
                                         ],
                                     },
                                 ],
                             },
-                        }],
+                        }
+                        .into(),
                     }],
                 },
             },
             simple_rule(
                 "Field",
-                Some("Expression"),
                 vec![
                     Optional {
                         body: simple_sequence(vec![
                             field("name", "Identifier"),
-                            StringLiteral { body: "@".into() },
+                            StringLiteral { body: "@".into() }.into(),
                         ]),
-                    },
+                    }
+                    .into(),
                     field("typ", "Identifier"),
                 ],
             ),
             simple_rule(
                 "OverrideField",
-                Some("Expression"),
                 vec![
-                    StringLiteral { body: "@".into() },
-                    StringLiteral { body: ":".into() },
+                    StringLiteral { body: "@".into() }.into(),
+                    StringLiteral { body: ":".into() }.into(),
                     field("typ", "Identifier"),
                 ],
             ),
             Rule {
-                directives: vec![Directive::StringDirective],
+                directives: vec![StringDirective {}],
                 name: "Identifier".into(),
-                typ: None,
                 definition: Choice {
                     choices: vec![Sequence {
-                        parts: vec![ClosureAtLeastOne {
+                        parts: ClosureAtLeastOne {
                             body: Choice {
                                 choices: vec![
                                     Sequence {
-                                        parts: vec![CharacterRange { from: 'a', to: 'z' }],
+                                        parts: CharacterRange { from: 'a', to: 'z' }.into(),
                                     },
                                     Sequence {
-                                        parts: vec![CharacterRange { from: 'A', to: 'Z' }],
+                                        parts: CharacterRange { from: 'A', to: 'Z' }.into(),
                                     },
                                     Sequence {
-                                        parts: vec![CharacterRange { from: '0', to: '9' }],
+                                        parts: CharacterRange { from: '0', to: '9' }.into(),
                                     },
                                 ],
                             },
-                        }],
+                        }
+                        .into(),
                     }],
                 },
             },
             simple_rule(
                 "DirectiveExpression",
-                None,
-                vec![OverrideField {
+                OverrideField {
                     typ: "StringDirective".into(),
-                }],
+                }
+                .into(),
             ),
             simple_rule(
                 "StringDirective",
-                Some("Directive"),
-                vec![StringLiteral {
+                StringLiteral {
                     body: "@string".into(),
-                }],
+                }
+                .into(),
             ),
         ],
     }
