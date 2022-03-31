@@ -32,9 +32,7 @@ NegativeLookahead = "!" expr:DelimitedExpression;
 
 CharacterRange = from:CharacterLiteral ".." to:CharacterLiteral;
 
-Character = chr:CharacterLiteral;
-
-CharacterLiteral = "'" @:ANY_CHARACTER "'";
+CharacterLiteral = "'" @:ANY_CHARACTER "'"
 
 StringLiteral = '"' body:StringLiteralBody '"';
 
@@ -77,7 +75,7 @@ enum DetailedExpression {
     Closure(Closure),
     NegativeLookahead(NegativeLookahead),
     CharacterRange(CharacterRange),
-    Character(Character),
+    CharacterLiteral(CharacterLiteral),
     StringLiteral(StringLiteral),
     OverrideField(OverrideField),
     Field(Field),
@@ -104,11 +102,15 @@ detailed_expression_helper!(ClosureAtLeastOne);
 detailed_expression_helper!(Closure);
 detailed_expression_helper!(NegativeLookahead);
 detailed_expression_helper!(CharacterRange);
-detailed_expression_helper!(Character);
 detailed_expression_helper!(StringLiteral);
 detailed_expression_helper!(OverrideField);
 detailed_expression_helper!(Field);
 
+impl From<CharacterLiteral> for DetailedExpression {
+    fn from(v: CharacterLiteral) -> Self {
+        DetailedExpression::CharacterLiteral(v)
+    }
+}
 struct Optional {
     body: Choice,
 }
@@ -126,17 +128,17 @@ struct NegativeLookahead {
 }
 
 struct CharacterRange {
-    from: char,
-    to: char,
+    from: CharacterLiteral,
+    to: CharacterLiteral,
 }
 
-struct Character {
-    chr: char,
-}
+type CharacterLiteral = char;
 
 struct StringLiteral {
     body: StringLiteralBody,
 }
+
+type StringLiteralBody = String;
 
 struct OverrideField {
     typ: Identifier,
@@ -147,7 +149,6 @@ struct Field {
     typ: Identifier,
 }
 
-type StringLiteralBody = String;
 type Identifier = String;
 
 type Directive = StringDirective;
@@ -336,11 +337,7 @@ fn bootstrap_parsinator_grammar() -> Grammar {
             ),
             simple_rule(
                 "StringLiteral",
-                vec![
-                    Character { chr: '"' }.into(),
-                    field("body", "StringLiteralBody"),
-                    Character { chr: '"' }.into(),
-                ],
+                vec!['"'.into(), field("body", "StringLiteralBody"), '"'.into()],
             ),
             Rule {
                 directives: vec![StringDirective {}],
@@ -359,7 +356,7 @@ fn bootstrap_parsinator_grammar() -> Grammar {
                                     Sequence {
                                         parts: vec![
                                             NegativeLookahead {
-                                                expr: Box::new(Character { chr: '"' }.into()),
+                                                expr: Box::new('"'.into()),
                                             }
                                             .into(),
                                             Field {
