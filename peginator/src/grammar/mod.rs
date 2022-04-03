@@ -12,7 +12,7 @@ Choice = choices:Sequence {"|" choices:Sequence};
 Sequence = { parts:DelimitedExpression }+;
 
 DelimitedExpression =
-    @:Optional |
+    @:Group |
     @:ClosureAtLeastOne |
     @:Closure |
     @:NegativeLookahead |
@@ -23,7 +23,7 @@ DelimitedExpression =
     @:Field
 ;
 
-Optional = "[" body:Choice "]";
+Group = "(" body:Choice ")";
 
 ClosureAtLeastOne = "{" body:Choice "}+";
 Closure = "{" body:Choice "}";
@@ -41,7 +41,7 @@ StringLiteralBody = { "\\\"" | !'"' ANY_CHARACTER };
 
 OverrideField = "@" ":" typ:Identifier;
 
-Field = [name:Identifier ":"] typ:Identifier;
+Field = (name:Identifier ":" | ) typ:Identifier;
 
 @string
 Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9'}+;
@@ -69,6 +69,8 @@ struct Sequence {
     parts: Vec<DetailedExpression>,
 }
 
+pub enum DetailedExpression {
+    Group(Group),
 enum DetailedExpression {
     Optional(Optional),
     ClosureAtLeastOne(ClosureAtLeastOne),
@@ -97,7 +99,7 @@ macro_rules! detailed_expression_helper {
     };
 }
 
-detailed_expression_helper!(Optional);
+detailed_expression_helper!(Group);
 detailed_expression_helper!(ClosureAtLeastOne);
 detailed_expression_helper!(Closure);
 detailed_expression_helper!(NegativeLookahead);
@@ -111,8 +113,8 @@ impl From<CharacterLiteral> for DetailedExpression {
         DetailedExpression::CharacterLiteral(v)
     }
 }
-struct Optional {
-    body: Choice,
+pub struct Group {
+    pub body: Choice,
 }
 
 struct ClosureAtLeastOne {
@@ -229,7 +231,7 @@ fn bootstrap_parsinator_grammar() -> Grammar {
                     choices: vec![
                         Sequence {
                             parts: OverrideField {
-                                typ: "Optional".into(),
+                                typ: "Group".into(),
                             }
                             .into(),
                         },
@@ -285,11 +287,11 @@ fn bootstrap_parsinator_grammar() -> Grammar {
                 },
             },
             simple_rule(
-                "Optional",
+                "Group",
                 vec![
-                    StringLiteral { body: "[".into() }.into(),
+                    StringLiteral { body: "(".into() }.into(),
                     field("body", "Choice"),
-                    StringLiteral { body: "]".into() }.into(),
+                    StringLiteral { body: ")".into() }.into(),
                 ],
             ),
             simple_rule(
@@ -376,11 +378,18 @@ fn bootstrap_parsinator_grammar() -> Grammar {
             simple_rule(
                 "Field",
                 vec![
-                    Optional {
-                        body: simple_sequence(vec![
-                            field("name", "Identifier"),
-                            StringLiteral { body: "@".into() }.into(),
-                        ]),
+                    Group {
+                        body: Choice {
+                            choices: vec![
+                                Sequence {
+                                    parts: vec![
+                                        field("name", "Identifier"),
+                                        StringLiteral { body: "@".into() }.into(),
+                                    ],
+                                },
+                                Sequence { parts: vec![] },
+                            ],
+                        },
                     }
                     .into(),
                     field("typ", "Identifier"),
