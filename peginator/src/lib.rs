@@ -5,6 +5,8 @@
 #[allow(dead_code)]
 pub mod grammar;
 
+pub mod generator;
+
 use quote::quote;
 
 use proc_macro2::TokenStream;
