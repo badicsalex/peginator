@@ -52,27 +52,25 @@ StringDirective:Directive = "@string";
 */
 
 pub struct Grammar {
-    rules: Vec<Rule>,
+    pub rules: Vec<Rule>,
 }
 
-struct Rule {
-    directives: Vec<Directive>,
-    name: Identifier,
-    definition: Choice,
+pub struct Rule {
+    pub directives: Vec<Directive>,
+    pub name: Identifier,
+    pub definition: Choice,
 }
 
-struct Choice {
-    choices: Vec<Sequence>,
+pub struct Choice {
+    pub choices: Vec<Sequence>,
 }
 
-struct Sequence {
-    parts: Vec<DetailedExpression>,
+pub struct Sequence {
+    pub parts: Vec<DetailedExpression>,
 }
 
 pub enum DetailedExpression {
     Group(Group),
-enum DetailedExpression {
-    Optional(Optional),
     ClosureAtLeastOne(ClosureAtLeastOne),
     Closure(Closure),
     NegativeLookahead(NegativeLookahead),
@@ -117,45 +115,45 @@ pub struct Group {
     pub body: Choice,
 }
 
-struct ClosureAtLeastOne {
-    body: Choice,
+pub struct ClosureAtLeastOne {
+    pub body: Choice,
 }
 
-struct Closure {
-    body: Choice,
+pub struct Closure {
+    pub body: Choice,
 }
 
-struct NegativeLookahead {
-    expr: Box<DetailedExpression>,
+pub struct NegativeLookahead {
+    pub expr: Box<DetailedExpression>,
 }
 
-struct CharacterRange {
-    from: CharacterLiteral,
-    to: CharacterLiteral,
+pub struct CharacterRange {
+    pub from: CharacterLiteral,
+    pub to: CharacterLiteral,
 }
 
-type CharacterLiteral = char;
+pub type CharacterLiteral = char;
 
-struct StringLiteral {
-    body: StringLiteralBody,
+pub struct StringLiteral {
+    pub body: StringLiteralBody,
 }
 
-type StringLiteralBody = String;
+pub type StringLiteralBody = String;
 
-struct OverrideField {
-    typ: Identifier,
+pub struct OverrideField {
+    pub typ: Identifier,
 }
 
-struct Field {
-    name: Option<Box<Identifier>>,
-    typ: Identifier,
+pub struct Field {
+    pub name: Option<Box<Identifier>>,
+    pub typ: Identifier,
 }
 
-type Identifier = String;
+pub type Identifier = String;
 
-type Directive = StringDirective;
+pub type Directive = StringDirective;
 
-struct StringDirective {}
+pub struct StringDirective {}
 
 fn simple_sequence(parts: Vec<DetailedExpression>) -> Choice {
     Choice {
@@ -179,7 +177,7 @@ fn field(name: &str, typ: &str) -> DetailedExpression {
     .into()
 }
 
-fn bootstrap_parsinator_grammar() -> Grammar {
+pub fn bootstrap_parsinator_grammar() -> Grammar {
     Grammar {
         rules: vec![
             simple_rule(
