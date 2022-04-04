@@ -4,7 +4,10 @@
 
 use peginator::{generator::lets_debug, grammar::bootstrap_parsinator_grammar};
 
-fn main() {
+use anyhow::Result;
+
+fn main() -> Result<()> {
     println!("Hello, world!");
-    lets_debug(&bootstrap_parsinator_grammar());
+    lets_debug(&bootstrap_parsinator_grammar())?;
+    Ok(())
 }

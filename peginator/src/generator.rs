@@ -9,7 +9,7 @@ use crate::grammar::{
     Rule, Sequence,
 };
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -21,15 +21,25 @@ enum Arity {
     Multiple,
 }
 
-impl Arity {}
+impl Default for Arity {
+    fn default() -> Self {
+        Arity::One
+    }
+}
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct StructField<'a> {
     type_names: HashSet<&'a str>,
+    boxed: bool,
     arity: Arity,
 }
 
 type StructFields<'a> = HashMap<&'a str, StructField<'a>>;
+
+struct ParsedRule<'a> {
+    rule: &'a Rule,
+    fields: StructFields<'a>,
+}
 
 /* This does not actually need to be a trait, I just wanted it for consistency */
 trait FieldExtractor {
@@ -146,7 +156,7 @@ impl FieldExtractor for Field {
                 name as &str,
                 StructField {
                     type_names: HashSet::from([&self.typ as &str]),
-                    arity: Arity::One,
+                    ..Default::default()
                 },
             )])),
             None => Ok(StructFields::new()),
@@ -160,19 +170,99 @@ impl FieldExtractor for OverrideField {
             "@",
             StructField {
                 type_names: HashSet::from([&self.typ as &str]),
-                arity: Arity::One,
+                ..Default::default()
             },
         )]))
     }
 }
 
-pub fn lets_debug(grammar: &Grammar) {
+fn has_type_cycle<'a>(
+    root_rule: &str,
+    current_rule_name: &str,
+    all_rules: &'a Vec<ParsedRule>,
+    visited_rules: &mut HashSet<&'a str>,
+) -> Result<bool> {
+    if current_rule_name == "ANY_CHARACTER" {
+        return Ok(false);
+    }
+    let current_rule = all_rules
+        .iter()
+        .find(|r| r.rule.name == current_rule_name)
+        .ok_or_else(|| anyhow!("Unknown field type {}", current_rule_name))?;
+    visited_rules.insert(&current_rule.rule.name);
+    for field in current_rule.fields.values() {
+        if let Arity::Multiple = field.arity {
+            continue;
+        }
+        if field.boxed {
+            continue;
+        }
+        for &type_name in &field.type_names {
+            if type_name == root_rule {
+                return Ok(true);
+            }
+            if visited_rules.contains(type_name) {
+                continue;
+            }
+            if has_type_cycle(root_rule, type_name, all_rules, visited_rules)? {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
+}
+
+fn fields_that_have_cycles(rule: &ParsedRule, all_rules: &Vec<ParsedRule>) -> Result<Vec<String>> {
+    let mut result = Vec::<String>::new();
+    for (&field_name, field) in &rule.fields {
+        if let Arity::Multiple = field.arity {
+            continue;
+        }
+
+        let mut should_be_boxed = false;
+        for type_name in &field.type_names {
+            if has_type_cycle(&rule.rule.name, type_name, all_rules, &mut HashSet::new())? {
+                should_be_boxed = true;
+                break;
+            }
+        }
+        if should_be_boxed {
+            result.push(field_name.into())
+        }
+    }
+    Ok(result)
+}
+
+fn generate_field_descriptors(grammar: &Grammar) -> Result<Vec<ParsedRule>> {
+    let mut result = Vec::<ParsedRule>::new();
     for rule in &grammar.rules {
-        println!("{}:", rule.name);
-        let fields = rule.definition.extract_fields();
-        println!("{:?}", fields);
+        result.push(ParsedRule {
+            rule,
+            fields: rule.definition.extract_fields()?,
+        });
+    }
+
+    /* break cycles */
+    for parsed_index in 0..result.len() {
+        let cycle_names = fields_that_have_cycles(&result[parsed_index], &result)?;
+        for field_name in cycle_names {
+            let field = result[parsed_index]
+                .fields
+                .get_mut(&field_name as &str)
+                .unwrap();
+            field.boxed = true;
+        }
+    }
+    Ok(result)
+}
+
+pub fn lets_debug(grammar: &Grammar) -> Result<()> {
+    for parsed_rule in generate_field_descriptors(grammar)? {
+        println!("{}:", parsed_rule.rule.name);
+        println!("{:?}", parsed_rule.fields);
         println!();
     }
+    Ok(())
 }
 
 fn generate_single_type(rule: &Rule) -> Result<TokenStream> {

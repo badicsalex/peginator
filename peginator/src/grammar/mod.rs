@@ -11,18 +11,6 @@ Choice = choices:Sequence {"|" choices:Sequence};
 
 Sequence = { parts:DelimitedExpression }+;
 
-DelimitedExpression =
-    @:Group |
-    @:ClosureAtLeastOne |
-    @:Closure |
-    @:NegativeLookahead |
-    @:CharacterRange |
-    @:Character |
-    @:StringLiteral |
-    @:OverrideField |
-    @:Field
-;
-
 Group = "(" body:Choice ")";
 
 ClosureAtLeastOne = "{" body:Choice "}+";
@@ -42,6 +30,19 @@ StringLiteralBody = { "\\\"" | !'"' ANY_CHARACTER };
 OverrideField = "@" ":" typ:Identifier;
 
 Field = (name:Identifier ":" | ) typ:Identifier;
+
+DelimitedExpression =
+    @:Group |
+    @:ClosureAtLeastOne |
+    @:Closure |
+    @:NegativeLookahead |
+    @:CharacterRange |
+    @:Character |
+    @:StringLiteral |
+    @:OverrideField |
+    @:Field
+;
+
 
 @string
 Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9'}+;
@@ -145,7 +146,7 @@ pub struct OverrideField {
 }
 
 pub struct Field {
-    pub name: Option<Box<Identifier>>,
+    pub name: Option<Identifier>,
     pub typ: Identifier,
 }
 
@@ -171,7 +172,7 @@ fn simple_rule(name: &str, parts: Vec<DetailedExpression>) -> Rule {
 
 fn field(name: &str, typ: &str) -> DetailedExpression {
     Field {
-        name: Some(Box::new(name.into())),
+        name: Some(name.into()),
         typ: typ.into(),
     }
     .into()
@@ -222,68 +223,6 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                 }
                 .into(),
             ),
-            Rule {
-                directives: vec![],
-                name: "DelimitedExpression".into(),
-                definition: Choice {
-                    choices: vec![
-                        Sequence {
-                            parts: OverrideField {
-                                typ: "Group".into(),
-                            }
-                            .into(),
-                        },
-                        Sequence {
-                            parts: OverrideField {
-                                typ: "ClosureAtLeastOne".into(),
-                            }
-                            .into(),
-                        },
-                        Sequence {
-                            parts: OverrideField {
-                                typ: "Closure".into(),
-                            }
-                            .into(),
-                        },
-                        Sequence {
-                            parts: OverrideField {
-                                typ: "NegativeLookahead".into(),
-                            }
-                            .into(),
-                        },
-                        Sequence {
-                            parts: OverrideField {
-                                typ: "CharacterRange".into(),
-                            }
-                            .into(),
-                        },
-                        Sequence {
-                            parts: OverrideField {
-                                typ: "Character".into(),
-                            }
-                            .into(),
-                        },
-                        Sequence {
-                            parts: OverrideField {
-                                typ: "Literal".into(),
-                            }
-                            .into(),
-                        },
-                        Sequence {
-                            parts: OverrideField {
-                                typ: "OverrideField".into(),
-                            }
-                            .into(),
-                        },
-                        Sequence {
-                            parts: OverrideField {
-                                typ: "Field".into(),
-                            }
-                            .into(),
-                        },
-                    ],
-                },
-            },
             simple_rule(
                 "Group",
                 vec![
@@ -401,6 +340,68 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                     field("typ", "Identifier"),
                 ],
             ),
+            Rule {
+                directives: vec![],
+                name: "DelimitedExpression".into(),
+                definition: Choice {
+                    choices: vec![
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "Group".into(),
+                            }
+                            .into(),
+                        },
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "ClosureAtLeastOne".into(),
+                            }
+                            .into(),
+                        },
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "Closure".into(),
+                            }
+                            .into(),
+                        },
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "NegativeLookahead".into(),
+                            }
+                            .into(),
+                        },
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "CharacterRange".into(),
+                            }
+                            .into(),
+                        },
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "Character".into(),
+                            }
+                            .into(),
+                        },
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "StringLiteral".into(),
+                            }
+                            .into(),
+                        },
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "OverrideField".into(),
+                            }
+                            .into(),
+                        },
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "Field".into(),
+                            }
+                            .into(),
+                        },
+                    ],
+                },
+            },
             Rule {
                 directives: vec![StringDirective {}],
                 name: "Identifier".into(),
