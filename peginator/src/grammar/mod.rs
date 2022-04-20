@@ -48,16 +48,18 @@ DelimitedExpression =
 Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9'}+;
 
 DirectiveExpression = @:StringDirective;
-StringDirective:Directive = "@string";
+StringDirective = "@string";
 
 */
+
+mod test;
 
 pub struct Grammar {
     pub rules: Vec<Rule>,
 }
 
 pub struct Rule {
-    pub directives: Vec<Directive>,
+    pub directives: Vec<DirectiveExpression>,
     pub name: Identifier,
     pub definition: Choice,
 }
@@ -152,7 +154,7 @@ pub struct Field {
 
 pub type Identifier = String;
 
-pub type Directive = StringDirective;
+pub type DirectiveExpression = StringDirective;
 
 pub struct StringDirective {}
 
@@ -195,7 +197,7 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                 "Rule",
                 vec![
                     Closure {
-                        body: simple_sequence(vec![field("directives", "Directive")]),
+                        body: simple_sequence(vec![field("directives", "DirectiveExpression")]),
                     }
                     .into(),
                     field("name", "Identifier"),

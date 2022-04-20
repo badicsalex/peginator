@@ -7,7 +7,6 @@ use peginator::{codegen::lets_debug, grammar::bootstrap_parsinator_grammar};
 use anyhow::Result;
 
 fn main() -> Result<()> {
-    println!("Hello, world!");
     lets_debug(&bootstrap_parsinator_grammar())?;
     Ok(())
 }

@@ -4,6 +4,7 @@
 
 use std::collections::{HashMap, HashSet};
 
+use super::quick_ident;
 use crate::grammar::{
     Choice, Closure, ClosureAtLeastOne, DelimitedExpression, Field, Grammar, Group, OverrideField,
     Sequence, StringDirective,
@@ -33,6 +34,12 @@ pub struct ASTStruct<'a> {
     pub name: &'a str,
     pub string_rule: bool,
     pub fields: Vec<ASTStructField<'a>>,
+}
+
+impl ASTStruct<'_> {
+    pub fn is_overridden(&self) -> bool {
+        self.fields.len() == 1 && self.fields[0].name == "@"
+    }
 }
 
 struct ExtractedFieldParams<'a> {
@@ -291,10 +298,6 @@ pub fn extract_ast_structs(grammar: &Grammar) -> Result<Vec<ASTStruct>> {
     Ok(result)
 }
 
-fn quick_ident(s: &str) -> Ident {
-    Ident::new(s, Span::call_site())
-}
-
 fn generate_enum_type_name(struct_name: &str, field_name: &str) -> String {
     format!(
         "{}_{}",
@@ -313,7 +316,7 @@ fn generate_enum_type(struct_name: &str, field: &ASTStructField) -> TokenStream 
     )
 }
 
-fn generate_field_type(struct_name: &str, field: &ASTStructField) -> TokenStream {
+pub fn generate_field_type(struct_name: &str, field: &ASTStructField) -> TokenStream {
     let field_inner_type_ident = quick_ident(&if field.type_names.len() > 1 {
         generate_enum_type_name(struct_name, field.name)
     } else {
@@ -360,10 +363,10 @@ fn generate_single_type(ast_struct: &ASTStruct) -> Result<TokenStream> {
     }
     if ast_struct.fields.is_empty() {
         return Ok(quote!(
-            pub type #struct_ident = ();
+            pub struct #struct_ident;
         ));
     };
-    if ast_struct.fields.len() == 1 && ast_struct.fields[0].name == "@" {
+    if ast_struct.is_overridden() {
         let struct_type = generate_field_type(struct_name, &ast_struct.fields[0]);
         return Ok(quote!(
             #(#enum_types)*

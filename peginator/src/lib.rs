@@ -7,6 +7,8 @@ pub mod grammar;
 
 pub mod codegen;
 
+pub mod runtime;
+
 use quote::quote;
 
 use proc_macro2::TokenStream;
