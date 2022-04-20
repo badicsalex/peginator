@@ -5,7 +5,7 @@
 #[allow(dead_code)]
 pub mod grammar;
 
-pub mod generator;
+pub mod codegen;
 
 use quote::quote;
 

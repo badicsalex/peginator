@@ -15,24 +15,24 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
 #[derive(Debug)]
-enum Arity {
+pub enum Arity {
     One,
     Optional,
     Multiple,
 }
 
 #[derive(Debug)]
-struct ASTStructField<'a> {
-    name: &'a str,
-    type_names: Vec<&'a str>,
-    arity: Arity,
-    boxed: bool,
+pub struct ASTStructField<'a> {
+    pub name: &'a str,
+    pub type_names: Vec<&'a str>,
+    pub arity: Arity,
+    pub boxed: bool,
 }
 
-struct ASTStruct<'a> {
-    name: &'a str,
-    string_rule: bool,
-    fields: Vec<ASTStructField<'a>>,
+pub struct ASTStruct<'a> {
+    pub name: &'a str,
+    pub string_rule: bool,
+    pub fields: Vec<ASTStructField<'a>>,
 }
 
 struct ExtractedFieldParams<'a> {
@@ -247,7 +247,7 @@ fn fields_that_have_cycles(
     Ok(result)
 }
 
-fn extract_ast_structs(grammar: &Grammar) -> Result<Vec<ASTStruct>> {
+pub fn extract_ast_structs(grammar: &Grammar) -> Result<Vec<ASTStruct>> {
     let mut result = Vec::<ASTStruct>::new();
     for rule in &grammar.rules {
         // Big big TODO once we have more directives
@@ -398,16 +398,10 @@ fn generate_single_type(ast_struct: &ASTStruct) -> Result<TokenStream> {
     ))
 }
 
-pub fn lets_debug(grammar: &Grammar) -> Result<()> {
-    let ast_structs = extract_ast_structs(grammar)?;
-    for ast_struct in &ast_structs {
-        println!("{}:", ast_struct.name);
-        println!("{:?}", ast_struct.fields);
-        println!();
+pub fn generate_types(ast_structs: &[ASTStruct]) -> Result<TokenStream> {
+    let mut result = TokenStream::new();
+    for ast_struct in ast_structs {
+        result.extend(generate_single_type(ast_struct)?);
     }
-    for ast_struct in &ast_structs {
-        println!("{}", generate_single_type(ast_struct)?);
-        println!();
-    }
-    Ok(())
+    Ok(result)
 }
