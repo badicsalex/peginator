@@ -20,12 +20,12 @@ NegativeLookahead = "!" expr:DelimitedExpression;
 
 CharacterRange = from:CharacterLiteral ".." to:CharacterLiteral;
 
-CharacterLiteral = "'" @:ANY_CHARACTER "'"
+CharacterLiteral = "'" @:char "'"
 
 StringLiteral = '"' body:StringLiteralBody '"';
 
 @string
-StringLiteralBody = { "\\\"" | !'"' ANY_CHARACTER };
+StringLiteralBody = { "\\\"" | !'"' char };
 
 OverrideField = "@" ":" typ:Identifier;
 
@@ -37,7 +37,7 @@ DelimitedExpression =
     @:Closure |
     @:NegativeLookahead |
     @:CharacterRange |
-    @:Character |
+    @:CharacterLiteral |
     @:StringLiteral |
     @:OverrideField |
     @:Field
@@ -67,10 +67,10 @@ pub struct Choice {
 }
 
 pub struct Sequence {
-    pub parts: Vec<DetailedExpression>,
+    pub parts: Vec<DelimitedExpression>,
 }
 
-pub enum DetailedExpression {
+pub enum DelimitedExpression {
     Group(Group),
     ClosureAtLeastOne(ClosureAtLeastOne),
     Closure(Closure),
@@ -84,15 +84,15 @@ pub enum DetailedExpression {
 
 macro_rules! detailed_expression_helper {
     ($TheType:ident) => {
-        impl From<$TheType> for DetailedExpression {
+        impl From<$TheType> for DelimitedExpression {
             fn from(v: $TheType) -> Self {
-                DetailedExpression::$TheType(v)
+                DelimitedExpression::$TheType(v)
             }
         }
 
-        impl From<$TheType> for Vec<DetailedExpression> {
+        impl From<$TheType> for Vec<DelimitedExpression> {
             fn from(v: $TheType) -> Self {
-                vec![DetailedExpression::$TheType(v)]
+                vec![DelimitedExpression::$TheType(v)]
             }
         }
     };
@@ -107,9 +107,9 @@ detailed_expression_helper!(StringLiteral);
 detailed_expression_helper!(OverrideField);
 detailed_expression_helper!(Field);
 
-impl From<CharacterLiteral> for DetailedExpression {
+impl From<CharacterLiteral> for DelimitedExpression {
     fn from(v: CharacterLiteral) -> Self {
-        DetailedExpression::CharacterLiteral(v)
+        DelimitedExpression::CharacterLiteral(v)
     }
 }
 pub struct Group {
@@ -125,7 +125,7 @@ pub struct Closure {
 }
 
 pub struct NegativeLookahead {
-    pub expr: Box<DetailedExpression>,
+    pub expr: Box<DelimitedExpression>,
 }
 
 pub struct CharacterRange {
@@ -156,13 +156,13 @@ pub type Directive = StringDirective;
 
 pub struct StringDirective {}
 
-fn simple_sequence(parts: Vec<DetailedExpression>) -> Choice {
+fn simple_sequence(parts: Vec<DelimitedExpression>) -> Choice {
     Choice {
         choices: vec![Sequence { parts }],
     }
 }
 
-fn simple_rule(name: &str, parts: Vec<DetailedExpression>) -> Rule {
+fn simple_rule(name: &str, parts: Vec<DelimitedExpression>) -> Rule {
     Rule {
         directives: vec![],
         name: name.into(),
@@ -170,7 +170,7 @@ fn simple_rule(name: &str, parts: Vec<DetailedExpression>) -> Rule {
     }
 }
 
-fn field(name: &str, typ: &str) -> DetailedExpression {
+fn field(name: &str, typ: &str) -> DelimitedExpression {
     Field {
         name: Some(name.into()),
         typ: typ.into(),
@@ -262,15 +262,11 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                     field("to", "CharacterLiteral"),
                 ],
             ),
-            simple_rule("Character", vec![field("chr", "CharacterLiteral")]),
             simple_rule(
                 "CharacterLiteral",
                 vec![
                     StringLiteral { body: "'".into() }.into(),
-                    OverrideField {
-                        typ: "ANY_CHARACTER".into(),
-                    }
-                    .into(),
+                    OverrideField { typ: "char".into() }.into(),
                     StringLiteral { body: "'".into() }.into(),
                 ],
             ),
@@ -300,7 +296,7 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                                             .into(),
                                             Field {
                                                 name: None,
-                                                typ: "ANY_CHARACTER".into(),
+                                                typ: "char".into(),
                                             }
                                             .into(),
                                         ],
@@ -377,7 +373,7 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                         },
                         Sequence {
                             parts: OverrideField {
-                                typ: "Character".into(),
+                                typ: "CharacterLiteral".into(),
                             }
                             .into(),
                         },

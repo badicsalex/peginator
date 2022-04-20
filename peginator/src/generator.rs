@@ -5,13 +5,13 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::grammar::{
-    Choice, Closure, ClosureAtLeastOne, DetailedExpression, Field, Grammar, Group, OverrideField,
-    Rule, Sequence,
+    Choice, Closure, ClosureAtLeastOne, DelimitedExpression, Field, Grammar, Group, OverrideField,
+    Sequence, StringDirective,
 };
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
 #[derive(Debug)]
@@ -31,6 +31,7 @@ struct ASTStructField<'a> {
 
 struct ASTStruct<'a> {
     name: &'a str,
+    string_rule: bool,
     fields: Vec<ASTStructField<'a>>,
 }
 
@@ -107,18 +108,18 @@ impl FieldExtractor for Sequence {
     }
 }
 
-impl FieldExtractor for DetailedExpression {
+impl FieldExtractor for DelimitedExpression {
     fn extract_fields(&self) -> Result<ExtractedFields> {
         match self {
-            DetailedExpression::Group(e) => e.extract_fields(),
-            DetailedExpression::ClosureAtLeastOne(e) => e.extract_fields(),
-            DetailedExpression::Closure(e) => e.extract_fields(),
-            DetailedExpression::NegativeLookahead(_) => Ok(ExtractedFields::new()),
-            DetailedExpression::CharacterRange(_) => Ok(ExtractedFields::new()),
-            DetailedExpression::CharacterLiteral(_) => Ok(ExtractedFields::new()),
-            DetailedExpression::StringLiteral(_) => Ok(ExtractedFields::new()),
-            DetailedExpression::OverrideField(e) => e.extract_fields(),
-            DetailedExpression::Field(e) => e.extract_fields(),
+            DelimitedExpression::Group(e) => e.extract_fields(),
+            DelimitedExpression::ClosureAtLeastOne(e) => e.extract_fields(),
+            DelimitedExpression::Closure(e) => e.extract_fields(),
+            DelimitedExpression::NegativeLookahead(_) => Ok(ExtractedFields::new()),
+            DelimitedExpression::CharacterRange(_) => Ok(ExtractedFields::new()),
+            DelimitedExpression::CharacterLiteral(_) => Ok(ExtractedFields::new()),
+            DelimitedExpression::StringLiteral(_) => Ok(ExtractedFields::new()),
+            DelimitedExpression::OverrideField(e) => e.extract_fields(),
+            DelimitedExpression::Field(e) => e.extract_fields(),
         }
     }
 }
@@ -182,7 +183,7 @@ fn has_type_cycle<'a>(
     all_ast_structs: &'a Vec<ASTStruct>,
     visited_ast_structs: &mut HashSet<&'a str>,
 ) -> Result<bool> {
-    if current_ast_struct_name == "ANY_CHARACTER" {
+    if current_ast_struct_name == "char" {
         return Ok(false);
     }
     let current_ast_struct = all_ast_structs
@@ -246,9 +247,12 @@ fn fields_that_have_cycles(
     Ok(result)
 }
 
-fn generate_field_descriptors(grammar: &Grammar) -> Result<Vec<ASTStruct>> {
+fn extract_ast_structs(grammar: &Grammar) -> Result<Vec<ASTStruct>> {
     let mut result = Vec::<ASTStruct>::new();
     for rule in &grammar.rules {
+        // Big big TODO once we have more directives
+        let _check_directives_type: &Vec<StringDirective> = &rule.directives;
+        let string_rule = !rule.directives.is_empty();
         let mut fields: Vec<ASTStructField> = rule
             .definition
             .extract_fields()?
@@ -267,6 +271,7 @@ fn generate_field_descriptors(grammar: &Grammar) -> Result<Vec<ASTStruct>> {
         fields.sort_unstable_by_key(|f| f.name);
         result.push(ASTStruct {
             name: &rule.name,
+            string_rule,
             fields,
         });
     }
@@ -286,27 +291,123 @@ fn generate_field_descriptors(grammar: &Grammar) -> Result<Vec<ASTStruct>> {
     Ok(result)
 }
 
+fn quick_ident(s: &str) -> Ident {
+    Ident::new(s, Span::call_site())
+}
+
+fn generate_enum_type_name(struct_name: &str, field_name: &str) -> String {
+    format!(
+        "{}_{}",
+        struct_name,
+        if field_name == "@" { "imp" } else { field_name }
+    )
+}
+
+fn generate_enum_type(struct_name: &str, field: &ASTStructField) -> TokenStream {
+    let ident = quick_ident(&generate_enum_type_name(struct_name, field.name));
+    let type_idents: Vec<Ident> = field.type_names.iter().map(|n| quick_ident(n)).collect();
+    quote!(
+        pub enum #ident {
+            #(#type_idents(#type_idents),)*
+        }
+    )
+}
+
+fn generate_field_type(struct_name: &str, field: &ASTStructField) -> TokenStream {
+    let field_inner_type_ident = quick_ident(&if field.type_names.len() > 1 {
+        generate_enum_type_name(struct_name, field.name)
+    } else {
+        field.type_names[0].to_string()
+    });
+    match field.arity {
+        Arity::One => {
+            if field.boxed {
+                quote!(Box<#field_inner_type_ident>)
+            } else {
+                quote!(#field_inner_type_ident)
+            }
+        }
+        Arity::Optional => {
+            if field.boxed {
+                quote!(Option<Box<#field_inner_type_ident>>)
+            } else {
+                quote!(Option<#field_inner_type_ident>)
+            }
+        }
+        Arity::Multiple => quote!(Vec<#field_inner_type_ident>),
+    }
+}
+
+fn generate_single_type(ast_struct: &ASTStruct) -> Result<TokenStream> {
+    let struct_name = ast_struct.name;
+    let struct_ident = Ident::new(struct_name, Span::call_site());
+    let enum_types: Vec<TokenStream> = ast_struct
+        .fields
+        .iter()
+        .map(|f| {
+            if f.type_names.len() < 2 {
+                TokenStream::new()
+            } else {
+                generate_enum_type(struct_name, f)
+            }
+        })
+        .collect();
+
+    if ast_struct.string_rule {
+        return Ok(quote!(
+            pub type #struct_ident = String;
+        ));
+    }
+    if ast_struct.fields.is_empty() {
+        return Ok(quote!(
+            pub type #struct_ident = ();
+        ));
+    };
+    if ast_struct.fields.len() == 1 && ast_struct.fields[0].name == "@" {
+        let struct_type = generate_field_type(struct_name, &ast_struct.fields[0]);
+        return Ok(quote!(
+            #(#enum_types)*
+            pub type #struct_ident = #struct_type;
+        ));
+    };
+    if ast_struct.fields.iter().any(|f| f.name == "@") {
+        bail!(
+            "Problem with {}: both normal and '@' definitions",
+            struct_name
+        )
+    }
+    for field in &ast_struct.fields {
+        if field.type_names.len() > 2 {}
+    }
+
+    let field_names: Vec<Ident> = ast_struct
+        .fields
+        .iter()
+        .map(|f| Ident::new(f.name, Span::call_site()))
+        .collect();
+    let field_types: Vec<TokenStream> = ast_struct
+        .fields
+        .iter()
+        .map(|f| generate_field_type(struct_name, f))
+        .collect();
+    Ok(quote!(
+        #(#enum_types)*
+        pub struct #struct_ident {
+            #( #field_names: #field_types, )*
+        }
+    ))
+}
+
 pub fn lets_debug(grammar: &Grammar) -> Result<()> {
-    for parsed_rule in generate_field_descriptors(grammar)? {
-        println!("{}:", parsed_rule.name);
-        println!("{:?}", parsed_rule.fields);
+    let ast_structs = extract_ast_structs(grammar)?;
+    for ast_struct in &ast_structs {
+        println!("{}:", ast_struct.name);
+        println!("{:?}", ast_struct.fields);
+        println!();
+    }
+    for ast_struct in &ast_structs {
+        println!("{}", generate_single_type(ast_struct)?);
         println!();
     }
     Ok(())
-}
-
-fn generate_single_type(rule: &Rule) -> Result<TokenStream> {
-    let struct_name = &rule.name;
-    let fields = rule.definition.extract_fields()?;
-    let result = quote!(
-        pub struct #struct_name;
-    );
-    Ok(result)
-}
-fn generate_types(grammar: &Grammar) -> Result<TokenStream> {
-    let mut result = TokenStream::new();
-    for rule in &grammar.rules {
-        result.extend(generate_single_type(rule)?)
-    }
-    Ok(result)
 }
