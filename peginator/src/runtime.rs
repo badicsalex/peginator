@@ -39,34 +39,3 @@ impl ParseState<'_> {
 }
 
 pub type ParseResult<'a, T> = Result<(T, ParseState<'a>), ParseError>;
-pub type InnerParseResult<'a> = Result<ParseState<'a>, ParseError>;
-pub type PossibleParseError = Result<(), ParseError>;
-
-pub struct Builtins;
-
-impl Builtins {
-    pub fn start_choice() -> Builtins {
-        Builtins
-    }
-    pub fn start_sequence() -> Builtins {
-        Builtins
-    }
-    pub fn choice<'a, F: FnOnce() -> InnerParseResult<'a>>(f: F) -> Builtins {
-        Builtins
-    }
-    pub fn part<'a, F: FnOnce() -> InnerParseResult<'a>>(f: F) -> Builtins {
-        Builtins
-    }
-    pub fn negative_lookahead<'a, F: FnOnce() -> InnerParseResult<'a>>(f: F) -> Builtins {
-        Builtins
-    }
-    pub fn closure<'a, F: FnOnce() -> InnerParseResult<'a>>(f: F) -> Builtins {
-        Builtins
-    }
-    pub fn closure_plus<'a, F: FnOnce() -> InnerParseResult<'a>>(f: F) -> Builtins {
-        Builtins
-    }
-    pub fn end() -> Builtins {
-        Builtins
-    }
-}

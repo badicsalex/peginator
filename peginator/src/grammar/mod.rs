@@ -16,7 +16,7 @@ Group = "(" body:Choice ")";
 ClosureAtLeastOne = "{" body:Choice "}+";
 Closure = "{" body:Choice "}";
 
-NegativeLookahead = "!" expr:DelimitedExpression;
+NegativeLookahead = "!" expr:*DelimitedExpression;
 
 CharacterRange = from:CharacterLiteral ".." to:CharacterLiteral;
 
@@ -29,7 +29,9 @@ StringLiteralBody = { "\\\"" | !'"' char };
 
 OverrideField = "@" ":" typ:Identifier;
 
-Field = (name:Identifier ":" | ) typ:Identifier;
+Field = (name:Identifier ":" (boxed:BoxMarker |)| ) typ:Identifier;
+
+BoxMarker = '*';
 
 DelimitedExpression =
     @:Group |
@@ -52,6 +54,8 @@ StringDirective = "@string";
 
 */
 
+//#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
 mod test;
 
 pub struct Grammar {
@@ -149,8 +153,11 @@ pub struct OverrideField {
 
 pub struct Field {
     pub name: Option<Identifier>,
+    pub boxed: Option<BoxMarker>,
     pub typ: Identifier,
 }
+
+pub struct BoxMarker;
 
 pub type Identifier = String;
 
@@ -175,6 +182,7 @@ fn simple_rule(name: &str, parts: Vec<DelimitedExpression>) -> Rule {
 fn field(name: &str, typ: &str) -> DelimitedExpression {
     Field {
         name: Some(name.into()),
+        boxed: None,
         typ: typ.into(),
     }
     .into()
@@ -253,7 +261,12 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                 "NegativeLookahead",
                 vec![
                     StringLiteral { body: "!".into() }.into(),
-                    field("expr", "DelimitedExpression"),
+                    Field {
+                        name: Some("expr".into()),
+                        boxed: Some(BoxMarker),
+                        typ: "DelimitedExpression".into(),
+                    }
+                    .into(),
                 ],
             ),
             simple_rule(
@@ -298,6 +311,7 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                                             .into(),
                                             Field {
                                                 name: None,
+                                                boxed: None,
                                                 typ: "char".into(),
                                             }
                                             .into(),
@@ -319,7 +333,18 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                                 Sequence {
                                     parts: vec![
                                         field("name", "Identifier"),
-                                        StringLiteral { body: "@".into() }.into(),
+                                        StringLiteral { body: ":".into() }.into(),
+                                        Group {
+                                            body: Choice {
+                                                choices: vec![
+                                                    Sequence {
+                                                        parts: vec![field("boxed", "BoxMarker")],
+                                                    },
+                                                    Sequence { parts: vec![] },
+                                                ],
+                                            },
+                                        }
+                                        .into(),
                                     ],
                                 },
                                 Sequence { parts: vec![] },
@@ -330,6 +355,7 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                     field("typ", "Identifier"),
                 ],
             ),
+            simple_rule("BoxMarker", vec!['*'.into()]),
             simple_rule(
                 "OverrideField",
                 vec![
