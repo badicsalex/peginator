@@ -2,13 +2,12 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use peginator::grammar::test::parse_Grammar;
-use peginator::grammar::GRAMMAR;
-use peginator::runtime::ParseState;
+use peginator::codegen::lets_debug;
+use peginator::grammar::bootstrap_parsinator_grammar;
 
 use anyhow::Result;
 
 fn main() -> Result<()> {
-    println!("{:#?}", parse_Grammar(ParseState::new(GRAMMAR))?.0);
+    lets_debug(&bootstrap_parsinator_grammar())?;
     Ok(())
 }
