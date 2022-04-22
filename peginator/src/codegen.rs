@@ -64,23 +64,30 @@ impl CodegenOuter for Rule {
             skip_whitespace,
         };
 
+        let name = &self.name;
         let rule_mod = format_ident!("{}_impl", self.name);
         let rule_type = format_ident!("{}", self.name);
         let parser_name = format_ident!("parse_{}", self.name);
         let runtime_prefix = &settings.runtime_prefix;
         let choice_body = self.definition.generate_code(&settings)?;
         let fields = self.definition.get_fields()?;
+        let outer_parser = quote!(
+            pub fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
+                run_rule_parser(#rule_mod::rule_parser, #name, state)
+            }
+        );
         if string_flag {
             Ok(quote!(
                 mod #rule_mod{
                     use #runtime_prefix *;
                     #choice_body
+                    pub fn rule_parser (state: ParseState) -> ParseResult<String> {
+                        let (_, new_state) = parse(state.clone())?;
+                        Ok((state.slice_until(&new_state).to_string(), new_state))
+                    }
                 }
                 pub type #rule_type = String;
-                pub fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
-                    let (_, new_state) = #rule_mod::parse(state.clone())?;
-                    Ok((state.slice_until(&new_state).to_string(), new_state))
-                }
+                #outer_parser
             ))
         } else if fields.len() == 1 && fields[0].name == "_override" {
             let override_type = generate_field_type(&fields[0], &settings);
@@ -90,21 +97,25 @@ impl CodegenOuter for Rule {
                     #choice_body
                     // Inside here, because an enum might need to be exported
                     pub type OverrideType = #override_type;
+                    pub fn rule_parser (state: ParseState) -> ParseResult<OverrideType> {
+                        let (result, new_state) = parse(state)?;
+                        Ok((result._override, new_state))
+                    }
                 }
                 pub use #rule_mod::OverrideType as #rule_type;
-                pub fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
-                    let (result, new_state) = #rule_mod::parse(state)?;
-                    Ok((result._override, new_state))
-                }
+                #outer_parser
             ))
         } else {
             Ok(quote!(
                 mod #rule_mod{
                     use #runtime_prefix *;
                     #choice_body
+                    pub fn rule_parser (state: ParseState) -> ParseResult<Parsed> {
+                        parse(state)
+                    }
                 }
                 pub use #rule_mod::Parsed as #rule_type;
-                pub use #rule_mod::parse as #parser_name;
+                #outer_parser
             ))
         }
     }

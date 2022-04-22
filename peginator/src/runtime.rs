@@ -19,6 +19,7 @@ impl Error for ParseError {}
 pub struct ParseState<'a> {
     full_string: &'a str,
     start_index: usize,
+    pub indentation_level: usize,
 }
 
 impl<'a> ParseState<'a> {
@@ -26,6 +27,7 @@ impl<'a> ParseState<'a> {
         Self {
             full_string: s,
             start_index: 0,
+            indentation_level: 0,
         }
     }
     pub fn s(&self) -> &str {
@@ -40,6 +42,7 @@ impl<'a> ParseState<'a> {
         Self {
             full_string: self.full_string,
             start_index: self.start_index + length,
+            indentation_level: self.indentation_level,
         }
     }
     pub fn slice_until(&self, other: &ParseState) -> &str {
@@ -55,6 +58,20 @@ impl<'a> ParseState<'a> {
             }
         }
         result
+    }
+    pub fn indent(self) -> Self {
+        Self {
+            full_string: self.full_string,
+            start_index: self.start_index,
+            indentation_level: self.indentation_level + 1,
+        }
+    }
+    pub fn dedent(self) -> Self {
+        Self {
+            full_string: self.full_string,
+            start_index: self.start_index,
+            indentation_level: self.indentation_level - 1,
+        }
     }
 }
 
@@ -89,4 +106,28 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
     } else {
         Ok(((), state.advance(result.len_utf8())))
     }
+}
+
+pub fn run_rule_parser<'a, T, F>(
+    f: F,
+    name: &'static str,
+    state: ParseState<'a>,
+) -> ParseResult<'a, T>
+where
+    F: Fn(ParseState) -> ParseResult<T>,
+{
+    let indentation = "    ".repeat(state.indentation_level);
+    println!("{}Running rule {}", indentation, name);
+    println!(
+        "{}{:?}",
+        indentation,
+        &state.s().chars().take(50).collect::<String>()
+    );
+    let result = f(state.indent());
+    if result.is_ok() {
+        println!("{}Ok", indentation)
+    } else {
+        println!("{}Err", indentation)
+    }
+    result.map(|(result, state)| (result, state.dedent()))
 }
