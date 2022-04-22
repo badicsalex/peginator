@@ -49,7 +49,7 @@ DelimitedExpression =
 
 @string
 @no_skip_ws
-Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9'}+;
+Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9' | '_'}+;
 
 DirectiveExpression = @:StringDirective | @:NoSkipWsDirective;
 StringDirective = "@string";
@@ -454,6 +454,9 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                                     },
                                     Sequence {
                                         parts: CharacterRange { from: '0', to: '9' }.into(),
+                                    },
+                                    Sequence {
+                                        parts: vec!['_'.into()],
                                     },
                                 ],
                             },
