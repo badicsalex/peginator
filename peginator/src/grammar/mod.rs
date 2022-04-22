@@ -10,7 +10,7 @@ Rule = {directives:Directive} name:Identifier "=" definition:Choice;
 
 Choice = choices:Sequence {"|" choices:Sequence};
 
-Sequence = { parts:DelimitedExpression }+;
+Sequence = { parts:DelimitedExpression };
 
 Group = "(" body:Choice ")";
 
@@ -236,7 +236,7 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                 "Sequence",
                 Closure {
                     body: simple_sequence(vec![field("parts", "DelimitedExpression")]),
-                    at_least_one: Some(AtLeastOneMarker),
+                    at_least_one: None,
                 }
                 .into(),
             ),
