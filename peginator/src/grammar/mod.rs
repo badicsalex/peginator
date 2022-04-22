@@ -15,7 +15,7 @@ Sequence = { parts:DelimitedExpression }+;
 Group = "(" body:Choice ")";
 
 Closure = "{" body:Choice "}" (at_least_one:AtLeastOneMarker|);
-AtLeastOneMarker = "+"
+AtLeastOneMarker = "+";
 
 NegativeLookahead = "!" expr:*DelimitedExpression;
 
