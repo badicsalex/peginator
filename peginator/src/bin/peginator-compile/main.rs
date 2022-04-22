@@ -2,7 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use peginator::grammar::test::parse_Grammar;
+use peginator::grammar::parse_Grammar;
 use peginator::grammar::GRAMMAR;
 use peginator::runtime::ParseState;
 

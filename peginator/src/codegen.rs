@@ -821,7 +821,7 @@ impl Codegen for Field {
 
 pub fn lets_debug(grammar: &Grammar) -> Result<()> {
     let settings = CodegenSettings {
-        grammar_module_prefix: quote!(crate::grammar::test::),
+        grammar_module_prefix: quote!(crate::grammar::generated::),
         runtime_prefix: quote!(crate::runtime::),
         skip_whitespace: true,
     };

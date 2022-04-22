@@ -117,17 +117,17 @@ where
     F: Fn(ParseState) -> ParseResult<T>,
 {
     let indentation = "    ".repeat(state.indentation_level);
-    println!("{}Running rule {}", indentation, name);
+    /*println!("{}Running rule {}", indentation, name);
     println!(
         "{}{:?}",
         indentation,
         &state.s().chars().take(50).collect::<String>()
-    );
+    );*/
     let result = f(state.indent());
     if result.is_ok() {
-        println!("{}Ok", indentation)
+        // println!("{}Ok", indentation)
     } else {
-        println!("{}Err", indentation)
+        // println!("{}Err", indentation)
     }
     result.map(|(result, state)| (result, state.dedent()))
 }
