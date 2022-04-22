@@ -40,9 +40,8 @@ impl<'a> ParseState<'a> {
 
     pub fn advance(self, length: usize) -> Self {
         Self {
-            full_string: self.full_string,
             start_index: self.start_index + length,
-            indentation_level: self.indentation_level,
+            ..self
         }
     }
     pub fn slice_until(&self, other: &ParseState) -> &str {
@@ -61,16 +60,14 @@ impl<'a> ParseState<'a> {
     }
     pub fn indent(self) -> Self {
         Self {
-            full_string: self.full_string,
-            start_index: self.start_index,
             indentation_level: self.indentation_level + 1,
+            ..self
         }
     }
     pub fn dedent(self) -> Self {
         Self {
-            full_string: self.full_string,
-            start_index: self.start_index,
             indentation_level: self.indentation_level - 1,
+            ..self
         }
     }
 }
