@@ -2,6 +2,8 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use std::error::Error;
+
 #[derive(Debug)]
 pub struct ParseError;
 
@@ -11,13 +13,21 @@ impl std::fmt::Display for ParseError {
     }
 }
 
+impl Error for ParseError {}
+
 #[derive(Debug, Clone)]
 pub struct ParseState<'a> {
     full_string: &'a str,
     start_index: usize,
 }
 
-impl ParseState<'_> {
+impl<'a> ParseState<'a> {
+    pub fn new(s: &'a str) -> ParseState<'a> {
+        Self {
+            full_string: s,
+            start_index: 0,
+        }
+    }
     pub fn s(&self) -> &str {
         &self.full_string[self.start_index..]
     }
@@ -32,34 +42,51 @@ impl ParseState<'_> {
             start_index: self.start_index + length,
         }
     }
+    pub fn slice_until(&self, other: &ParseState) -> &str {
+        &self.full_string[self.start_index..other.start_index]
+    }
+    pub fn skip_whitespace(self) -> Self {
+        let mut result = self;
+        while let Some(ch) = result.s().chars().next() {
+            if ch.is_whitespace() {
+                result.start_index += ch.len_utf8();
+            } else {
+                break;
+            }
+        }
+        result
+    }
 }
 
 pub type ParseResult<'a, T> = Result<(T, ParseState<'a>), ParseError>;
 
-pub fn parse_char<'a>(state: ParseState<'a>) -> ParseResult<'a, char> {
-    todo!()
+pub fn parse_char(state: ParseState) -> ParseResult<char> {
+    let result = state.s().chars().next().ok_or(ParseError)?;
+    Ok((result, state.advance(result.len_utf8())))
 }
 
-pub fn parse_string_literal<'a>(state: ParseState<'a>, str: &str) -> ParseResult<'a, ()> {
-    todo!();
+pub fn parse_string_literal<'a>(state: ParseState<'a>, s: &str) -> ParseResult<'a, ()> {
+    if !state.s().starts_with(s) {
+        Err(ParseError)
+    } else {
+        Ok(((), state.advance(s.len())))
+    }
 }
 
-pub fn parse_character_literal<'a>(state: ParseState<'a>, c: char) -> ParseResult<'a, ()> {
-    todo!();
+pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
+    let result = state.s().chars().next().ok_or(ParseError)?;
+    if result != c {
+        Err(ParseError)
+    } else {
+        Ok(((), state.advance(result.len_utf8())))
+    }
 }
 
-pub fn parse_character_range<'a>(
-    state: ParseState<'a>,
-    from: char,
-    to: char,
-) -> ParseResult<'a, ()> {
-    todo!();
-}
-
-pub fn parse_closure<'a, T, F: Fn(ParseState) -> ParseResult<T>>(
-    state: ParseState<'a>,
-    closure: F,
-    min_num: i64,
-) -> ParseResult<'a, Vec<T>> {
-    todo!();
+pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseResult<()> {
+    let result = state.s().chars().next().ok_or(ParseError)?;
+    if result < from || result > to {
+        Err(ParseError)
+    } else {
+        Ok(((), state.advance(result.len_utf8())))
+    }
 }

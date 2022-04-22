@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 
 use crate::grammar::*;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote};
 
@@ -17,6 +17,7 @@ fn quick_ident(s: &str) -> Ident {
 struct CodegenSettings {
     grammar_module_prefix: TokenStream,
     runtime_prefix: TokenStream,
+    skip_whitespace: bool,
 }
 
 #[derive(Debug)]
@@ -48,19 +49,64 @@ impl CodegenOuter for Grammar {
 }
 impl CodegenOuter for Rule {
     fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+        let mut string_flag = false;
+        let mut skip_whitespace = settings.skip_whitespace;
+        for directive in &self.directives {
+            match directive {
+                DirectiveExpression::StringDirective(_) => string_flag = true,
+                DirectiveExpression::NoSkipWsDirective(_) => skip_whitespace = false,
+            }
+        }
+
+        let settings = CodegenSettings {
+            grammar_module_prefix: settings.grammar_module_prefix.clone(),
+            runtime_prefix: settings.runtime_prefix.clone(),
+            skip_whitespace,
+        };
+
         let rule_mod = format_ident!("{}_impl", self.name);
         let rule_type = format_ident!("{}", self.name);
         let parser_name = format_ident!("parse_{}", self.name);
         let runtime_prefix = &settings.runtime_prefix;
-        let choice_body = self.definition.generate_code(settings)?;
-        Ok(quote!(
-            mod #rule_mod{
-                use #runtime_prefix *;
-                #choice_body
-            }
-            pub use #rule_mod::Parsed as #rule_type;
-            pub use #rule_mod::parse as #parser_name;
-        ))
+        let choice_body = self.definition.generate_code(&settings)?;
+        let fields = self.definition.get_fields()?;
+        if string_flag {
+            Ok(quote!(
+                mod #rule_mod{
+                    use #runtime_prefix *;
+                    #choice_body
+                }
+                pub type #rule_type = String;
+                pub fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
+                    let (_, new_state) = #rule_mod::parse(state.clone())?;
+                    Ok((state.slice_until(&new_state).to_string(), new_state))
+                }
+            ))
+        } else if fields.len() == 1 && fields[0].name == "_override" {
+            let override_type = generate_field_type(&fields[0], &settings);
+            Ok(quote!(
+                mod #rule_mod{
+                    use #runtime_prefix *;
+                    #choice_body
+                    // Inside here, because an enum might need to be exported
+                    pub type OverrideType = #override_type;
+                }
+                pub use #rule_mod::OverrideType as #rule_type;
+                pub fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
+                    let (result, new_state) = #rule_mod::parse(state)?;
+                    Ok((result._override, new_state))
+                }
+            ))
+        } else {
+            Ok(quote!(
+                mod #rule_mod{
+                    use #runtime_prefix *;
+                    #choice_body
+                }
+                pub use #rule_mod::Parsed as #rule_type;
+                pub use #rule_mod::parse as #parser_name;
+            ))
+        }
     }
 }
 
@@ -123,6 +169,7 @@ fn generate_enum_type(field: &FieldDescriptor, settings: &CodegenSettings) -> To
     let ident = format_ident!("E_{}", field.name);
     let type_idents: Vec<Ident> = field.type_names.iter().map(|n| quick_ident(n)).collect();
     quote!(
+        #[derive(Debug)]
         pub enum #ident {
             #(#type_idents(#prefix #type_idents),)*
         }
@@ -147,8 +194,9 @@ fn generate_parsed_struct_type(
             .map(|f| generate_field_type(f, settings))
             .collect();
         quote!(
+            #[derive(Debug)]
             pub struct Parsed {
-                #( #field_names: #field_types, )*
+                #( pub #field_names: #field_types, )*
             }
         )
     }
@@ -175,12 +223,10 @@ impl Codegen for Choice {
                 ))
             })
             .collect::<Result<TokenStream>>()?;
+        let parse_function = self.generate_parse_function(settings)?;
         Ok(quote!(
             #choice_bodies
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                // TODO
-                Err(ParseError)
-            }
+            #parse_function
         ))
     }
 
@@ -213,6 +259,116 @@ impl Codegen for Choice {
     }
 }
 
+impl Choice {
+    fn generate_parse_function(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+        let fields = self.get_fields()?;
+        let calls = self
+            .choices
+            .iter()
+            .enumerate()
+            .map(|(num, choice)| {
+                let choice_mod = format_ident!("choice_{}", num);
+                if fields.is_empty() {
+                    Ok(quote!(
+                        if let Ok((_, new_state)) = #choice_mod::parse(state.clone()) {
+                            return Ok(((), new_state));
+                        }
+                    ))
+                } else {
+                    let inner_fields = choice.get_fields()?;
+                    let field_assignments =
+                        Self::generate_field_assignments(&fields, &inner_fields);
+                    Ok(quote!(
+                        if let Ok((result, new_state)) = #choice_mod::parse(state.clone()) {
+                            return Ok((
+                                Parsed{
+                                    #field_assignments
+                                },
+                                new_state
+                            ));
+                        }
+                    ))
+                }
+            })
+            .collect::<Result<TokenStream>>()?;
+        Ok(quote!(
+            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                #calls
+                Err(ParseError)
+            }
+        ))
+    }
+
+    fn generate_field_assignments(
+        my_fields: &[FieldDescriptor],
+        inner_fields: &[FieldDescriptor],
+    ) -> TokenStream {
+        my_fields
+            .iter()
+            .map(|my_field| {
+                let name = format_ident!("{}", my_field.name);
+                let inner_field_opt = inner_fields.iter().find(|f| f.name == my_field.name);
+                let value =
+                    if let Some(inner_field) = inner_field_opt {
+                        let enum_converted = Self::generate_enum_conversion(my_field, inner_field);
+                        match (&my_field.arity, &inner_field.arity) {
+                            (Arity::One, Arity::One) => quote!(#enum_converted),
+                            (Arity::Optional, Arity::Optional) => quote!(#enum_converted),
+                            (Arity::Multiple, Arity::Multiple) => quote!(#enum_converted),
+                            (Arity::Optional, Arity::One) => quote!(Some(#enum_converted)),
+                            (Arity::Multiple, Arity::One) => quote!(vec![#enum_converted]),
+                            (Arity::Multiple, Arity::Optional) => quote!(
+                                // TODO: enum conversion
+                                if let Some(result_inner) = result.#name {
+                                    vec![result_inner]
+                                } else {
+                                    vec![]
+                                }),
+                            _ => panic!("Invalid Arity combination in choice inner => outer mapping")
+                        }
+                    } else {
+                        match my_field.arity {
+                            Arity::One => panic!("Not found Arity::One field in choice inner fields. This should never happen"),
+                            Arity::Optional => quote!(None),
+                            Arity::Multiple => quote!(Vec::new()),
+                        }
+                    };
+                quote!(#name: #value,)
+            })
+            .collect()
+    }
+
+    fn generate_enum_conversion(
+        my_field: &FieldDescriptor,
+        inner_field: &FieldDescriptor,
+    ) -> TokenStream {
+        let name = format_ident!("{}", my_field.name);
+        let enum_type = format_ident!("E_{}", my_field.name);
+        if my_field.type_names.len() < 2 {
+            quote!( result.#name)
+        } else if inner_field.type_names.len() < 2 {
+            let inner_type = format_ident!("{}", inner_field.type_names.iter().next().unwrap());
+            quote!(#enum_type::#inner_type(result.#name))
+        } else {
+            let matches: TokenStream = inner_field
+                .type_names
+                .iter()
+                .map(|type_name| {
+                    let type_ident = format_ident!("{}", type_name);
+                    quote!(
+                        #type_ident(a) => #enum_type::#type_ident(a),
+                    )
+                })
+                .collect();
+            quote!(
+                match result.#name {
+                    #matches
+                }
+            )
+        }
+    }
+}
+
 fn combine_arities_for_choice(left: &Arity, right: &Arity) -> Arity {
     match (left, right) {
         (Arity::One, Arity::One) => Arity::One,
@@ -230,7 +386,11 @@ fn combine_arities_for_choice(left: &Arity, right: &Arity) -> Arity {
 impl Codegen for Sequence {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         if self.parts.is_empty() {
-            return Ok(quote!());
+            return Ok(quote!(
+                pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                    Ok(((), state))
+                }
+            ));
         }
         if self.parts.len() < 2 {
             return self.parts[0].generate_code_spec(settings);
@@ -251,12 +411,10 @@ impl Codegen for Sequence {
                 ))
             })
             .collect::<Result<TokenStream>>()?;
+        let parse_function = self.generate_parse_function(settings)?;
         Ok(quote!(
             #part_bodies
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                // TODO
-                Err(ParseError)
-            }
+            #parse_function
         ))
     }
 
@@ -277,11 +435,101 @@ impl Codegen for Sequence {
     }
 }
 
+impl Sequence {
+    fn generate_parse_function(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+        let fields = self.get_fields()?;
+        let skip_ws = if settings.skip_whitespace {
+            quote!(let state = state.skip_whitespace();)
+        } else {
+            quote!()
+        };
+        let declarations: TokenStream = fields
+            .iter()
+            .map(|f| {
+                let typ = generate_field_type(f, settings);
+                let name_ident = format_ident!("{}", f.name);
+                match f.arity {
+                    Arity::One => quote!(),
+                    Arity::Optional => quote!(let mut #name_ident: #typ = None;),
+                    Arity::Multiple => quote!(let mut #name_ident: #typ = Vec::new();),
+                }
+            })
+            .collect();
+        let calls = self
+            .parts
+            .iter()
+            .enumerate()
+            .map(|(num, part)| {
+                let part_mod = format_ident!("part_{}", num);
+                let inner_fields = part.get_fields()?;
+                if inner_fields.is_empty() {
+                    Ok(quote!(
+                        #skip_ws
+                        let (_, state) =  #part_mod::parse(state)?;
+                    ))
+                } else {
+                    let field_assignments =
+                        Self::generate_field_assignments(&fields, &inner_fields);
+                    Ok(quote!(
+                        #skip_ws
+                        let (result, state) =  #part_mod::parse(state)?;
+                        #field_assignments
+                    ))
+                }
+            })
+            .collect::<Result<TokenStream>>()?;
+        let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
+        let parse_result = if fields.is_empty() {
+            quote!(())
+        } else {
+            quote!(Parsed{ #( #field_names,)* })
+        };
+        Ok(quote!(
+            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                #declarations
+                #calls
+                #skip_ws
+                Ok((#parse_result, state))
+            }
+        ))
+    }
+    fn generate_field_assignments(
+        my_fields: &[FieldDescriptor],
+        inner_fields: &[FieldDescriptor],
+    ) -> TokenStream {
+        inner_fields
+            .iter()
+            .map(|inner_field| {
+                let my_field = my_fields
+                    .iter()
+                    .find(|f| f.name == inner_field.name)
+                    .unwrap();
+                let name = format_ident!("{}", my_field.name);
+                // TODO: Enum conversion
+                match (&my_field.arity, &inner_field.arity) {
+                    (Arity::One, Arity::One) => quote!(let #name = result.#name;),
+                    (Arity::Optional, Arity::Optional) => quote!(#name = #name.or(result.#name);),
+                    (Arity::Multiple, Arity::Multiple) => quote!(#name.extend(result.#name);),
+                    (Arity::Optional, Arity::One) => quote!(#name = Some(result.#name);),
+                    (Arity::Multiple, Arity::One) => quote!(#name.push(result.#name);),
+                    (Arity::Multiple, Arity::Optional) => quote!(
+                        if let Some(result_inner) = result.#name {
+                            vec![result_inner]
+                        } else {
+                            vec![]
+                        }
+                    ),
+                    _ => panic!("Invalid Arity combination in sequence inner => outer mapping"),
+                }
+            })
+            .collect()
+    }
+}
+
 impl Codegen for DelimitedExpression {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         match self {
             DelimitedExpression::Group(a) => a.generate_code_spec(settings),
-            DelimitedExpression::ClosureAtLeastOne(a) => a.generate_code_spec(settings),
             DelimitedExpression::Closure(a) => a.generate_code_spec(settings),
             DelimitedExpression::NegativeLookahead(a) => a.generate_code_spec(settings),
             DelimitedExpression::CharacterRange(a) => a.generate_code_spec(settings),
@@ -295,7 +543,6 @@ impl Codegen for DelimitedExpression {
     fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
         match self {
             DelimitedExpression::Group(a) => a.get_fields(),
-            DelimitedExpression::ClosureAtLeastOne(a) => a.get_fields(),
             DelimitedExpression::Closure(a) => a.get_fields(),
             DelimitedExpression::NegativeLookahead(a) => a.get_fields(),
             DelimitedExpression::CharacterRange(a) => a.get_fields(),
@@ -321,37 +568,64 @@ impl Codegen for Closure {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let closure_body = self.body.generate_code(settings)?;
         let runtime_prefix = &settings.runtime_prefix;
+        let fields = self.get_fields()?;
+        let inner_fields = self.body.get_fields()?;
+        let declarations: TokenStream = fields
+            .iter()
+            .map(|f| {
+                let typ = generate_field_type(f, settings);
+                let name_ident = format_ident!("{}", f.name);
+                quote!(let mut #name_ident: #typ = Vec::new();)
+            })
+            .collect();
+        let assignments: TokenStream = inner_fields
+            .iter()
+            .map(|inner_field| {
+                let name = format_ident!("{}", inner_field.name);
+                // TODO: Enum conversion
+                match &inner_field.arity {
+                    Arity::One => quote!(#name.push(result.#name);),
+                    Arity::Optional => quote!(
+                        if let Some(result_inner) = result.#name {
+                            vec![result_inner]
+                        } else {
+                            vec![]
+                        }
+                    ),
+                    Arity::Multiple => quote!(#name.extend(result.#name);),
+                }
+            })
+            .collect();
+        let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
+        let parse_result = if fields.is_empty() {
+            quote!(())
+        } else {
+            quote!(Parsed{ #( #field_names,)* })
+        };
+        let at_least_one_body = if self.at_least_one.is_some() {
+            quote!(
+                let (result, new_state) = closure::parse(state)?;
+                #assignments
+                state = new_state;
+            )
+        } else {
+            quote!()
+        };
+
         Ok(quote!(
             mod closure{
                 use #runtime_prefix *;
                 #closure_body
             }
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                // TODO: turn the Vec<Parsed> inside-out
-                parse_closure(state, closure::parse, 1);
-                Err(ParseError)
-            }
-        ))
-    }
-
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
-        Ok(set_arity_to_multiple(self.body.get_fields()?))
-    }
-}
-
-impl Codegen for ClosureAtLeastOne {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let closure_body = self.body.generate_code(settings)?;
-        let runtime_prefix = &settings.runtime_prefix;
-        Ok(quote!(
-            mod closure{
-                use #runtime_prefix *;
-                #closure_body
-            }
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                // TODO: turn the Vec<Parsed> inside-out
-                parse_closure(state, closure::parse, 1);
-                Err(ParseError)
+                let mut state = state;
+                #declarations
+                #at_least_one_body
+                while let Ok((result, new_state)) = closure::parse(state.clone()) {
+                    #assignments
+                    state = new_state;
+                }
+                Ok((#parse_result, state))
             }
         ))
     }
@@ -476,7 +750,7 @@ impl Codegen for Field {
         let parser_name = format_ident!("parse_{}", self.typ);
         if let Some(field_name) = &self.name {
             let field_ident = format_ident!("{}", field_name);
-            let maybe_boxed = if (self.boxed.is_some()) {
+            let maybe_boxed = if self.boxed.is_some() {
                 quote!(#field_ident: Box::new(#field_ident))
             } else {
                 quote!(#field_ident)
@@ -515,7 +789,9 @@ pub fn lets_debug(grammar: &Grammar) -> Result<()> {
     let settings = CodegenSettings {
         grammar_module_prefix: quote!(crate::grammar::test::),
         runtime_prefix: quote!(crate::runtime::),
+        skip_whitespace: true,
     };
+    println!("use crate::runtime::*;");
     println!("{}", grammar.generate_code(&settings)?);
     Ok(())
 }

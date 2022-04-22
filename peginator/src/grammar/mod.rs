@@ -2,7 +2,8 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-/*
+pub const GRAMMAR: &str = r###"
+
 Grammar = {rules:Rule ";"} ;
 
 Rule = {directives:Directive} name:Identifier "=" definition:Choice;
@@ -13,8 +14,8 @@ Sequence = { parts:DelimitedExpression }+;
 
 Group = "(" body:Choice ")";
 
-ClosureAtLeastOne = "{" body:Choice "}+";
-Closure = "{" body:Choice "}";
+Closure = "{" body:Choice "}" (at_least_one:AtLeastOneMarker|);
+AtLeastOneMarker = "+"
 
 NegativeLookahead = "!" expr:*DelimitedExpression;
 
@@ -25,6 +26,7 @@ CharacterLiteral = "'" @:char "'"
 StringLiteral = '"' body:StringLiteralBody '"';
 
 @string
+@no_skip_ws
 StringLiteralBody = { "\\\"" | !'"' char };
 
 OverrideField = "@" ":" typ:Identifier;
@@ -35,7 +37,6 @@ BoxMarker = '*';
 
 DelimitedExpression =
     @:Group |
-    @:ClosureAtLeastOne |
     @:Closure |
     @:NegativeLookahead |
     @:CharacterRange |
@@ -47,16 +48,17 @@ DelimitedExpression =
 
 
 @string
+@no_skip_ws
 Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9'}+;
 
-DirectiveExpression = @:StringDirective;
+DirectiveExpression = @:StringDirective | @:NoSkipWsDirective;
 StringDirective = "@string";
+NoSkipWsDirective = "@no_skip_ws";
 
-*/
+"###;
 
-//#[allow(non_camel_case_types)]
-#[allow(non_snake_case)]
-mod test;
+#[allow(non_snake_case, non_camel_case_types)]
+pub mod test;
 
 pub struct Grammar {
     pub rules: Vec<Rule>,
@@ -78,7 +80,6 @@ pub struct Sequence {
 
 pub enum DelimitedExpression {
     Group(Group),
-    ClosureAtLeastOne(ClosureAtLeastOne),
     Closure(Closure),
     NegativeLookahead(NegativeLookahead),
     CharacterRange(CharacterRange),
@@ -105,7 +106,6 @@ macro_rules! detailed_expression_helper {
 }
 
 detailed_expression_helper!(Group);
-detailed_expression_helper!(ClosureAtLeastOne);
 detailed_expression_helper!(Closure);
 detailed_expression_helper!(NegativeLookahead);
 detailed_expression_helper!(CharacterRange);
@@ -122,13 +122,12 @@ pub struct Group {
     pub body: Choice,
 }
 
-pub struct ClosureAtLeastOne {
-    pub body: Choice,
-}
-
 pub struct Closure {
     pub body: Choice,
+    pub at_least_one: Option<AtLeastOneMarker>,
 }
+
+pub struct AtLeastOneMarker;
 
 pub struct NegativeLookahead {
     pub expr: Box<DelimitedExpression>,
@@ -161,9 +160,13 @@ pub struct BoxMarker;
 
 pub type Identifier = String;
 
-pub type DirectiveExpression = StringDirective;
+pub enum DirectiveExpression {
+    StringDirective(StringDirective),
+    NoSkipWsDirective(NoSkipWsDirective),
+}
 
 pub struct StringDirective {}
+pub struct NoSkipWsDirective {}
 
 fn simple_sequence(parts: Vec<DelimitedExpression>) -> Choice {
     Choice {
@@ -198,6 +201,7 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                         field("rules", "Rule"),
                         StringLiteral { body: ";".into() }.into(),
                     ]),
+                    at_least_one: None,
                 }
                 .into(),
             ),
@@ -206,6 +210,7 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                 vec![
                     Closure {
                         body: simple_sequence(vec![field("directives", "DirectiveExpression")]),
+                        at_least_one: None,
                     }
                     .into(),
                     field("name", "Identifier"),
@@ -222,14 +227,16 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                             StringLiteral { body: "|".into() }.into(),
                             field("choices", "Sequence"),
                         ]),
+                        at_least_one: None,
                     }
                     .into(),
                 ],
             ),
             simple_rule(
                 "Sequence",
-                ClosureAtLeastOne {
+                Closure {
                     body: simple_sequence(vec![field("parts", "DelimitedExpression")]),
+                    at_least_one: Some(AtLeastOneMarker),
                 }
                 .into(),
             ),
@@ -242,21 +249,25 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                 ],
             ),
             simple_rule(
-                "ClosureAtLeastOne",
-                vec![
-                    StringLiteral { body: "{".into() }.into(),
-                    field("body", "Choice"),
-                    StringLiteral { body: "}+".into() }.into(),
-                ],
-            ),
-            simple_rule(
                 "Closure",
                 vec![
                     StringLiteral { body: "{".into() }.into(),
                     field("body", "Choice"),
                     StringLiteral { body: "}".into() }.into(),
+                    Group {
+                        body: Choice {
+                            choices: vec![
+                                Sequence {
+                                    parts: vec![field("at_least_one", "AtLeastOneMarker")],
+                                },
+                                Sequence { parts: vec![] },
+                            ],
+                        },
+                    }
+                    .into(),
                 ],
             ),
+            simple_rule("AtLeastOneMarker", vec!['+'.into()]),
             simple_rule(
                 "NegativeLookahead",
                 vec![
@@ -290,7 +301,10 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                 vec!['"'.into(), field("body", "StringLiteralBody"), '"'.into()],
             ),
             Rule {
-                directives: vec![StringDirective {}],
+                directives: vec![
+                    DirectiveExpression::StringDirective(StringDirective {}),
+                    DirectiveExpression::NoSkipWsDirective(NoSkipWsDirective {}),
+                ],
                 name: "StringLiteralBody".into(),
                 definition: Choice {
                     choices: vec![Sequence {
@@ -319,6 +333,7 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                                     },
                                 ],
                             },
+                            at_least_one: None,
                         }
                         .into(),
                     }],
@@ -377,12 +392,6 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                         },
                         Sequence {
                             parts: OverrideField {
-                                typ: "ClosureAtLeastOne".into(),
-                            }
-                            .into(),
-                        },
-                        Sequence {
-                            parts: OverrideField {
                                 typ: "Closure".into(),
                             }
                             .into(),
@@ -427,11 +436,14 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                 },
             },
             Rule {
-                directives: vec![StringDirective {}],
+                directives: vec![
+                    DirectiveExpression::StringDirective(StringDirective {}),
+                    DirectiveExpression::NoSkipWsDirective(NoSkipWsDirective {}),
+                ],
                 name: "Identifier".into(),
                 definition: Choice {
                     choices: vec![Sequence {
-                        parts: ClosureAtLeastOne {
+                        parts: Closure {
                             body: Choice {
                                 choices: vec![
                                     Sequence {
@@ -445,22 +457,43 @@ pub fn bootstrap_parsinator_grammar() -> Grammar {
                                     },
                                 ],
                             },
+                            at_least_one: Some(AtLeastOneMarker),
                         }
                         .into(),
                     }],
                 },
             },
-            simple_rule(
-                "DirectiveExpression",
-                OverrideField {
-                    typ: "StringDirective".into(),
-                }
-                .into(),
-            ),
+            Rule {
+                directives: vec![],
+                name: "DirectiveExpression".into(),
+                definition: Choice {
+                    choices: vec![
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "StringDirective".into(),
+                            }
+                            .into(),
+                        },
+                        Sequence {
+                            parts: OverrideField {
+                                typ: "NoSkipWsDirective".into(),
+                            }
+                            .into(),
+                        },
+                    ],
+                },
+            },
             simple_rule(
                 "StringDirective",
                 StringLiteral {
                     body: "@string".into(),
+                }
+                .into(),
+            ),
+            simple_rule(
+                "NoSkipWsDirective",
+                StringLiteral {
+                    body: "@no_skip_ws".into(),
                 }
                 .into(),
             ),
