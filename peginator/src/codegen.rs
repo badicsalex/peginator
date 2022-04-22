@@ -449,11 +449,6 @@ impl Codegen for Sequence {
 impl Sequence {
     fn generate_parse_function(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let fields = self.get_fields()?;
-        let skip_ws = if settings.skip_whitespace {
-            quote!(let state = state.skip_whitespace();)
-        } else {
-            quote!()
-        };
         let declarations: TokenStream = fields
             .iter()
             .map(|f| {
@@ -475,14 +470,12 @@ impl Sequence {
                 let inner_fields = part.get_fields()?;
                 if inner_fields.is_empty() {
                     Ok(quote!(
-                        #skip_ws
                         let (_, state) =  #part_mod::parse(state)?;
                     ))
                 } else {
                     let field_assignments =
                         Self::generate_field_assignments(&fields, &inner_fields);
                     Ok(quote!(
-                        #skip_ws
                         let (result, state) =  #part_mod::parse(state)?;
                         #field_assignments
                     ))
@@ -499,7 +492,6 @@ impl Sequence {
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #declarations
                 #calls
-                #skip_ws
                 Ok((#parse_result, state))
             }
         ))
@@ -678,11 +670,17 @@ impl Codegen for NegativeLookahead {
 }
 
 impl Codegen for CharacterRange {
-    fn generate_code_spec(&self, _settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let from = &self.from;
         let to = &self.to;
+        let skip_ws = if settings.skip_whitespace {
+            quote!(let state = state.skip_whitespace();)
+        } else {
+            quote!()
+        };
         Ok(quote!(
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                #skip_ws
                 parse_character_range(state, #from, #to)
             }
         ))
@@ -694,10 +692,16 @@ impl Codegen for CharacterRange {
 }
 
 impl Codegen for CharacterLiteral {
-    fn generate_code_spec(&self, _settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let literal = &self;
+        let skip_ws = if settings.skip_whitespace {
+            quote!(let state = state.skip_whitespace();)
+        } else {
+            quote!()
+        };
         Ok(quote!(
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                #skip_ws
                 parse_character_literal(state, #literal)
             }
         ))
@@ -709,10 +713,16 @@ impl Codegen for CharacterLiteral {
 }
 
 impl Codegen for StringLiteral {
-    fn generate_code_spec(&self, _settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let literal = &self.body;
+        let skip_ws = if settings.skip_whitespace {
+            quote!(let state = state.skip_whitespace();)
+        } else {
+            quote!()
+        };
         Ok(quote!(
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                #skip_ws
                 parse_string_literal(state, #literal)
             }
         ))
@@ -732,8 +742,14 @@ impl Codegen for OverrideField {
             &settings.grammar_module_prefix
         };
         let parser_name = format_ident!("parse_{}", self.typ);
+        let skip_ws = if settings.skip_whitespace {
+            quote!(let state = state.skip_whitespace();)
+        } else {
+            quote!()
+        };
         Ok(quote!(
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                #skip_ws
                 let (_override, state) = #prefix #parser_name (state)?;
                 Ok((Parsed{ _override }, state))
             }
@@ -759,6 +775,11 @@ impl Codegen for Field {
             &settings.grammar_module_prefix
         };
         let parser_name = format_ident!("parse_{}", self.typ);
+        let skip_ws = if settings.skip_whitespace {
+            quote!(let state = state.skip_whitespace();)
+        } else {
+            quote!()
+        };
         if let Some(field_name) = &self.name {
             let field_ident = format_ident!("{}", field_name);
             let maybe_boxed = if self.boxed.is_some() {
@@ -768,6 +789,7 @@ impl Codegen for Field {
             };
             Ok(quote!(
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                    #skip_ws
                     let (#field_ident, state) = #prefix #parser_name (state)?;
                     Ok((Parsed{ #maybe_boxed }, state))
                 }
@@ -775,6 +797,7 @@ impl Codegen for Field {
         } else {
             Ok(quote!(
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                    #skip_ws
                     let (_, state) = #prefix #parser_name (state)?;
                     Ok(((), state))
                 }
