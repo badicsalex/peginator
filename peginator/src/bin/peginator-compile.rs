@@ -24,13 +24,18 @@ struct Args {
     #[clap(short, long)]
     ast_only: bool,
 
+    /// Trace rule matching
+    #[clap(short, long)]
+    trace: bool,
+
     grammar_file: String,
 }
 
 fn main() -> Result<()> {
     let args = Args::parse();
     let grammar = fs::read_to_string(args.grammar_file)?;
-    let parsed_grammar = parse_Grammar(ParseState::new(&grammar))?.0;
+    let parse_state = ParseState::new(&grammar).enable_tracing(args.trace);
+    let parsed_grammar = parse_Grammar(parse_state)?.0;
     if args.ast_only {
         println!("{:#?}", parsed_grammar);
         return Ok(());

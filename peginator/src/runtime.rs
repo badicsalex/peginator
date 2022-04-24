@@ -2,6 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use colored::*;
 use std::error::Error;
 
 #[derive(Debug)]
@@ -20,6 +21,7 @@ pub struct ParseState<'a> {
     full_string: &'a str,
     start_index: usize,
     pub indentation_level: usize,
+    tracing: bool,
 }
 
 impl<'a> ParseState<'a> {
@@ -28,8 +30,20 @@ impl<'a> ParseState<'a> {
             full_string: s,
             start_index: 0,
             indentation_level: 0,
+            tracing: false,
         }
     }
+    pub fn enable_tracing(self, tracing: bool) -> Self {
+        Self { tracing, ..self }
+    }
+
+    pub fn print_trace<F: Fn() -> ColoredString>(&self, f: F) {
+        if self.tracing {
+            let indentation = "    ".repeat(self.indentation_level);
+            println!("{}{}", indentation, f())
+        }
+    }
+
     pub fn s(&self) -> &str {
         &self.full_string[self.start_index..]
     }
@@ -113,18 +127,15 @@ pub fn run_rule_parser<'a, T, F>(
 where
     F: Fn(ParseState) -> ParseResult<T>,
 {
-    let indentation = "    ".repeat(state.indentation_level);
-    /*println!("{}Running rule {}", indentation, name);
-    println!(
-        "{}{:?}",
-        indentation,
-        &state.s().chars().take(50).collect::<String>()
-    );*/
-    let result = f(state.indent());
-    if result.is_ok() {
-        // println!("{}Ok", indentation)
-    } else {
-        // println!("{}Err", indentation)
-    }
+    state.print_trace(|| format!("{}?", name).yellow());
+    state.print_trace(|| format!("{:?}", state.s().chars().take(50).collect::<String>()).normal());
+    let result = f(state.clone().indent());
+    state.print_trace(|| {
+        if result.is_ok() {
+            "Ok".green()
+        } else {
+            "Err".red()
+        }
+    });
     result.map(|(result, state)| (result, state.dedent()))
 }
