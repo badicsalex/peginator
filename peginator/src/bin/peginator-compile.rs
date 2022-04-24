@@ -10,7 +10,7 @@ use clap::Parser;
 use peginator::codegen::CodegenGrammar;
 use peginator::codegen::CodegenSettings;
 use peginator::grammar::parse_Grammar;
-use peginator::runtime::ParseState;
+use peginator::runtime::ParseSettings;
 
 /// Compile EBNF grammar into rust parser code.
 #[derive(Parser, Debug)]
@@ -34,8 +34,12 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
     let grammar = fs::read_to_string(args.grammar_file)?;
-    let parse_state = ParseState::new(&grammar).enable_tracing(args.trace);
-    let parsed_grammar = parse_Grammar(parse_state)?.0;
+    let parsed_grammar = parse_Grammar(
+        &grammar,
+        &ParseSettings {
+            tracing: args.trace,
+        },
+    )?;
     if args.ast_only {
         println!("{:#?}", parsed_grammar);
         return Ok(());

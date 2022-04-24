@@ -43,10 +43,17 @@ impl CodegenGrammar for Grammar {
         let mut all_parsers = TokenStream::new();
         let mut all_impls = TokenStream::new();
         for rule in &self.rules {
-            let (types, parsers, impls) = rule.generate_code(settings)?;
+            let (types, impls) = rule.generate_code(settings)?;
             all_types.extend(types);
-            all_parsers.extend(parsers);
             all_impls.extend(impls);
+            let rule_ident = format_ident!("{}", rule.name);
+            let parser_name = format_ident!("parse_{}", rule.name);
+            let internal_parser_name = format_ident!("parse_{}_internal", rule.name);
+            all_parsers.extend(quote!(
+                pub fn #parser_name(s: &str, settings: &ParseSettings) -> Result<#rule_ident, ParseError> {
+                    Ok(#internal_parser_name(ParseState::new(s, settings))?.0)
+                }
+            ))
         }
         Ok(quote!(
             #all_types
@@ -57,17 +64,11 @@ impl CodegenGrammar for Grammar {
 }
 
 trait CodegenRule {
-    fn generate_code(
-        &self,
-        settings: &CodegenSettings,
-    ) -> Result<(TokenStream, TokenStream, TokenStream)>;
+    fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)>;
 }
 
 impl CodegenRule for Rule {
-    fn generate_code(
-        &self,
-        settings: &CodegenSettings,
-    ) -> Result<(TokenStream, TokenStream, TokenStream)> {
+    fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)> {
         let mut string_flag = false;
         let mut skip_whitespace = settings.skip_whitespace;
         for directive in &self.directives {
@@ -82,11 +83,11 @@ impl CodegenRule for Rule {
         let name = &self.name;
         let rule_mod = format_ident!("{}_impl", self.name);
         let rule_type = format_ident!("{}", self.name);
-        let parser_name = format_ident!("parse_{}", self.name);
+        let parser_name = format_ident!("parse_{}_internal", self.name);
         let choice_body = self.definition.generate_code_spec(&settings)?;
         let fields = self.definition.get_fields()?;
         let outer_parser = quote!(
-            pub fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
+            fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
                 run_rule_parser(#rule_mod::rule_parser, #name, state)
             }
         );
@@ -94,7 +95,6 @@ impl CodegenRule for Rule {
             let parsed_types = self.definition.generate_types(&settings, "Parsed")?;
             Ok((
                 quote!(pub type #rule_type = String;),
-                outer_parser,
                 quote!(
                     mod #rule_mod{
                         use super::*;
@@ -106,6 +106,7 @@ impl CodegenRule for Rule {
                             Ok((state.slice_until(&new_state).to_string(), new_state))
                         }
                     }
+                    #outer_parser
                 ),
             ))
         } else if fields.len() == 1 && fields[0].name == "_override" {
@@ -117,7 +118,6 @@ impl CodegenRule for Rule {
                     quote!(
                         pub use #override_type as #rule_type;
                     ),
-                    outer_parser,
                     quote!(
                         mod #rule_mod{
                             use super::*;
@@ -131,6 +131,7 @@ impl CodegenRule for Rule {
                                 Ok((result._override, new_state))
                             }
                         }
+                        #outer_parser
                     ),
                 ))
             } else {
@@ -142,7 +143,6 @@ impl CodegenRule for Rule {
                         #enum_type
                         pub use #override_type as #rule_type;
                     ),
-                    outer_parser,
                     quote!(
                         mod #rule_mod{
                             use super::*;
@@ -156,6 +156,7 @@ impl CodegenRule for Rule {
                                 Ok((result._override, new_state))
                             }
                         }
+                        #outer_parser
                     ),
                 ))
             }
@@ -166,7 +167,6 @@ impl CodegenRule for Rule {
                 .generate_use_super_as_parsed(&settings, &self.name)?;
             Ok((
                 quote!(#parsed_types),
-                outer_parser,
                 quote!(
                     mod #rule_mod{
                         use super::*;
@@ -176,7 +176,7 @@ impl CodegenRule for Rule {
                             parse(state)
                         }
                     }
-
+                    #outer_parser
                 ),
             ))
         }
@@ -897,7 +897,7 @@ impl Codegen for StringLiteral {
 
 impl Codegen for OverrideField {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let parser_name = format_ident!("parse_{}", self.typ);
+        let parser_name = format_ident!("parse_{}_internal", self.typ);
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
         } else {
@@ -924,7 +924,7 @@ impl Codegen for OverrideField {
 
 impl Codegen for Field {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let parser_name = format_ident!("parse_{}", self.typ);
+        let parser_name = format_ident!("parse_{}_internal", self.typ);
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
         } else {

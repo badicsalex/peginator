@@ -16,6 +16,11 @@ impl std::fmt::Display for ParseError {
 
 impl Error for ParseError {}
 
+#[derive(Debug, Default)]
+pub struct ParseSettings {
+    pub tracing: bool,
+}
+
 #[derive(Debug, Clone)]
 pub struct ParseState<'a> {
     full_string: &'a str,
@@ -25,12 +30,12 @@ pub struct ParseState<'a> {
 }
 
 impl<'a> ParseState<'a> {
-    pub fn new(s: &'a str) -> ParseState<'a> {
+    pub fn new(s: &'a str, settings: &ParseSettings) -> ParseState<'a> {
         Self {
             full_string: s,
             start_index: 0,
             indentation_level: 0,
-            tracing: false,
+            tracing: settings.tracing,
         }
     }
     pub fn enable_tracing(self, tracing: bool) -> Self {
@@ -88,7 +93,7 @@ impl<'a> ParseState<'a> {
 
 pub type ParseResult<'a, T> = Result<(T, ParseState<'a>), ParseError>;
 
-pub fn parse_char(state: ParseState) -> ParseResult<char> {
+pub fn parse_char_internal(state: ParseState) -> ParseResult<char> {
     let result = state.s().chars().next().ok_or(ParseError)?;
     Ok((result, state.advance(result.len_utf8())))
 }
