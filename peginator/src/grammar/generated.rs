@@ -317,6 +317,55 @@ pub use Group_impl::Parsed as Group;
 pub fn parse_Group(state: ParseState) -> ParseResult<Group> {
     run_rule_parser(Group_impl::rule_parser, "Group", state)
 }
+mod Optional_impl {
+    use crate::runtime::*;
+    mod part_0 {
+        use crate::runtime::*;
+        pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            let state = state.skip_whitespace();
+            parse_string_literal(state, "[")
+        }
+        pub type Parsed = ();
+    }
+    mod part_1 {
+        use crate::runtime::*;
+        pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            let state = state.skip_whitespace();
+            let (body, state) = crate::grammar::generated::parse_Choice(state)?;
+            Ok((Parsed { body }, state))
+        }
+        #[derive(Debug)]
+        pub struct Parsed {
+            pub body: crate::grammar::generated::Choice,
+        }
+    }
+    mod part_2 {
+        use crate::runtime::*;
+        pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            let state = state.skip_whitespace();
+            parse_string_literal(state, "]")
+        }
+        pub type Parsed = ();
+    }
+    pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+        let (_, state) = part_0::parse(state)?;
+        let (result, state) = part_1::parse(state)?;
+        let body = result.body;
+        let (_, state) = part_2::parse(state)?;
+        Ok((Parsed { body }, state))
+    }
+    #[derive(Debug)]
+    pub struct Parsed {
+        pub body: crate::grammar::generated::Choice,
+    }
+    pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
+        parse(state)
+    }
+}
+pub use Optional_impl::Parsed as Optional;
+pub fn parse_Optional(state: ParseState) -> ParseResult<Optional> {
+    run_rule_parser(Optional_impl::rule_parser, "Optional", state)
+}
 mod Closure_impl {
     use crate::runtime::*;
     mod part_0 {
@@ -349,7 +398,7 @@ mod Closure_impl {
     }
     mod part_3 {
         use crate::runtime::*;
-        mod choice_0 {
+        mod optional {
             use crate::runtime::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
@@ -362,26 +411,17 @@ mod Closure_impl {
                 pub at_least_one: crate::grammar::generated::AtLeastOneMarker,
             }
         }
-        mod choice_1 {
-            use crate::runtime::*;
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                Ok(((), state))
-            }
-            pub type Parsed = ();
-        }
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-            if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
-                return Ok((
+            if let Ok((result, new_state)) = optional::parse(state.clone()) {
+                Ok((
                     Parsed {
                         at_least_one: Some(result.at_least_one),
                     },
                     new_state,
-                ));
+                ))
+            } else {
+                Ok((Parsed { at_least_one: None }, state))
             }
-            if let Ok((result, new_state)) = choice_1::parse(state.clone()) {
-                return Ok((Parsed { at_least_one: None }, new_state));
-            }
-            Err(ParseError)
         }
         #[derive(Debug)]
         pub struct Parsed {
@@ -719,7 +759,7 @@ mod Field_impl {
     use crate::runtime::*;
     mod part_0 {
         use crate::runtime::*;
-        mod choice_0 {
+        mod optional {
             use crate::runtime::*;
             mod part_0 {
                 use crate::runtime::*;
@@ -743,7 +783,7 @@ mod Field_impl {
             }
             mod part_2 {
                 use crate::runtime::*;
-                mod choice_0 {
+                mod optional {
                     use crate::runtime::*;
                     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                         let state = state.skip_whitespace();
@@ -755,26 +795,17 @@ mod Field_impl {
                         pub boxed: crate::grammar::generated::BoxMarker,
                     }
                 }
-                mod choice_1 {
-                    use crate::runtime::*;
-                    pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                        Ok(((), state))
-                    }
-                    pub type Parsed = ();
-                }
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                    if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
-                        return Ok((
+                    if let Ok((result, new_state)) = optional::parse(state.clone()) {
+                        Ok((
                             Parsed {
                                 boxed: Some(result.boxed),
                             },
                             new_state,
-                        ));
+                        ))
+                    } else {
+                        Ok((Parsed { boxed: None }, state))
                     }
-                    if let Ok((result, new_state)) = choice_1::parse(state.clone()) {
-                        return Ok((Parsed { boxed: None }, new_state));
-                    }
-                    Err(ParseError)
                 }
                 #[derive(Debug)]
                 pub struct Parsed {
@@ -796,33 +827,24 @@ mod Field_impl {
                 pub boxed: Option<crate::grammar::generated::BoxMarker>,
             }
         }
-        mod choice_1 {
-            use crate::runtime::*;
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                Ok(((), state))
-            }
-            pub type Parsed = ();
-        }
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-            if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
-                return Ok((
+            if let Ok((result, new_state)) = optional::parse(state.clone()) {
+                Ok((
                     Parsed {
                         name: Some(result.name),
                         boxed: result.boxed,
                     },
                     new_state,
-                ));
-            }
-            if let Ok((result, new_state)) = choice_1::parse(state.clone()) {
-                return Ok((
+                ))
+            } else {
+                Ok((
                     Parsed {
                         name: None,
                         boxed: None,
                     },
-                    new_state,
-                ));
+                    state,
+                ))
             }
-            Err(ParseError)
         }
         #[derive(Debug)]
         pub struct Parsed {
@@ -948,6 +970,18 @@ mod DelimitedExpression_impl {
         use crate::runtime::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
+            let (_override, state) = crate::grammar::generated::parse_Optional(state)?;
+            Ok((Parsed { _override }, state))
+        }
+        #[derive(Debug)]
+        pub struct Parsed {
+            pub _override: crate::grammar::generated::Optional,
+        }
+    }
+    mod choice_2 {
+        use crate::runtime::*;
+        pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            let state = state.skip_whitespace();
             let (_override, state) = crate::grammar::generated::parse_Closure(state)?;
             Ok((Parsed { _override }, state))
         }
@@ -956,7 +990,7 @@ mod DelimitedExpression_impl {
             pub _override: crate::grammar::generated::Closure,
         }
     }
-    mod choice_2 {
+    mod choice_3 {
         use crate::runtime::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
@@ -968,7 +1002,7 @@ mod DelimitedExpression_impl {
             pub _override: crate::grammar::generated::NegativeLookahead,
         }
     }
-    mod choice_3 {
+    mod choice_4 {
         use crate::runtime::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
@@ -980,7 +1014,7 @@ mod DelimitedExpression_impl {
             pub _override: crate::grammar::generated::CharacterRange,
         }
     }
-    mod choice_4 {
+    mod choice_5 {
         use crate::runtime::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
@@ -992,7 +1026,7 @@ mod DelimitedExpression_impl {
             pub _override: crate::grammar::generated::CharacterLiteral,
         }
     }
-    mod choice_5 {
+    mod choice_6 {
         use crate::runtime::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
@@ -1004,7 +1038,7 @@ mod DelimitedExpression_impl {
             pub _override: crate::grammar::generated::StringLiteral,
         }
     }
-    mod choice_6 {
+    mod choice_7 {
         use crate::runtime::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
@@ -1016,7 +1050,7 @@ mod DelimitedExpression_impl {
             pub _override: crate::grammar::generated::OverrideField,
         }
     }
-    mod choice_7 {
+    mod choice_8 {
         use crate::runtime::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
@@ -1040,7 +1074,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_1::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::Closure(result._override),
+                    _override: E__override::Optional(result._override),
                 },
                 new_state,
             ));
@@ -1048,7 +1082,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_2::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::NegativeLookahead(result._override),
+                    _override: E__override::Closure(result._override),
                 },
                 new_state,
             ));
@@ -1056,7 +1090,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_3::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::CharacterRange(result._override),
+                    _override: E__override::NegativeLookahead(result._override),
                 },
                 new_state,
             ));
@@ -1064,7 +1098,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_4::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::CharacterLiteral(result._override),
+                    _override: E__override::CharacterRange(result._override),
                 },
                 new_state,
             ));
@@ -1072,7 +1106,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_5::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::StringLiteral(result._override),
+                    _override: E__override::CharacterLiteral(result._override),
                 },
                 new_state,
             ));
@@ -1080,12 +1114,20 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_6::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::OverrideField(result._override),
+                    _override: E__override::StringLiteral(result._override),
                 },
                 new_state,
             ));
         }
         if let Ok((result, new_state)) = choice_7::parse(state.clone()) {
+            return Ok((
+                Parsed {
+                    _override: E__override::OverrideField(result._override),
+                },
+                new_state,
+            ));
+        }
+        if let Ok((result, new_state)) = choice_8::parse(state.clone()) {
             return Ok((
                 Parsed {
                     _override: E__override::Field(result._override),
@@ -1103,6 +1145,7 @@ mod DelimitedExpression_impl {
         Field(crate::grammar::generated::Field),
         Group(crate::grammar::generated::Group),
         NegativeLookahead(crate::grammar::generated::NegativeLookahead),
+        Optional(crate::grammar::generated::Optional),
         OverrideField(crate::grammar::generated::OverrideField),
         StringLiteral(crate::grammar::generated::StringLiteral),
     }

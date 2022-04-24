@@ -8,7 +8,9 @@ Sequence = { parts:DelimitedExpression };
 
 Group = "(" body:Choice ")";
 
-Closure = "{" body:Choice "}" (at_least_one:AtLeastOneMarker|);
+Optional = "[" body:Choice "]";
+
+Closure = "{" body:Choice "}" [at_least_one:AtLeastOneMarker];
 AtLeastOneMarker = '+';
 
 NegativeLookahead = "!" expr:*DelimitedExpression;
@@ -23,7 +25,7 @@ StringLiteral = '"' body:StringLiteralBody '"';
 @no_skip_ws
 StringLiteralBody = { "\\\"" | !'"' char };
 
-Field = (name:Identifier ":" (boxed:BoxMarker |)| ) typ:Identifier;
+Field = [name:Identifier ":" [boxed:BoxMarker]] typ:Identifier;
 
 BoxMarker = '*';
 
@@ -31,6 +33,7 @@ OverrideField = "@" ":" typ:Identifier;
 
 DelimitedExpression =
     @:Group |
+    @:Optional |
     @:Closure |
     @:NegativeLookahead |
     @:CharacterRange |

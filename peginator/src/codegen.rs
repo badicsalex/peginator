@@ -533,6 +533,7 @@ impl Codegen for DelimitedExpression {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         match self {
             DelimitedExpression::Group(a) => a.generate_code_spec(settings),
+            DelimitedExpression::Optional(a) => a.generate_code_spec(settings),
             DelimitedExpression::Closure(a) => a.generate_code_spec(settings),
             DelimitedExpression::NegativeLookahead(a) => a.generate_code_spec(settings),
             DelimitedExpression::CharacterRange(a) => a.generate_code_spec(settings),
@@ -546,6 +547,7 @@ impl Codegen for DelimitedExpression {
     fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
         match self {
             DelimitedExpression::Group(a) => a.get_fields(),
+            DelimitedExpression::Optional(a) => a.get_fields(),
             DelimitedExpression::Closure(a) => a.get_fields(),
             DelimitedExpression::NegativeLookahead(a) => a.get_fields(),
             DelimitedExpression::CharacterRange(a) => a.get_fields(),
@@ -567,6 +569,72 @@ impl Codegen for Group {
     }
 }
 
+impl Codegen for Optional {
+    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+        let body = self.body.generate_code(settings)?;
+        let inner_fields = self.body.get_fields()?;
+        let runtime_prefix = &settings.runtime_prefix;
+        let happy_case_fields: TokenStream = inner_fields
+            .iter()
+            .map(|inner_field| {
+                let name = format_ident!("{}", inner_field.name);
+                // TODO: enum conversion
+                let value = match &inner_field.arity {
+                    Arity::One => quote!(Some(result.#name)),
+                    Arity::Optional => quote!(result.#name),
+                    Arity::Multiple => quote!(result.#name),
+                };
+                quote!(#name: #value,)
+            })
+            .collect();
+        let unhappy_case_fields: TokenStream = inner_fields
+            .iter()
+            .map(|inner_field| {
+                let name = format_ident!("{}", inner_field.name);
+                // TODO: enum conversion
+                let value = match &inner_field.arity {
+                    Arity::One => quote!(None),
+                    Arity::Optional => quote!(None),
+                    Arity::Multiple => quote!(Vec::new()),
+                };
+                quote!(#name: #value,)
+            })
+            .collect();
+        Ok(quote!(
+            mod optional{
+                use #runtime_prefix *;
+                #body
+            }
+            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                if let Ok((result, new_state)) = optional::parse(state.clone()) {
+                    Ok((Parsed{
+                        #happy_case_fields
+                    }, new_state))
+                } else {
+                    Ok((Parsed{
+                        #unhappy_case_fields
+                    }, state))
+                }
+            }
+        ))
+    }
+
+    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+        Ok(set_arity_to_optional(self.body.get_fields()?))
+    }
+}
+
+fn set_arity_to_optional(fields: Vec<FieldDescriptor>) -> Vec<FieldDescriptor> {
+    let mut fields = fields;
+    for value in &mut fields {
+        value.arity = match value.arity {
+            Arity::One => Arity::Optional,
+            Arity::Optional => Arity::Optional,
+            Arity::Multiple => Arity::Multiple,
+        }
+    }
+    fields
+}
 impl Codegen for Closure {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let closure_body = self.body.generate_code(settings)?;
