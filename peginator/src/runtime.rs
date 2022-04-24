@@ -23,7 +23,7 @@ pub struct ParseSettings {
 
 #[derive(Debug, Clone)]
 pub struct ParseState<'a> {
-    full_string: &'a str,
+    partial_string: &'a str,
     start_index: usize,
     pub indentation_level: usize,
     tracing: bool,
@@ -33,7 +33,7 @@ impl<'a> ParseState<'a> {
     #[inline]
     pub fn new(s: &'a str, settings: &ParseSettings) -> ParseState<'a> {
         Self {
-            full_string: s,
+            partial_string: s,
             start_index: 0,
             indentation_level: 0,
             tracing: settings.tracing,
@@ -55,7 +55,7 @@ impl<'a> ParseState<'a> {
 
     #[inline]
     pub fn s(&self) -> &str {
-        &self.full_string[self.start_index..]
+        self.partial_string
     }
 
     #[inline]
@@ -67,13 +67,14 @@ impl<'a> ParseState<'a> {
     pub fn advance(self, length: usize) -> Self {
         Self {
             start_index: self.start_index + length,
+            partial_string: &self.partial_string[length..],
             ..self
         }
     }
 
     #[inline]
     pub fn slice_until(&self, other: &ParseState) -> &str {
-        &self.full_string[self.start_index..other.start_index]
+        &self.partial_string[..(other.start_index - self.start_index)]
     }
 
     #[inline]
@@ -81,7 +82,7 @@ impl<'a> ParseState<'a> {
         let mut result = self;
         while let Some(ch) = result.s().chars().next() {
             if ch.is_whitespace() {
-                result.start_index += ch.len_utf8();
+                result = result.advance(ch.len_utf8());
             } else {
                 break;
             }
