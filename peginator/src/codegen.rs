@@ -101,6 +101,7 @@ impl CodegenRule for Rule {
                         use super::*;
                         #choice_body
                         #parsed_types
+                        #[inline(always)]
                         pub fn rule_parser (state: ParseState) -> ParseResult<String> {
                             let (_, new_state) = parse(state.clone())?;
                             Ok((state.slice_until(&new_state).to_string(), new_state))
@@ -126,6 +127,7 @@ impl CodegenRule for Rule {
                                 _override: super::#rule_type,
                             }
                             use super::#rule_type as Parsed__override;
+                            #[inline(always)]
                             pub fn rule_parser (state: ParseState) -> ParseResult<super::#rule_type> {
                                 let (result, new_state) = parse(state)?;
                                 Ok((result._override, new_state))
@@ -151,6 +153,7 @@ impl CodegenRule for Rule {
                                 _override: super::#rule_type,
                             }
                             use super::#rule_type as Parsed__override;
+                            #[inline(always)]
                             pub fn rule_parser (state: ParseState) -> ParseResult<super::#rule_type> {
                                 let (result, new_state) = parse(state)?;
                                 Ok((result._override, new_state))
@@ -172,6 +175,7 @@ impl CodegenRule for Rule {
                         use super::*;
                         #choice_body
                         #used_types
+                        #[inline(always)]
                         pub fn rule_parser (state: ParseState) -> ParseResult<Parsed> {
                             parse(state)
                         }
@@ -401,6 +405,7 @@ impl Choice {
             })
             .collect::<Result<TokenStream>>()?;
         Ok(quote!(
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #calls
                 Err(ParseError)
@@ -496,6 +501,7 @@ impl Codegen for Sequence {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         if self.parts.is_empty() {
             return Ok(quote!(
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     Ok(((), state))
                 }
@@ -586,6 +592,7 @@ impl Sequence {
             quote!(Parsed{ #( #field_names,)* })
         };
         Ok(quote!(
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #declarations
                 #calls
@@ -701,6 +708,7 @@ impl Codegen for Optional {
                 use super::*;
                 #body
             }
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 if let Ok((result, new_state)) = optional::parse(state.clone()) {
                     Ok((Parsed{
@@ -783,6 +791,7 @@ impl Codegen for Closure {
                 use super::*;
                 #closure_body
             }
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let mut state = state;
                 #declarations
@@ -817,6 +826,7 @@ impl Codegen for NegativeLookahead {
                 use super::*;
                 #body
             }
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 match negative_lookahead::parse (state.clone()) {
                     Ok(_) => Err(ParseError),
@@ -841,6 +851,7 @@ impl Codegen for CharacterRange {
             quote!()
         };
         Ok(quote!(
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #skip_ws
                 parse_character_range(state, #from, #to)
@@ -862,6 +873,7 @@ impl Codegen for CharacterLiteral {
             quote!()
         };
         Ok(quote!(
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #skip_ws
                 parse_character_literal(state, #literal)
@@ -883,6 +895,7 @@ impl Codegen for StringLiteral {
             quote!()
         };
         Ok(quote!(
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #skip_ws
                 parse_string_literal(state, #literal)
@@ -904,6 +917,7 @@ impl Codegen for OverrideField {
             quote!()
         };
         Ok(quote!(
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #skip_ws
                 let (_override, state) = #parser_name (state)?;
@@ -938,6 +952,7 @@ impl Codegen for Field {
                 quote!(#field_ident)
             };
             Ok(quote!(
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     #skip_ws
                     let (#field_ident, state) = #parser_name (state)?;
@@ -946,6 +961,7 @@ impl Codegen for Field {
             ))
         } else {
             Ok(quote!(
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     #skip_ws
                     let (_, state) = #parser_name (state)?;

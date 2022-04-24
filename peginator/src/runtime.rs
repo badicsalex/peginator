@@ -30,6 +30,7 @@ pub struct ParseState<'a> {
 }
 
 impl<'a> ParseState<'a> {
+    #[inline]
     pub fn new(s: &'a str, settings: &ParseSettings) -> ParseState<'a> {
         Self {
             full_string: s,
@@ -38,10 +39,13 @@ impl<'a> ParseState<'a> {
             tracing: settings.tracing,
         }
     }
+
+    #[inline]
     pub fn enable_tracing(self, tracing: bool) -> Self {
         Self { tracing, ..self }
     }
 
+    #[inline]
     pub fn print_trace<F: Fn() -> ColoredString>(&self, f: F) {
         if self.tracing {
             let indentation = "    ".repeat(self.indentation_level);
@@ -49,23 +53,30 @@ impl<'a> ParseState<'a> {
         }
     }
 
+    #[inline]
     pub fn s(&self) -> &str {
         &self.full_string[self.start_index..]
     }
 
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.s().is_empty()
     }
 
+    #[inline]
     pub fn advance(self, length: usize) -> Self {
         Self {
             start_index: self.start_index + length,
             ..self
         }
     }
+
+    #[inline]
     pub fn slice_until(&self, other: &ParseState) -> &str {
         &self.full_string[self.start_index..other.start_index]
     }
+
+    #[inline]
     pub fn skip_whitespace(self) -> Self {
         let mut result = self;
         while let Some(ch) = result.s().chars().next() {
@@ -77,12 +88,16 @@ impl<'a> ParseState<'a> {
         }
         result
     }
+
+    #[inline]
     pub fn indent(self) -> Self {
         Self {
             indentation_level: self.indentation_level + 1,
             ..self
         }
     }
+
+    #[inline]
     pub fn dedent(self) -> Self {
         Self {
             indentation_level: self.indentation_level - 1,
@@ -93,11 +108,13 @@ impl<'a> ParseState<'a> {
 
 pub type ParseResult<'a, T> = Result<(T, ParseState<'a>), ParseError>;
 
+#[inline(always)]
 pub fn parse_char_internal(state: ParseState) -> ParseResult<char> {
     let result = state.s().chars().next().ok_or(ParseError)?;
     Ok((result, state.advance(result.len_utf8())))
 }
 
+#[inline(always)]
 pub fn parse_string_literal<'a>(state: ParseState<'a>, s: &str) -> ParseResult<'a, ()> {
     if !state.s().starts_with(s) {
         Err(ParseError)
@@ -106,6 +123,7 @@ pub fn parse_string_literal<'a>(state: ParseState<'a>, s: &str) -> ParseResult<'
     }
 }
 
+#[inline(always)]
 pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
     let result = state.s().chars().next().ok_or(ParseError)?;
     if result != c {
@@ -115,6 +133,7 @@ pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
     }
 }
 
+#[inline(always)]
 pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseResult<()> {
     let result = state.s().chars().next().ok_or(ParseError)?;
     if result < from || result > to {
@@ -124,6 +143,7 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
     }
 }
 
+#[inline(always)]
 pub fn run_rule_parser<'a, T, F>(
     f: F,
     name: &'static str,

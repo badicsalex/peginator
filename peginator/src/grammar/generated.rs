@@ -175,6 +175,7 @@ mod Grammar_impl {
         use super::*;
         mod part_0 {
             use super::*;
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
                 let (rules, state) = parse_Rule_internal(state)?;
@@ -187,12 +188,14 @@ mod Grammar_impl {
         }
         mod part_1 {
             use super::*;
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
                 parse_string_literal(state, ";")
             }
             pub type Parsed = ();
         }
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let (result, state) = part_0::parse(state)?;
             let rules = result.rules;
@@ -204,6 +207,7 @@ mod Grammar_impl {
             pub rules: Rule,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut state = state;
         let mut rules: Vec<Rule> = Vec::new();
@@ -214,6 +218,7 @@ mod Grammar_impl {
         Ok((Parsed { rules }, state))
     }
     use super::Grammar as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -227,6 +232,7 @@ mod Rule_impl {
         use super::*;
         mod closure {
             use super::*;
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
                 let (directives, state) = parse_DirectiveExpression_internal(state)?;
@@ -237,6 +243,7 @@ mod Rule_impl {
                 pub directives: DirectiveExpression,
             }
         }
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let mut state = state;
             let mut directives: Vec<DirectiveExpression> = Vec::new();
@@ -253,6 +260,7 @@ mod Rule_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (name, state) = parse_Identifier_internal(state)?;
@@ -265,6 +273,7 @@ mod Rule_impl {
     }
     mod part_2 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "=")
@@ -273,6 +282,7 @@ mod Rule_impl {
     }
     mod part_3 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (definition, state) = parse_Choice_internal(state)?;
@@ -283,6 +293,7 @@ mod Rule_impl {
             pub definition: Choice,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut directives: Vec<DirectiveExpression> = Vec::new();
         let (result, state) = part_0::parse(state)?;
@@ -302,6 +313,7 @@ mod Rule_impl {
         ))
     }
     use super::Rule as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -313,6 +325,7 @@ mod Choice_impl {
     use super::*;
     mod part_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (choices, state) = parse_Sequence_internal(state)?;
@@ -329,6 +342,7 @@ mod Choice_impl {
             use super::*;
             mod part_0 {
                 use super::*;
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
                     parse_string_literal(state, "|")
@@ -337,6 +351,7 @@ mod Choice_impl {
             }
             mod part_1 {
                 use super::*;
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
                     let (choices, state) = parse_Sequence_internal(state)?;
@@ -347,6 +362,7 @@ mod Choice_impl {
                     pub choices: Sequence,
                 }
             }
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let (_, state) = part_0::parse(state)?;
                 let (result, state) = part_1::parse(state)?;
@@ -358,6 +374,7 @@ mod Choice_impl {
                 pub choices: Sequence,
             }
         }
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let mut state = state;
             let mut choices: Vec<Sequence> = Vec::new();
@@ -372,6 +389,7 @@ mod Choice_impl {
             pub choices: Vec<Sequence>,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut choices: Vec<Sequence> = Vec::new();
         let (result, state) = part_0::parse(state)?;
@@ -381,6 +399,7 @@ mod Choice_impl {
         Ok((Parsed { choices }, state))
     }
     use super::Choice as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -392,6 +411,7 @@ mod Sequence_impl {
     use super::*;
     mod closure {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (parts, state) = parse_DelimitedExpression_internal(state)?;
@@ -402,6 +422,7 @@ mod Sequence_impl {
             pub parts: DelimitedExpression,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut state = state;
         let mut parts: Vec<DelimitedExpression> = Vec::new();
@@ -412,6 +433,7 @@ mod Sequence_impl {
         Ok((Parsed { parts }, state))
     }
     use super::Sequence as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -423,6 +445,7 @@ mod Group_impl {
     use super::*;
     mod part_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "(")
@@ -431,6 +454,7 @@ mod Group_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (body, state) = parse_Choice_internal(state)?;
@@ -443,12 +467,14 @@ mod Group_impl {
     }
     mod part_2 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, ")")
         }
         pub type Parsed = ();
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let (_, state) = part_0::parse(state)?;
         let (result, state) = part_1::parse(state)?;
@@ -457,6 +483,7 @@ mod Group_impl {
         Ok((Parsed { body }, state))
     }
     use super::Group as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -468,6 +495,7 @@ mod Optional_impl {
     use super::*;
     mod part_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "[")
@@ -476,6 +504,7 @@ mod Optional_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (body, state) = parse_Choice_internal(state)?;
@@ -488,12 +517,14 @@ mod Optional_impl {
     }
     mod part_2 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "]")
         }
         pub type Parsed = ();
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let (_, state) = part_0::parse(state)?;
         let (result, state) = part_1::parse(state)?;
@@ -502,6 +533,7 @@ mod Optional_impl {
         Ok((Parsed { body }, state))
     }
     use super::Optional as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -513,6 +545,7 @@ mod Closure_impl {
     use super::*;
     mod part_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "{")
@@ -521,6 +554,7 @@ mod Closure_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (body, state) = parse_Choice_internal(state)?;
@@ -533,6 +567,7 @@ mod Closure_impl {
     }
     mod part_2 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "}")
@@ -543,6 +578,7 @@ mod Closure_impl {
         use super::*;
         mod optional {
             use super::*;
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
                 let (at_least_one, state) = parse_AtLeastOneMarker_internal(state)?;
@@ -553,6 +589,7 @@ mod Closure_impl {
                 pub at_least_one: AtLeastOneMarker,
             }
         }
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             if let Ok((result, new_state)) = optional::parse(state.clone()) {
                 Ok((
@@ -570,6 +607,7 @@ mod Closure_impl {
             pub at_least_one: Option<AtLeastOneMarker>,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut at_least_one: Option<AtLeastOneMarker> = None;
         let (_, state) = part_0::parse(state)?;
@@ -581,6 +619,7 @@ mod Closure_impl {
         Ok((Parsed { body, at_least_one }, state))
     }
     use super::Closure as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -590,11 +629,13 @@ fn parse_Closure_internal(state: ParseState) -> ParseResult<Closure> {
 }
 mod AtLeastOneMarker_impl {
     use super::*;
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let state = state.skip_whitespace();
         parse_character_literal(state, '+')
     }
     use super::AtLeastOneMarker as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -610,6 +651,7 @@ mod NegativeLookahead_impl {
     use super::*;
     mod part_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "!")
@@ -618,6 +660,7 @@ mod NegativeLookahead_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (expr, state) = parse_DelimitedExpression_internal(state)?;
@@ -633,6 +676,7 @@ mod NegativeLookahead_impl {
             pub expr: Box<DelimitedExpression>,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let (_, state) = part_0::parse(state)?;
         let (result, state) = part_1::parse(state)?;
@@ -640,6 +684,7 @@ mod NegativeLookahead_impl {
         Ok((Parsed { expr }, state))
     }
     use super::NegativeLookahead as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -655,6 +700,7 @@ mod CharacterRange_impl {
     use super::*;
     mod part_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (from, state) = parse_CharacterLiteral_internal(state)?;
@@ -667,6 +713,7 @@ mod CharacterRange_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "..")
@@ -675,6 +722,7 @@ mod CharacterRange_impl {
     }
     mod part_2 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (to, state) = parse_CharacterLiteral_internal(state)?;
@@ -685,6 +733,7 @@ mod CharacterRange_impl {
             pub to: CharacterLiteral,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let (result, state) = part_0::parse(state)?;
         let from = result.from;
@@ -694,6 +743,7 @@ mod CharacterRange_impl {
         Ok((Parsed { from, to }, state))
     }
     use super::CharacterRange as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -705,6 +755,7 @@ mod CharacterLiteral_impl {
     use super::*;
     mod part_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "'")
@@ -713,6 +764,7 @@ mod CharacterLiteral_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_char_internal(state)?;
@@ -725,12 +777,14 @@ mod CharacterLiteral_impl {
     }
     mod part_2 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "'")
         }
         pub type Parsed = ();
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let (_, state) = part_0::parse(state)?;
         let (result, state) = part_1::parse(state)?;
@@ -742,6 +796,7 @@ mod CharacterLiteral_impl {
         _override: super::CharacterLiteral,
     }
     use super::CharacterLiteral as Parsed__override;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<super::CharacterLiteral> {
         let (result, new_state) = parse(state)?;
         Ok((result._override, new_state))
@@ -758,6 +813,7 @@ mod StringLiteral_impl {
     use super::*;
     mod part_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_character_literal(state, '"')
@@ -766,6 +822,7 @@ mod StringLiteral_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (body, state) = parse_StringLiteralBody_internal(state)?;
@@ -778,12 +835,14 @@ mod StringLiteral_impl {
     }
     mod part_2 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_character_literal(state, '"')
         }
         pub type Parsed = ();
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let (_, state) = part_0::parse(state)?;
         let (result, state) = part_1::parse(state)?;
@@ -792,6 +851,7 @@ mod StringLiteral_impl {
         Ok((Parsed { body }, state))
     }
     use super::StringLiteral as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -806,6 +866,7 @@ mod StringLiteralBody_impl {
         use super::*;
         mod choice_0 {
             use super::*;
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_string_literal(state, "\\\\\\\"")
             }
@@ -817,11 +878,13 @@ mod StringLiteralBody_impl {
                 use super::*;
                 mod negative_lookahead {
                     use super::*;
+                    #[inline(always)]
                     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                         parse_character_literal(state, '"')
                     }
                     pub type Parsed = ();
                 }
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     match negative_lookahead::parse(state.clone()) {
                         Ok(_) => Err(ParseError),
@@ -832,12 +895,14 @@ mod StringLiteralBody_impl {
             }
             mod part_1 {
                 use super::*;
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let (_, state) = parse_char_internal(state)?;
                     Ok(((), state))
                 }
                 pub type Parsed = ();
             }
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let (_, state) = part_0::parse(state)?;
                 let (_, state) = part_1::parse(state)?;
@@ -845,6 +910,7 @@ mod StringLiteralBody_impl {
             }
             pub type Parsed = ();
         }
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             if let Ok((_, new_state)) = choice_0::parse(state.clone()) {
                 return Ok(((), new_state));
@@ -856,6 +922,7 @@ mod StringLiteralBody_impl {
         }
         pub type Parsed = ();
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut state = state;
         while let Ok((result, new_state)) = closure::parse(state.clone()) {
@@ -864,6 +931,7 @@ mod StringLiteralBody_impl {
         Ok(((), state))
     }
     pub type Parsed = ();
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<String> {
         let (_, new_state) = parse(state.clone())?;
         Ok((state.slice_until(&new_state).to_string(), new_state))
@@ -884,6 +952,7 @@ mod Field_impl {
             use super::*;
             mod part_0 {
                 use super::*;
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
                     let (name, state) = parse_Identifier_internal(state)?;
@@ -896,6 +965,7 @@ mod Field_impl {
             }
             mod part_1 {
                 use super::*;
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
                     parse_string_literal(state, ":")
@@ -906,6 +976,7 @@ mod Field_impl {
                 use super::*;
                 mod optional {
                     use super::*;
+                    #[inline(always)]
                     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                         let state = state.skip_whitespace();
                         let (boxed, state) = parse_BoxMarker_internal(state)?;
@@ -916,6 +987,7 @@ mod Field_impl {
                         pub boxed: BoxMarker,
                     }
                 }
+                #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     if let Ok((result, new_state)) = optional::parse(state.clone()) {
                         Ok((
@@ -933,6 +1005,7 @@ mod Field_impl {
                     pub boxed: Option<BoxMarker>,
                 }
             }
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let mut boxed: Option<BoxMarker> = None;
                 let (result, state) = part_0::parse(state)?;
@@ -948,6 +1021,7 @@ mod Field_impl {
                 pub boxed: Option<BoxMarker>,
             }
         }
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             if let Ok((result, new_state)) = optional::parse(state.clone()) {
                 Ok((
@@ -975,6 +1049,7 @@ mod Field_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (typ, state) = parse_Identifier_internal(state)?;
@@ -985,6 +1060,7 @@ mod Field_impl {
             pub typ: Identifier,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut name: Option<Identifier> = None;
         let mut boxed: Option<BoxMarker> = None;
@@ -996,6 +1072,7 @@ mod Field_impl {
         Ok((Parsed { name, boxed, typ }, state))
     }
     use super::Field as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -1005,11 +1082,13 @@ fn parse_Field_internal(state: ParseState) -> ParseResult<Field> {
 }
 mod BoxMarker_impl {
     use super::*;
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let state = state.skip_whitespace();
         parse_character_literal(state, '*')
     }
     use super::BoxMarker as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -1021,6 +1100,7 @@ mod OverrideField_impl {
     use super::*;
     mod part_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "@")
@@ -1029,6 +1109,7 @@ mod OverrideField_impl {
     }
     mod part_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, ":")
@@ -1037,6 +1118,7 @@ mod OverrideField_impl {
     }
     mod part_2 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (typ, state) = parse_Identifier_internal(state)?;
@@ -1047,6 +1129,7 @@ mod OverrideField_impl {
             pub typ: Identifier,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let (_, state) = part_0::parse(state)?;
         let (_, state) = part_1::parse(state)?;
@@ -1055,6 +1138,7 @@ mod OverrideField_impl {
         Ok((Parsed { typ }, state))
     }
     use super::OverrideField as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -1066,6 +1150,7 @@ mod DelimitedExpression_impl {
     use super::*;
     mod choice_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_Group_internal(state)?;
@@ -1078,6 +1163,7 @@ mod DelimitedExpression_impl {
     }
     mod choice_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_Optional_internal(state)?;
@@ -1090,6 +1176,7 @@ mod DelimitedExpression_impl {
     }
     mod choice_2 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_Closure_internal(state)?;
@@ -1102,6 +1189,7 @@ mod DelimitedExpression_impl {
     }
     mod choice_3 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_NegativeLookahead_internal(state)?;
@@ -1114,6 +1202,7 @@ mod DelimitedExpression_impl {
     }
     mod choice_4 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_CharacterRange_internal(state)?;
@@ -1126,6 +1215,7 @@ mod DelimitedExpression_impl {
     }
     mod choice_5 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_CharacterLiteral_internal(state)?;
@@ -1138,6 +1228,7 @@ mod DelimitedExpression_impl {
     }
     mod choice_6 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_StringLiteral_internal(state)?;
@@ -1150,6 +1241,7 @@ mod DelimitedExpression_impl {
     }
     mod choice_7 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_OverrideField_internal(state)?;
@@ -1162,6 +1254,7 @@ mod DelimitedExpression_impl {
     }
     mod choice_8 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_Field_internal(state)?;
@@ -1172,6 +1265,7 @@ mod DelimitedExpression_impl {
             pub _override: Field,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
             return Ok((
@@ -1251,6 +1345,7 @@ mod DelimitedExpression_impl {
         _override: super::DelimitedExpression,
     }
     use super::DelimitedExpression as Parsed__override;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<super::DelimitedExpression> {
         let (result, new_state) = parse(state)?;
         Ok((result._override, new_state))
@@ -1270,6 +1365,7 @@ mod Identifier_impl {
         use super::*;
         mod choice_0 {
             use super::*;
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_character_range(state, 'a', 'z')
             }
@@ -1277,6 +1373,7 @@ mod Identifier_impl {
         }
         mod choice_1 {
             use super::*;
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_character_range(state, 'A', 'Z')
             }
@@ -1284,6 +1381,7 @@ mod Identifier_impl {
         }
         mod choice_2 {
             use super::*;
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_character_range(state, '0', '9')
             }
@@ -1291,11 +1389,13 @@ mod Identifier_impl {
         }
         mod choice_3 {
             use super::*;
+            #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_character_literal(state, '_')
             }
             pub type Parsed = ();
         }
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             if let Ok((_, new_state)) = choice_0::parse(state.clone()) {
                 return Ok(((), new_state));
@@ -1313,6 +1413,7 @@ mod Identifier_impl {
         }
         pub type Parsed = ();
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut state = state;
         let (result, new_state) = closure::parse(state)?;
@@ -1323,6 +1424,7 @@ mod Identifier_impl {
         Ok(((), state))
     }
     pub type Parsed = ();
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<String> {
         let (_, new_state) = parse(state.clone())?;
         Ok((state.slice_until(&new_state).to_string(), new_state))
@@ -1335,6 +1437,7 @@ mod DirectiveExpression_impl {
     use super::*;
     mod choice_0 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_StringDirective_internal(state)?;
@@ -1347,6 +1450,7 @@ mod DirectiveExpression_impl {
     }
     mod choice_1 {
         use super::*;
+        #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_NoSkipWsDirective_internal(state)?;
@@ -1357,6 +1461,7 @@ mod DirectiveExpression_impl {
             pub _override: NoSkipWsDirective,
         }
     }
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
             return Ok((
@@ -1380,6 +1485,7 @@ mod DirectiveExpression_impl {
         _override: super::DirectiveExpression,
     }
     use super::DirectiveExpression as Parsed__override;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<super::DirectiveExpression> {
         let (result, new_state) = parse(state)?;
         Ok((result._override, new_state))
@@ -1394,11 +1500,13 @@ fn parse_DirectiveExpression_internal(state: ParseState) -> ParseResult<Directiv
 }
 mod StringDirective_impl {
     use super::*;
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let state = state.skip_whitespace();
         parse_string_literal(state, "@string")
     }
     use super::StringDirective as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
@@ -1408,11 +1516,13 @@ fn parse_StringDirective_internal(state: ParseState) -> ParseResult<StringDirect
 }
 mod NoSkipWsDirective_impl {
     use super::*;
+    #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let state = state.skip_whitespace();
         parse_string_literal(state, "@no_skip_ws")
     }
     use super::NoSkipWsDirective as Parsed;
+    #[inline(always)]
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
