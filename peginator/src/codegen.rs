@@ -14,10 +14,10 @@ fn quick_ident(s: &str) -> Ident {
     Ident::new(s, Span::call_site())
 }
 
-struct CodegenSettings {
-    grammar_module_prefix: TokenStream,
-    runtime_prefix: TokenStream,
-    skip_whitespace: bool,
+pub struct CodegenSettings {
+    pub grammar_module_prefix: TokenStream,
+    pub runtime_prefix: TokenStream,
+    pub skip_whitespace: bool,
 }
 
 #[derive(Debug)]
@@ -35,7 +35,7 @@ pub struct FieldDescriptor<'a> {
     pub boxed: bool,
 }
 
-trait CodegenOuter {
+pub trait CodegenOuter {
     fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream>;
 }
 

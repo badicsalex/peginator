@@ -13,4 +13,4 @@ name = "peginator-compile"
 quote = "1.0"
 proc-macro2 = "1.0"
 anyhow = "1.0"
-enum_dispatch = "0.3.8"
+clap = { version = "3.1", features = ["derive"]}
