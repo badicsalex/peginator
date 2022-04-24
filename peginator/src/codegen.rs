@@ -15,8 +15,6 @@ fn quick_ident(s: &str) -> Ident {
 }
 
 pub struct CodegenSettings {
-    pub grammar_module_prefix: TokenStream,
-    pub runtime_prefix: TokenStream,
     pub skip_whitespace: bool,
 }
 
@@ -58,17 +56,12 @@ impl CodegenOuter for Rule {
             }
         }
 
-        let settings = CodegenSettings {
-            grammar_module_prefix: settings.grammar_module_prefix.clone(),
-            runtime_prefix: settings.runtime_prefix.clone(),
-            skip_whitespace,
-        };
+        let settings = CodegenSettings { skip_whitespace };
 
         let name = &self.name;
         let rule_mod = format_ident!("{}_impl", self.name);
         let rule_type = format_ident!("{}", self.name);
         let parser_name = format_ident!("parse_{}", self.name);
-        let runtime_prefix = &settings.runtime_prefix;
         let choice_body = self.definition.generate_code_spec(&settings)?;
         let fields = self.definition.get_fields()?;
         let outer_parser = quote!(
@@ -80,7 +73,8 @@ impl CodegenOuter for Rule {
             let parsed_types = self.definition.generate_types(&settings, "Parsed")?;
             Ok(quote!(
                 mod #rule_mod{
-                    use #runtime_prefix *;
+                    use super::*;
+                    use super::*;
                     #choice_body
                     #parsed_types
                     pub fn rule_parser (state: ParseState) -> ParseResult<String> {
@@ -95,10 +89,10 @@ impl CodegenOuter for Rule {
             let field = &fields[0];
             if field.type_names.len() <= 1 {
                 // Simple case
-                let override_type = generate_field_type(&self.name, &field, &settings);
+                let override_type = generate_field_type(&self.name, field, &settings);
                 Ok(quote!(
                     mod #rule_mod{
-                        use #runtime_prefix *;
+                        use super::*;
                         #choice_body
                         pub struct Parsed {
                             _override: super::#rule_type,
@@ -118,7 +112,7 @@ impl CodegenOuter for Rule {
                 let enum_type = generate_enum_type(&self.name, field, &settings);
                 Ok(quote!(
                     mod #rule_mod{
-                        use #runtime_prefix *;
+                        use super::*;
                         #choice_body
                         pub struct Parsed {
                             _override: super::#rule_type,
@@ -141,7 +135,7 @@ impl CodegenOuter for Rule {
                 .generate_use_super_as_parsed(&settings, &self.name)?;
             Ok(quote!(
                 mod #rule_mod{
-                    use #runtime_prefix *;
+                    use super::*;
                     #choice_body
                     #used_types
                     pub fn rule_parser (state: ParseState) -> ParseResult<Parsed> {
@@ -184,7 +178,7 @@ trait Codegen {
 
     fn generate_use_super_as_parsed(
         &self,
-        settings: &CodegenSettings,
+        _settings: &CodegenSettings,
         type_name: &str,
     ) -> Result<TokenStream> {
         let fields = self.get_fields()?;
@@ -208,9 +202,8 @@ trait Codegen {
 fn generate_field_type(
     parent_type: &str,
     field: &FieldDescriptor,
-    settings: &CodegenSettings,
+    _settings: &CodegenSettings,
 ) -> TokenStream {
-    let prefix = &settings.grammar_module_prefix;
     let field_inner_type_ident: TokenStream = if field.type_names.len() > 1 {
         let ident = format_ident!("{}_{}", parent_type, field.name);
         quote!(#ident)
@@ -220,7 +213,7 @@ fn generate_field_type(
         if type_name == &"char" {
             quote!(char)
         } else {
-            quote!(#prefix #ident)
+            quote!(#ident)
         }
     };
     match field.arity {
@@ -245,15 +238,14 @@ fn generate_field_type(
 fn generate_enum_type(
     parent_type: &str,
     field: &FieldDescriptor,
-    settings: &CodegenSettings,
+    _settings: &CodegenSettings,
 ) -> TokenStream {
-    let prefix = &settings.grammar_module_prefix;
     let ident = format_ident!("{}_{}", parent_type, field.name);
     let type_idents: Vec<Ident> = field.type_names.iter().map(|n| quick_ident(n)).collect();
     quote!(
         #[derive(Debug)]
         pub enum #ident {
-            #(#type_idents(#prefix #type_idents),)*
+            #(#type_idents(#type_idents),)*
         }
     )
 }
@@ -291,7 +283,6 @@ impl Codegen for Choice {
         if self.choices.len() < 2 {
             return self.choices[0].generate_code_spec(settings);
         }
-        let runtime_prefix = &settings.runtime_prefix;
         let choice_bodies = self
             .choices
             .iter()
@@ -301,7 +292,7 @@ impl Codegen for Choice {
                 let sequence_body = choice.generate_code(settings)?;
                 Ok(quote!(
                     mod #choice_mod{
-                    use #runtime_prefix *;
+                    use super::*;
                         #sequence_body
                     }
                 ))
@@ -344,7 +335,7 @@ impl Codegen for Choice {
 }
 
 impl Choice {
-    fn generate_parse_function(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_parse_function(&self, _settings: &CodegenSettings) -> Result<TokenStream> {
         let fields = self.get_fields()?;
         let calls = self
             .choices
@@ -479,7 +470,6 @@ impl Codegen for Sequence {
         if self.parts.len() < 2 {
             return self.parts[0].generate_code_spec(settings);
         }
-        let runtime_prefix = &settings.runtime_prefix;
         let part_bodies = self
             .parts
             .iter()
@@ -489,7 +479,7 @@ impl Codegen for Sequence {
                 let part_body = part.generate_code(settings)?;
                 Ok(quote!(
                     mod #part_mod{
-                        use #runtime_prefix *;
+                        use super::*;
                         #part_body
                     }
                 ))
@@ -646,7 +636,6 @@ impl Codegen for Optional {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let body = self.body.generate_code(settings)?;
         let inner_fields = self.body.get_fields()?;
-        let runtime_prefix = &settings.runtime_prefix;
         let happy_case_fields: TokenStream = inner_fields
             .iter()
             .map(|inner_field| {
@@ -675,7 +664,7 @@ impl Codegen for Optional {
             .collect();
         Ok(quote!(
             mod optional{
-                use #runtime_prefix *;
+                use super::*;
                 #body
             }
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -711,7 +700,6 @@ fn set_arity_to_optional(fields: Vec<FieldDescriptor>) -> Vec<FieldDescriptor> {
 impl Codegen for Closure {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let closure_body = self.body.generate_code(settings)?;
-        let runtime_prefix = &settings.runtime_prefix;
         let fields = self.get_fields()?;
         let inner_fields = self.body.get_fields()?;
         let declarations: TokenStream = fields
@@ -758,7 +746,7 @@ impl Codegen for Closure {
 
         Ok(quote!(
             mod closure{
-                use #runtime_prefix *;
+                use super::*;
                 #closure_body
             }
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -790,10 +778,9 @@ fn set_arity_to_multiple(fields: Vec<FieldDescriptor>) -> Vec<FieldDescriptor> {
 impl Codegen for NegativeLookahead {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let body = self.expr.generate_code(settings)?;
-        let runtime_prefix = &settings.runtime_prefix;
         Ok(quote!(
             mod negative_lookahead{
-                use #runtime_prefix *;
+                use super::*;
                 #body
             }
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -876,12 +863,6 @@ impl Codegen for StringLiteral {
 
 impl Codegen for OverrideField {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let empty_prefix = TokenStream::new();
-        let prefix = if self.typ == "char" {
-            &empty_prefix
-        } else {
-            &settings.grammar_module_prefix
-        };
         let parser_name = format_ident!("parse_{}", self.typ);
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
@@ -891,7 +872,7 @@ impl Codegen for OverrideField {
         Ok(quote!(
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #skip_ws
-                let (_override, state) = #prefix #parser_name (state)?;
+                let (_override, state) = #parser_name (state)?;
                 Ok((Parsed{ _override }, state))
             }
         ))
@@ -909,12 +890,6 @@ impl Codegen for OverrideField {
 
 impl Codegen for Field {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let empty_prefix = TokenStream::new();
-        let prefix = if self.typ == "char" {
-            &empty_prefix
-        } else {
-            &settings.grammar_module_prefix
-        };
         let parser_name = format_ident!("parse_{}", self.typ);
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
@@ -931,7 +906,7 @@ impl Codegen for Field {
             Ok(quote!(
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     #skip_ws
-                    let (#field_ident, state) = #prefix #parser_name (state)?;
+                    let (#field_ident, state) = #parser_name (state)?;
                     Ok((Parsed{ #maybe_boxed }, state))
                 }
             ))
@@ -939,7 +914,7 @@ impl Codegen for Field {
             Ok(quote!(
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     #skip_ws
-                    let (_, state) = #prefix #parser_name (state)?;
+                    let (_, state) = #parser_name (state)?;
                     Ok(((), state))
                 }
             ))
@@ -958,15 +933,4 @@ impl Codegen for Field {
             Ok(Vec::new())
         }
     }
-}
-
-pub fn lets_debug(grammar: &Grammar) -> Result<()> {
-    let settings = CodegenSettings {
-        grammar_module_prefix: quote!(crate::grammar::generated::),
-        runtime_prefix: quote!(crate::runtime::),
-        skip_whitespace: true,
-    };
-    println!("use crate::runtime::*;");
-    println!("{}", grammar.generate_code(&settings)?);
-    Ok(())
 }

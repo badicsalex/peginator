@@ -1,22 +1,22 @@
 use crate::runtime::*;
 mod Grammar_impl {
-    use crate::runtime::*;
+    use super::*;
     mod closure {
-        use crate::runtime::*;
+        use super::*;
         mod part_0 {
-            use crate::runtime::*;
+            use super::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (rules, state) = crate::grammar::generated::parse_Rule(state)?;
+                let (rules, state) = parse_Rule(state)?;
                 Ok((Parsed { rules }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub rules: crate::grammar::generated::Rule,
+                pub rules: Rule,
             }
         }
         mod part_1 {
-            use crate::runtime::*;
+            use super::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
                 parse_string_literal(state, ";")
@@ -31,12 +31,12 @@ mod Grammar_impl {
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub rules: crate::grammar::generated::Rule,
+            pub rules: Rule,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut state = state;
-        let mut rules: Vec<crate::grammar::generated::Rule> = Vec::new();
+        let mut rules: Vec<Rule> = Vec::new();
         while let Ok((result, new_state)) = closure::parse(state.clone()) {
             rules.push(result.rules);
             state = new_state;
@@ -50,31 +50,30 @@ mod Grammar_impl {
 }
 #[derive(Debug)]
 pub struct Grammar {
-    pub rules: Vec<crate::grammar::generated::Rule>,
+    pub rules: Vec<Rule>,
 }
 pub fn parse_Grammar(state: ParseState) -> ParseResult<Grammar> {
     run_rule_parser(Grammar_impl::rule_parser, "Grammar", state)
 }
 mod Rule_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         mod closure {
-            use crate::runtime::*;
+            use super::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (directives, state) =
-                    crate::grammar::generated::parse_DirectiveExpression(state)?;
+                let (directives, state) = parse_DirectiveExpression(state)?;
                 Ok((Parsed { directives }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub directives: crate::grammar::generated::DirectiveExpression,
+                pub directives: DirectiveExpression,
             }
         }
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let mut state = state;
-            let mut directives: Vec<crate::grammar::generated::DirectiveExpression> = Vec::new();
+            let mut directives: Vec<DirectiveExpression> = Vec::new();
             while let Ok((result, new_state)) = closure::parse(state.clone()) {
                 directives.push(result.directives);
                 state = new_state;
@@ -83,23 +82,23 @@ mod Rule_impl {
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub directives: Vec<crate::grammar::generated::DirectiveExpression>,
+            pub directives: Vec<DirectiveExpression>,
         }
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (name, state) = crate::grammar::generated::parse_Identifier(state)?;
+            let (name, state) = parse_Identifier(state)?;
             Ok((Parsed { name }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub name: crate::grammar::generated::Identifier,
+            pub name: Identifier,
         }
     }
     mod part_2 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "=")
@@ -107,19 +106,19 @@ mod Rule_impl {
         pub type Parsed = ();
     }
     mod part_3 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (definition, state) = crate::grammar::generated::parse_Choice(state)?;
+            let (definition, state) = parse_Choice(state)?;
             Ok((Parsed { definition }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub definition: crate::grammar::generated::Choice,
+            pub definition: Choice,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-        let mut directives: Vec<crate::grammar::generated::DirectiveExpression> = Vec::new();
+        let mut directives: Vec<DirectiveExpression> = Vec::new();
         let (result, state) = part_0::parse(state)?;
         directives.extend(result.directives);
         let (result, state) = part_1::parse(state)?;
@@ -143,33 +142,33 @@ mod Rule_impl {
 }
 #[derive(Debug)]
 pub struct Rule {
-    pub directives: Vec<crate::grammar::generated::DirectiveExpression>,
-    pub name: crate::grammar::generated::Identifier,
-    pub definition: crate::grammar::generated::Choice,
+    pub directives: Vec<DirectiveExpression>,
+    pub name: Identifier,
+    pub definition: Choice,
 }
 pub fn parse_Rule(state: ParseState) -> ParseResult<Rule> {
     run_rule_parser(Rule_impl::rule_parser, "Rule", state)
 }
 mod Choice_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (choices, state) = crate::grammar::generated::parse_Sequence(state)?;
+            let (choices, state) = parse_Sequence(state)?;
             Ok((Parsed { choices }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub choices: crate::grammar::generated::Sequence,
+            pub choices: Sequence,
         }
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         mod closure {
-            use crate::runtime::*;
+            use super::*;
             mod part_0 {
-                use crate::runtime::*;
+                use super::*;
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
                     parse_string_literal(state, "|")
@@ -177,15 +176,15 @@ mod Choice_impl {
                 pub type Parsed = ();
             }
             mod part_1 {
-                use crate::runtime::*;
+                use super::*;
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
-                    let (choices, state) = crate::grammar::generated::parse_Sequence(state)?;
+                    let (choices, state) = parse_Sequence(state)?;
                     Ok((Parsed { choices }, state))
                 }
                 #[derive(Debug)]
                 pub struct Parsed {
-                    pub choices: crate::grammar::generated::Sequence,
+                    pub choices: Sequence,
                 }
             }
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -196,12 +195,12 @@ mod Choice_impl {
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub choices: crate::grammar::generated::Sequence,
+                pub choices: Sequence,
             }
         }
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let mut state = state;
-            let mut choices: Vec<crate::grammar::generated::Sequence> = Vec::new();
+            let mut choices: Vec<Sequence> = Vec::new();
             while let Ok((result, new_state)) = closure::parse(state.clone()) {
                 choices.push(result.choices);
                 state = new_state;
@@ -210,11 +209,11 @@ mod Choice_impl {
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub choices: Vec<crate::grammar::generated::Sequence>,
+            pub choices: Vec<Sequence>,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-        let mut choices: Vec<crate::grammar::generated::Sequence> = Vec::new();
+        let mut choices: Vec<Sequence> = Vec::new();
         let (result, state) = part_0::parse(state)?;
         choices.push(result.choices);
         let (result, state) = part_1::parse(state)?;
@@ -228,28 +227,28 @@ mod Choice_impl {
 }
 #[derive(Debug)]
 pub struct Choice {
-    pub choices: Vec<crate::grammar::generated::Sequence>,
+    pub choices: Vec<Sequence>,
 }
 pub fn parse_Choice(state: ParseState) -> ParseResult<Choice> {
     run_rule_parser(Choice_impl::rule_parser, "Choice", state)
 }
 mod Sequence_impl {
-    use crate::runtime::*;
+    use super::*;
     mod closure {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (parts, state) = crate::grammar::generated::parse_DelimitedExpression(state)?;
+            let (parts, state) = parse_DelimitedExpression(state)?;
             Ok((Parsed { parts }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub parts: crate::grammar::generated::DelimitedExpression,
+            pub parts: DelimitedExpression,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let mut state = state;
-        let mut parts: Vec<crate::grammar::generated::DelimitedExpression> = Vec::new();
+        let mut parts: Vec<DelimitedExpression> = Vec::new();
         while let Ok((result, new_state)) = closure::parse(state.clone()) {
             parts.push(result.parts);
             state = new_state;
@@ -263,15 +262,15 @@ mod Sequence_impl {
 }
 #[derive(Debug)]
 pub struct Sequence {
-    pub parts: Vec<crate::grammar::generated::DelimitedExpression>,
+    pub parts: Vec<DelimitedExpression>,
 }
 pub fn parse_Sequence(state: ParseState) -> ParseResult<Sequence> {
     run_rule_parser(Sequence_impl::rule_parser, "Sequence", state)
 }
 mod Group_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "(")
@@ -279,19 +278,19 @@ mod Group_impl {
         pub type Parsed = ();
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (body, state) = crate::grammar::generated::parse_Choice(state)?;
+            let (body, state) = parse_Choice(state)?;
             Ok((Parsed { body }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub body: crate::grammar::generated::Choice,
+            pub body: Choice,
         }
     }
     mod part_2 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, ")")
@@ -312,15 +311,15 @@ mod Group_impl {
 }
 #[derive(Debug)]
 pub struct Group {
-    pub body: crate::grammar::generated::Choice,
+    pub body: Choice,
 }
 pub fn parse_Group(state: ParseState) -> ParseResult<Group> {
     run_rule_parser(Group_impl::rule_parser, "Group", state)
 }
 mod Optional_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "[")
@@ -328,19 +327,19 @@ mod Optional_impl {
         pub type Parsed = ();
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (body, state) = crate::grammar::generated::parse_Choice(state)?;
+            let (body, state) = parse_Choice(state)?;
             Ok((Parsed { body }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub body: crate::grammar::generated::Choice,
+            pub body: Choice,
         }
     }
     mod part_2 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "]")
@@ -361,15 +360,15 @@ mod Optional_impl {
 }
 #[derive(Debug)]
 pub struct Optional {
-    pub body: crate::grammar::generated::Choice,
+    pub body: Choice,
 }
 pub fn parse_Optional(state: ParseState) -> ParseResult<Optional> {
     run_rule_parser(Optional_impl::rule_parser, "Optional", state)
 }
 mod Closure_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "{")
@@ -377,19 +376,19 @@ mod Closure_impl {
         pub type Parsed = ();
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (body, state) = crate::grammar::generated::parse_Choice(state)?;
+            let (body, state) = parse_Choice(state)?;
             Ok((Parsed { body }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub body: crate::grammar::generated::Choice,
+            pub body: Choice,
         }
     }
     mod part_2 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "}")
@@ -397,18 +396,17 @@ mod Closure_impl {
         pub type Parsed = ();
     }
     mod part_3 {
-        use crate::runtime::*;
+        use super::*;
         mod optional {
-            use crate::runtime::*;
+            use super::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (at_least_one, state) =
-                    crate::grammar::generated::parse_AtLeastOneMarker(state)?;
+                let (at_least_one, state) = parse_AtLeastOneMarker(state)?;
                 Ok((Parsed { at_least_one }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub at_least_one: crate::grammar::generated::AtLeastOneMarker,
+                pub at_least_one: AtLeastOneMarker,
             }
         }
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -425,11 +423,11 @@ mod Closure_impl {
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub at_least_one: Option<crate::grammar::generated::AtLeastOneMarker>,
+            pub at_least_one: Option<AtLeastOneMarker>,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-        let mut at_least_one: Option<crate::grammar::generated::AtLeastOneMarker> = None;
+        let mut at_least_one: Option<AtLeastOneMarker> = None;
         let (_, state) = part_0::parse(state)?;
         let (result, state) = part_1::parse(state)?;
         let body = result.body;
@@ -445,14 +443,14 @@ mod Closure_impl {
 }
 #[derive(Debug)]
 pub struct Closure {
-    pub body: crate::grammar::generated::Choice,
-    pub at_least_one: Option<crate::grammar::generated::AtLeastOneMarker>,
+    pub body: Choice,
+    pub at_least_one: Option<AtLeastOneMarker>,
 }
 pub fn parse_Closure(state: ParseState) -> ParseResult<Closure> {
     run_rule_parser(Closure_impl::rule_parser, "Closure", state)
 }
 mod AtLeastOneMarker_impl {
-    use crate::runtime::*;
+    use super::*;
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let state = state.skip_whitespace();
         parse_character_literal(state, '+')
@@ -471,9 +469,9 @@ pub fn parse_AtLeastOneMarker(state: ParseState) -> ParseResult<AtLeastOneMarker
     )
 }
 mod NegativeLookahead_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "!")
@@ -481,10 +479,10 @@ mod NegativeLookahead_impl {
         pub type Parsed = ();
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (expr, state) = crate::grammar::generated::parse_DelimitedExpression(state)?;
+            let (expr, state) = parse_DelimitedExpression(state)?;
             Ok((
                 Parsed {
                     expr: Box::new(expr),
@@ -494,7 +492,7 @@ mod NegativeLookahead_impl {
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub expr: Box<crate::grammar::generated::DelimitedExpression>,
+            pub expr: Box<DelimitedExpression>,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -510,7 +508,7 @@ mod NegativeLookahead_impl {
 }
 #[derive(Debug)]
 pub struct NegativeLookahead {
-    pub expr: Box<crate::grammar::generated::DelimitedExpression>,
+    pub expr: Box<DelimitedExpression>,
 }
 pub fn parse_NegativeLookahead(state: ParseState) -> ParseResult<NegativeLookahead> {
     run_rule_parser(
@@ -520,21 +518,21 @@ pub fn parse_NegativeLookahead(state: ParseState) -> ParseResult<NegativeLookahe
     )
 }
 mod CharacterRange_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (from, state) = crate::grammar::generated::parse_CharacterLiteral(state)?;
+            let (from, state) = parse_CharacterLiteral(state)?;
             Ok((Parsed { from }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub from: crate::grammar::generated::CharacterLiteral,
+            pub from: CharacterLiteral,
         }
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "..")
@@ -542,15 +540,15 @@ mod CharacterRange_impl {
         pub type Parsed = ();
     }
     mod part_2 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (to, state) = crate::grammar::generated::parse_CharacterLiteral(state)?;
+            let (to, state) = parse_CharacterLiteral(state)?;
             Ok((Parsed { to }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub to: crate::grammar::generated::CharacterLiteral,
+            pub to: CharacterLiteral,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -568,16 +566,16 @@ mod CharacterRange_impl {
 }
 #[derive(Debug)]
 pub struct CharacterRange {
-    pub from: crate::grammar::generated::CharacterLiteral,
-    pub to: crate::grammar::generated::CharacterLiteral,
+    pub from: CharacterLiteral,
+    pub to: CharacterLiteral,
 }
 pub fn parse_CharacterRange(state: ParseState) -> ParseResult<CharacterRange> {
     run_rule_parser(CharacterRange_impl::rule_parser, "CharacterRange", state)
 }
 mod CharacterLiteral_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "'")
@@ -585,7 +583,7 @@ mod CharacterLiteral_impl {
         pub type Parsed = ();
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             let (_override, state) = parse_char(state)?;
@@ -597,7 +595,7 @@ mod CharacterLiteral_impl {
         }
     }
     mod part_2 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "'")
@@ -629,9 +627,9 @@ pub fn parse_CharacterLiteral(state: ParseState) -> ParseResult<CharacterLiteral
     )
 }
 mod StringLiteral_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_character_literal(state, '"')
@@ -639,19 +637,19 @@ mod StringLiteral_impl {
         pub type Parsed = ();
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (body, state) = crate::grammar::generated::parse_StringLiteralBody(state)?;
+            let (body, state) = parse_StringLiteralBody(state)?;
             Ok((Parsed { body }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub body: crate::grammar::generated::StringLiteralBody,
+            pub body: StringLiteralBody,
         }
     }
     mod part_2 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_character_literal(state, '"')
@@ -672,28 +670,29 @@ mod StringLiteral_impl {
 }
 #[derive(Debug)]
 pub struct StringLiteral {
-    pub body: crate::grammar::generated::StringLiteralBody,
+    pub body: StringLiteralBody,
 }
 pub fn parse_StringLiteral(state: ParseState) -> ParseResult<StringLiteral> {
     run_rule_parser(StringLiteral_impl::rule_parser, "StringLiteral", state)
 }
 mod StringLiteralBody_impl {
-    use crate::runtime::*;
+    use super::*;
+    use super::*;
     mod closure {
-        use crate::runtime::*;
+        use super::*;
         mod choice_0 {
-            use crate::runtime::*;
+            use super::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_string_literal(state, "\\\\\\\"")
             }
             pub type Parsed = ();
         }
         mod choice_1 {
-            use crate::runtime::*;
+            use super::*;
             mod part_0 {
-                use crate::runtime::*;
+                use super::*;
                 mod negative_lookahead {
-                    use crate::runtime::*;
+                    use super::*;
                     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                         parse_character_literal(state, '"')
                     }
@@ -708,7 +707,7 @@ mod StringLiteralBody_impl {
                 pub type Parsed = ();
             }
             mod part_1 {
-                use crate::runtime::*;
+                use super::*;
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let (_, state) = parse_char(state)?;
                     Ok(((), state))
@@ -755,25 +754,25 @@ pub fn parse_StringLiteralBody(state: ParseState) -> ParseResult<StringLiteralBo
     )
 }
 mod Field_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         mod optional {
-            use crate::runtime::*;
+            use super::*;
             mod part_0 {
-                use crate::runtime::*;
+                use super::*;
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
-                    let (name, state) = crate::grammar::generated::parse_Identifier(state)?;
+                    let (name, state) = parse_Identifier(state)?;
                     Ok((Parsed { name }, state))
                 }
                 #[derive(Debug)]
                 pub struct Parsed {
-                    pub name: crate::grammar::generated::Identifier,
+                    pub name: Identifier,
                 }
             }
             mod part_1 {
-                use crate::runtime::*;
+                use super::*;
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
                     parse_string_literal(state, ":")
@@ -781,17 +780,17 @@ mod Field_impl {
                 pub type Parsed = ();
             }
             mod part_2 {
-                use crate::runtime::*;
+                use super::*;
                 mod optional {
-                    use crate::runtime::*;
+                    use super::*;
                     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                         let state = state.skip_whitespace();
-                        let (boxed, state) = crate::grammar::generated::parse_BoxMarker(state)?;
+                        let (boxed, state) = parse_BoxMarker(state)?;
                         Ok((Parsed { boxed }, state))
                     }
                     #[derive(Debug)]
                     pub struct Parsed {
-                        pub boxed: crate::grammar::generated::BoxMarker,
+                        pub boxed: BoxMarker,
                     }
                 }
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -808,11 +807,11 @@ mod Field_impl {
                 }
                 #[derive(Debug)]
                 pub struct Parsed {
-                    pub boxed: Option<crate::grammar::generated::BoxMarker>,
+                    pub boxed: Option<BoxMarker>,
                 }
             }
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                let mut boxed: Option<crate::grammar::generated::BoxMarker> = None;
+                let mut boxed: Option<BoxMarker> = None;
                 let (result, state) = part_0::parse(state)?;
                 let name = result.name;
                 let (_, state) = part_1::parse(state)?;
@@ -822,8 +821,8 @@ mod Field_impl {
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub name: crate::grammar::generated::Identifier,
-                pub boxed: Option<crate::grammar::generated::BoxMarker>,
+                pub name: Identifier,
+                pub boxed: Option<BoxMarker>,
             }
         }
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -847,25 +846,25 @@ mod Field_impl {
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub name: Option<crate::grammar::generated::Identifier>,
-            pub boxed: Option<crate::grammar::generated::BoxMarker>,
+            pub name: Option<Identifier>,
+            pub boxed: Option<BoxMarker>,
         }
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (typ, state) = crate::grammar::generated::parse_Identifier(state)?;
+            let (typ, state) = parse_Identifier(state)?;
             Ok((Parsed { typ }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub typ: crate::grammar::generated::Identifier,
+            pub typ: Identifier,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-        let mut name: Option<crate::grammar::generated::Identifier> = None;
-        let mut boxed: Option<crate::grammar::generated::BoxMarker> = None;
+        let mut name: Option<Identifier> = None;
+        let mut boxed: Option<BoxMarker> = None;
         let (result, state) = part_0::parse(state)?;
         name = name.or(result.name);
         boxed = boxed.or(result.boxed);
@@ -880,15 +879,15 @@ mod Field_impl {
 }
 #[derive(Debug)]
 pub struct Field {
-    pub name: Option<crate::grammar::generated::Identifier>,
-    pub boxed: Option<crate::grammar::generated::BoxMarker>,
-    pub typ: crate::grammar::generated::Identifier,
+    pub name: Option<Identifier>,
+    pub boxed: Option<BoxMarker>,
+    pub typ: Identifier,
 }
 pub fn parse_Field(state: ParseState) -> ParseResult<Field> {
     run_rule_parser(Field_impl::rule_parser, "Field", state)
 }
 mod BoxMarker_impl {
-    use crate::runtime::*;
+    use super::*;
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let state = state.skip_whitespace();
         parse_character_literal(state, '*')
@@ -903,9 +902,9 @@ pub fn parse_BoxMarker(state: ParseState) -> ParseResult<BoxMarker> {
     run_rule_parser(BoxMarker_impl::rule_parser, "BoxMarker", state)
 }
 mod OverrideField_impl {
-    use crate::runtime::*;
+    use super::*;
     mod part_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, "@")
@@ -913,7 +912,7 @@ mod OverrideField_impl {
         pub type Parsed = ();
     }
     mod part_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
             parse_string_literal(state, ":")
@@ -921,15 +920,15 @@ mod OverrideField_impl {
         pub type Parsed = ();
     }
     mod part_2 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (typ, state) = crate::grammar::generated::parse_Identifier(state)?;
+            let (typ, state) = parse_Identifier(state)?;
             Ok((Parsed { typ }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub typ: crate::grammar::generated::Identifier,
+            pub typ: Identifier,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -946,119 +945,119 @@ mod OverrideField_impl {
 }
 #[derive(Debug)]
 pub struct OverrideField {
-    pub typ: crate::grammar::generated::Identifier,
+    pub typ: Identifier,
 }
 pub fn parse_OverrideField(state: ParseState) -> ParseResult<OverrideField> {
     run_rule_parser(OverrideField_impl::rule_parser, "OverrideField", state)
 }
 mod DelimitedExpression_impl {
-    use crate::runtime::*;
+    use super::*;
     mod choice_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_Group(state)?;
+            let (_override, state) = parse_Group(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::Group,
+            pub _override: Group,
         }
     }
     mod choice_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_Optional(state)?;
+            let (_override, state) = parse_Optional(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::Optional,
+            pub _override: Optional,
         }
     }
     mod choice_2 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_Closure(state)?;
+            let (_override, state) = parse_Closure(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::Closure,
+            pub _override: Closure,
         }
     }
     mod choice_3 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_NegativeLookahead(state)?;
+            let (_override, state) = parse_NegativeLookahead(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::NegativeLookahead,
+            pub _override: NegativeLookahead,
         }
     }
     mod choice_4 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_CharacterRange(state)?;
+            let (_override, state) = parse_CharacterRange(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::CharacterRange,
+            pub _override: CharacterRange,
         }
     }
     mod choice_5 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_CharacterLiteral(state)?;
+            let (_override, state) = parse_CharacterLiteral(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::CharacterLiteral,
+            pub _override: CharacterLiteral,
         }
     }
     mod choice_6 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_StringLiteral(state)?;
+            let (_override, state) = parse_StringLiteral(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::StringLiteral,
+            pub _override: StringLiteral,
         }
     }
     mod choice_7 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_OverrideField(state)?;
+            let (_override, state) = parse_OverrideField(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::OverrideField,
+            pub _override: OverrideField,
         }
     }
     mod choice_8 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_Field(state)?;
+            let (_override, state) = parse_Field(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::Field,
+            pub _override: Field,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -1147,15 +1146,15 @@ mod DelimitedExpression_impl {
 }
 #[derive(Debug)]
 pub enum DelimitedExpression__override {
-    CharacterLiteral(crate::grammar::generated::CharacterLiteral),
-    CharacterRange(crate::grammar::generated::CharacterRange),
-    Closure(crate::grammar::generated::Closure),
-    Field(crate::grammar::generated::Field),
-    Group(crate::grammar::generated::Group),
-    NegativeLookahead(crate::grammar::generated::NegativeLookahead),
-    Optional(crate::grammar::generated::Optional),
-    OverrideField(crate::grammar::generated::OverrideField),
-    StringLiteral(crate::grammar::generated::StringLiteral),
+    CharacterLiteral(CharacterLiteral),
+    CharacterRange(CharacterRange),
+    Closure(Closure),
+    Field(Field),
+    Group(Group),
+    NegativeLookahead(NegativeLookahead),
+    Optional(Optional),
+    OverrideField(OverrideField),
+    StringLiteral(StringLiteral),
 }
 pub use DelimitedExpression__override as DelimitedExpression;
 pub fn parse_DelimitedExpression(state: ParseState) -> ParseResult<DelimitedExpression> {
@@ -1166,32 +1165,33 @@ pub fn parse_DelimitedExpression(state: ParseState) -> ParseResult<DelimitedExpr
     )
 }
 mod Identifier_impl {
-    use crate::runtime::*;
+    use super::*;
+    use super::*;
     mod closure {
-        use crate::runtime::*;
+        use super::*;
         mod choice_0 {
-            use crate::runtime::*;
+            use super::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_character_range(state, 'a', 'z')
             }
             pub type Parsed = ();
         }
         mod choice_1 {
-            use crate::runtime::*;
+            use super::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_character_range(state, 'A', 'Z')
             }
             pub type Parsed = ();
         }
         mod choice_2 {
-            use crate::runtime::*;
+            use super::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_character_range(state, '0', '9')
             }
             pub type Parsed = ();
         }
         mod choice_3 {
-            use crate::runtime::*;
+            use super::*;
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 parse_character_literal(state, '_')
             }
@@ -1234,29 +1234,29 @@ pub fn parse_Identifier(state: ParseState) -> ParseResult<Identifier> {
     run_rule_parser(Identifier_impl::rule_parser, "Identifier", state)
 }
 mod DirectiveExpression_impl {
-    use crate::runtime::*;
+    use super::*;
     mod choice_0 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_StringDirective(state)?;
+            let (_override, state) = parse_StringDirective(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::StringDirective,
+            pub _override: StringDirective,
         }
     }
     mod choice_1 {
-        use crate::runtime::*;
+        use super::*;
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let state = state.skip_whitespace();
-            let (_override, state) = crate::grammar::generated::parse_NoSkipWsDirective(state)?;
+            let (_override, state) = parse_NoSkipWsDirective(state)?;
             Ok((Parsed { _override }, state))
         }
         #[derive(Debug)]
         pub struct Parsed {
-            pub _override: crate::grammar::generated::NoSkipWsDirective,
+            pub _override: NoSkipWsDirective,
         }
     }
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -1289,8 +1289,8 @@ mod DirectiveExpression_impl {
 }
 #[derive(Debug)]
 pub enum DirectiveExpression__override {
-    NoSkipWsDirective(crate::grammar::generated::NoSkipWsDirective),
-    StringDirective(crate::grammar::generated::StringDirective),
+    NoSkipWsDirective(NoSkipWsDirective),
+    StringDirective(StringDirective),
 }
 pub use DirectiveExpression__override as DirectiveExpression;
 pub fn parse_DirectiveExpression(state: ParseState) -> ParseResult<DirectiveExpression> {
@@ -1301,7 +1301,7 @@ pub fn parse_DirectiveExpression(state: ParseState) -> ParseResult<DirectiveExpr
     )
 }
 mod StringDirective_impl {
-    use crate::runtime::*;
+    use super::*;
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let state = state.skip_whitespace();
         parse_string_literal(state, "@string")
@@ -1316,7 +1316,7 @@ pub fn parse_StringDirective(state: ParseState) -> ParseResult<StringDirective> 
     run_rule_parser(StringDirective_impl::rule_parser, "StringDirective", state)
 }
 mod NoSkipWsDirective_impl {
-    use crate::runtime::*;
+    use super::*;
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         let state = state.skip_whitespace();
         parse_string_literal(state, "@no_skip_ws")

@@ -6,8 +6,6 @@ use std::fs;
 
 use anyhow::Result;
 use clap::Parser;
-use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
 
 use peginator::codegen::CodegenOuter;
 use peginator::codegen::CodegenSettings;
@@ -18,10 +16,6 @@ use peginator::runtime::ParseState;
 #[derive(Parser, Debug)]
 #[clap(version, about)]
 struct Args {
-    /// Module path of the generated parser code
-    #[clap(short, long, default_value_t = String::from("crate::grammar::generated"))]
-    grammar_module_prefix: String,
-
     /// Module path of the built-in peginator code
     #[clap(short, long, default_value_t = String::from("peginator::runtime"))]
     runtime_module_prefix: String,
@@ -31,11 +25,6 @@ struct Args {
     ast_only: bool,
 
     grammar_file: String,
-}
-
-fn ident_with_scope(s: &str) -> TokenStream {
-    let idents = s.split("::").map(|p| format_ident!("{}", p));
-    quote!( #(#idents ::)* )
 }
 
 fn main() -> Result<()> {
@@ -48,8 +37,6 @@ fn main() -> Result<()> {
     }
 
     let settings = CodegenSettings {
-        grammar_module_prefix: ident_with_scope(&args.grammar_module_prefix),
-        runtime_prefix: ident_with_scope(&args.runtime_module_prefix),
         skip_whitespace: true,
     };
     let generated_code = parsed_grammar.generate_code(&settings)?;
