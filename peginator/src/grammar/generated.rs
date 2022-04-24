@@ -1,4 +1,175 @@
 use crate::runtime::*;
+#[derive(Debug)]
+pub struct Grammar {
+    pub rules: Vec<Rule>,
+}
+#[derive(Debug)]
+pub struct Rule {
+    pub directives: Vec<DirectiveExpression>,
+    pub name: Identifier,
+    pub definition: Choice,
+}
+#[derive(Debug)]
+pub struct Choice {
+    pub choices: Vec<Sequence>,
+}
+#[derive(Debug)]
+pub struct Sequence {
+    pub parts: Vec<DelimitedExpression>,
+}
+#[derive(Debug)]
+pub struct Group {
+    pub body: Choice,
+}
+#[derive(Debug)]
+pub struct Optional {
+    pub body: Choice,
+}
+#[derive(Debug)]
+pub struct Closure {
+    pub body: Choice,
+    pub at_least_one: Option<AtLeastOneMarker>,
+}
+pub type AtLeastOneMarker = ();
+#[derive(Debug)]
+pub struct NegativeLookahead {
+    pub expr: Box<DelimitedExpression>,
+}
+#[derive(Debug)]
+pub struct CharacterRange {
+    pub from: CharacterLiteral,
+    pub to: CharacterLiteral,
+}
+pub use char as CharacterLiteral;
+#[derive(Debug)]
+pub struct StringLiteral {
+    pub body: StringLiteralBody,
+}
+pub type StringLiteralBody = String;
+#[derive(Debug)]
+pub struct Field {
+    pub name: Option<Identifier>,
+    pub boxed: Option<BoxMarker>,
+    pub typ: Identifier,
+}
+pub type BoxMarker = ();
+#[derive(Debug)]
+pub struct OverrideField {
+    pub typ: Identifier,
+}
+#[derive(Debug)]
+pub enum DelimitedExpression__override {
+    CharacterLiteral(CharacterLiteral),
+    CharacterRange(CharacterRange),
+    Closure(Closure),
+    Field(Field),
+    Group(Group),
+    NegativeLookahead(NegativeLookahead),
+    Optional(Optional),
+    OverrideField(OverrideField),
+    StringLiteral(StringLiteral),
+}
+pub use DelimitedExpression__override as DelimitedExpression;
+pub type Identifier = String;
+#[derive(Debug)]
+pub enum DirectiveExpression__override {
+    NoSkipWsDirective(NoSkipWsDirective),
+    StringDirective(StringDirective),
+}
+pub use DirectiveExpression__override as DirectiveExpression;
+pub type StringDirective = ();
+pub type NoSkipWsDirective = ();
+pub fn parse_Grammar(state: ParseState) -> ParseResult<Grammar> {
+    run_rule_parser(Grammar_impl::rule_parser, "Grammar", state)
+}
+pub fn parse_Rule(state: ParseState) -> ParseResult<Rule> {
+    run_rule_parser(Rule_impl::rule_parser, "Rule", state)
+}
+pub fn parse_Choice(state: ParseState) -> ParseResult<Choice> {
+    run_rule_parser(Choice_impl::rule_parser, "Choice", state)
+}
+pub fn parse_Sequence(state: ParseState) -> ParseResult<Sequence> {
+    run_rule_parser(Sequence_impl::rule_parser, "Sequence", state)
+}
+pub fn parse_Group(state: ParseState) -> ParseResult<Group> {
+    run_rule_parser(Group_impl::rule_parser, "Group", state)
+}
+pub fn parse_Optional(state: ParseState) -> ParseResult<Optional> {
+    run_rule_parser(Optional_impl::rule_parser, "Optional", state)
+}
+pub fn parse_Closure(state: ParseState) -> ParseResult<Closure> {
+    run_rule_parser(Closure_impl::rule_parser, "Closure", state)
+}
+pub fn parse_AtLeastOneMarker(state: ParseState) -> ParseResult<AtLeastOneMarker> {
+    run_rule_parser(
+        AtLeastOneMarker_impl::rule_parser,
+        "AtLeastOneMarker",
+        state,
+    )
+}
+pub fn parse_NegativeLookahead(state: ParseState) -> ParseResult<NegativeLookahead> {
+    run_rule_parser(
+        NegativeLookahead_impl::rule_parser,
+        "NegativeLookahead",
+        state,
+    )
+}
+pub fn parse_CharacterRange(state: ParseState) -> ParseResult<CharacterRange> {
+    run_rule_parser(CharacterRange_impl::rule_parser, "CharacterRange", state)
+}
+pub fn parse_CharacterLiteral(state: ParseState) -> ParseResult<CharacterLiteral> {
+    run_rule_parser(
+        CharacterLiteral_impl::rule_parser,
+        "CharacterLiteral",
+        state,
+    )
+}
+pub fn parse_StringLiteral(state: ParseState) -> ParseResult<StringLiteral> {
+    run_rule_parser(StringLiteral_impl::rule_parser, "StringLiteral", state)
+}
+pub fn parse_StringLiteralBody(state: ParseState) -> ParseResult<StringLiteralBody> {
+    run_rule_parser(
+        StringLiteralBody_impl::rule_parser,
+        "StringLiteralBody",
+        state,
+    )
+}
+pub fn parse_Field(state: ParseState) -> ParseResult<Field> {
+    run_rule_parser(Field_impl::rule_parser, "Field", state)
+}
+pub fn parse_BoxMarker(state: ParseState) -> ParseResult<BoxMarker> {
+    run_rule_parser(BoxMarker_impl::rule_parser, "BoxMarker", state)
+}
+pub fn parse_OverrideField(state: ParseState) -> ParseResult<OverrideField> {
+    run_rule_parser(OverrideField_impl::rule_parser, "OverrideField", state)
+}
+pub fn parse_DelimitedExpression(state: ParseState) -> ParseResult<DelimitedExpression> {
+    run_rule_parser(
+        DelimitedExpression_impl::rule_parser,
+        "DelimitedExpression",
+        state,
+    )
+}
+pub fn parse_Identifier(state: ParseState) -> ParseResult<Identifier> {
+    run_rule_parser(Identifier_impl::rule_parser, "Identifier", state)
+}
+pub fn parse_DirectiveExpression(state: ParseState) -> ParseResult<DirectiveExpression> {
+    run_rule_parser(
+        DirectiveExpression_impl::rule_parser,
+        "DirectiveExpression",
+        state,
+    )
+}
+pub fn parse_StringDirective(state: ParseState) -> ParseResult<StringDirective> {
+    run_rule_parser(StringDirective_impl::rule_parser, "StringDirective", state)
+}
+pub fn parse_NoSkipWsDirective(state: ParseState) -> ParseResult<NoSkipWsDirective> {
+    run_rule_parser(
+        NoSkipWsDirective_impl::rule_parser,
+        "NoSkipWsDirective",
+        state,
+    )
+}
 mod Grammar_impl {
     use super::*;
     mod closure {
@@ -47,13 +218,6 @@ mod Grammar_impl {
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
-}
-#[derive(Debug)]
-pub struct Grammar {
-    pub rules: Vec<Rule>,
-}
-pub fn parse_Grammar(state: ParseState) -> ParseResult<Grammar> {
-    run_rule_parser(Grammar_impl::rule_parser, "Grammar", state)
 }
 mod Rule_impl {
     use super::*;
@@ -140,15 +304,6 @@ mod Rule_impl {
         parse(state)
     }
 }
-#[derive(Debug)]
-pub struct Rule {
-    pub directives: Vec<DirectiveExpression>,
-    pub name: Identifier,
-    pub definition: Choice,
-}
-pub fn parse_Rule(state: ParseState) -> ParseResult<Rule> {
-    run_rule_parser(Rule_impl::rule_parser, "Rule", state)
-}
 mod Choice_impl {
     use super::*;
     mod part_0 {
@@ -225,13 +380,6 @@ mod Choice_impl {
         parse(state)
     }
 }
-#[derive(Debug)]
-pub struct Choice {
-    pub choices: Vec<Sequence>,
-}
-pub fn parse_Choice(state: ParseState) -> ParseResult<Choice> {
-    run_rule_parser(Choice_impl::rule_parser, "Choice", state)
-}
 mod Sequence_impl {
     use super::*;
     mod closure {
@@ -259,13 +407,6 @@ mod Sequence_impl {
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
-}
-#[derive(Debug)]
-pub struct Sequence {
-    pub parts: Vec<DelimitedExpression>,
-}
-pub fn parse_Sequence(state: ParseState) -> ParseResult<Sequence> {
-    run_rule_parser(Sequence_impl::rule_parser, "Sequence", state)
 }
 mod Group_impl {
     use super::*;
@@ -309,13 +450,6 @@ mod Group_impl {
         parse(state)
     }
 }
-#[derive(Debug)]
-pub struct Group {
-    pub body: Choice,
-}
-pub fn parse_Group(state: ParseState) -> ParseResult<Group> {
-    run_rule_parser(Group_impl::rule_parser, "Group", state)
-}
 mod Optional_impl {
     use super::*;
     mod part_0 {
@@ -357,13 +491,6 @@ mod Optional_impl {
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
-}
-#[derive(Debug)]
-pub struct Optional {
-    pub body: Choice,
-}
-pub fn parse_Optional(state: ParseState) -> ParseResult<Optional> {
-    run_rule_parser(Optional_impl::rule_parser, "Optional", state)
 }
 mod Closure_impl {
     use super::*;
@@ -441,14 +568,6 @@ mod Closure_impl {
         parse(state)
     }
 }
-#[derive(Debug)]
-pub struct Closure {
-    pub body: Choice,
-    pub at_least_one: Option<AtLeastOneMarker>,
-}
-pub fn parse_Closure(state: ParseState) -> ParseResult<Closure> {
-    run_rule_parser(Closure_impl::rule_parser, "Closure", state)
-}
 mod AtLeastOneMarker_impl {
     use super::*;
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -459,14 +578,6 @@ mod AtLeastOneMarker_impl {
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
-}
-pub type AtLeastOneMarker = ();
-pub fn parse_AtLeastOneMarker(state: ParseState) -> ParseResult<AtLeastOneMarker> {
-    run_rule_parser(
-        AtLeastOneMarker_impl::rule_parser,
-        "AtLeastOneMarker",
-        state,
-    )
 }
 mod NegativeLookahead_impl {
     use super::*;
@@ -505,17 +616,6 @@ mod NegativeLookahead_impl {
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
-}
-#[derive(Debug)]
-pub struct NegativeLookahead {
-    pub expr: Box<DelimitedExpression>,
-}
-pub fn parse_NegativeLookahead(state: ParseState) -> ParseResult<NegativeLookahead> {
-    run_rule_parser(
-        NegativeLookahead_impl::rule_parser,
-        "NegativeLookahead",
-        state,
-    )
 }
 mod CharacterRange_impl {
     use super::*;
@@ -564,14 +664,6 @@ mod CharacterRange_impl {
         parse(state)
     }
 }
-#[derive(Debug)]
-pub struct CharacterRange {
-    pub from: CharacterLiteral,
-    pub to: CharacterLiteral,
-}
-pub fn parse_CharacterRange(state: ParseState) -> ParseResult<CharacterRange> {
-    run_rule_parser(CharacterRange_impl::rule_parser, "CharacterRange", state)
-}
 mod CharacterLiteral_impl {
     use super::*;
     mod part_0 {
@@ -618,14 +710,6 @@ mod CharacterLiteral_impl {
         Ok((result._override, new_state))
     }
 }
-pub use char as CharacterLiteral;
-pub fn parse_CharacterLiteral(state: ParseState) -> ParseResult<CharacterLiteral> {
-    run_rule_parser(
-        CharacterLiteral_impl::rule_parser,
-        "CharacterLiteral",
-        state,
-    )
-}
 mod StringLiteral_impl {
     use super::*;
     mod part_0 {
@@ -667,13 +751,6 @@ mod StringLiteral_impl {
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
-}
-#[derive(Debug)]
-pub struct StringLiteral {
-    pub body: StringLiteralBody,
-}
-pub fn parse_StringLiteral(state: ParseState) -> ParseResult<StringLiteral> {
-    run_rule_parser(StringLiteral_impl::rule_parser, "StringLiteral", state)
 }
 mod StringLiteralBody_impl {
     use super::*;
@@ -744,14 +821,6 @@ mod StringLiteralBody_impl {
         let (_, new_state) = parse(state.clone())?;
         Ok((state.slice_until(&new_state).to_string(), new_state))
     }
-}
-pub type StringLiteralBody = String;
-pub fn parse_StringLiteralBody(state: ParseState) -> ParseResult<StringLiteralBody> {
-    run_rule_parser(
-        StringLiteralBody_impl::rule_parser,
-        "StringLiteralBody",
-        state,
-    )
 }
 mod Field_impl {
     use super::*;
@@ -877,15 +946,6 @@ mod Field_impl {
         parse(state)
     }
 }
-#[derive(Debug)]
-pub struct Field {
-    pub name: Option<Identifier>,
-    pub boxed: Option<BoxMarker>,
-    pub typ: Identifier,
-}
-pub fn parse_Field(state: ParseState) -> ParseResult<Field> {
-    run_rule_parser(Field_impl::rule_parser, "Field", state)
-}
 mod BoxMarker_impl {
     use super::*;
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -896,10 +956,6 @@ mod BoxMarker_impl {
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
-}
-pub type BoxMarker = ();
-pub fn parse_BoxMarker(state: ParseState) -> ParseResult<BoxMarker> {
-    run_rule_parser(BoxMarker_impl::rule_parser, "BoxMarker", state)
 }
 mod OverrideField_impl {
     use super::*;
@@ -942,13 +998,6 @@ mod OverrideField_impl {
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
-}
-#[derive(Debug)]
-pub struct OverrideField {
-    pub typ: Identifier,
-}
-pub fn parse_OverrideField(state: ParseState) -> ParseResult<OverrideField> {
-    run_rule_parser(OverrideField_impl::rule_parser, "OverrideField", state)
 }
 mod DelimitedExpression_impl {
     use super::*;
@@ -1144,26 +1193,6 @@ mod DelimitedExpression_impl {
         Ok((result._override, new_state))
     }
 }
-#[derive(Debug)]
-pub enum DelimitedExpression__override {
-    CharacterLiteral(CharacterLiteral),
-    CharacterRange(CharacterRange),
-    Closure(Closure),
-    Field(Field),
-    Group(Group),
-    NegativeLookahead(NegativeLookahead),
-    Optional(Optional),
-    OverrideField(OverrideField),
-    StringLiteral(StringLiteral),
-}
-pub use DelimitedExpression__override as DelimitedExpression;
-pub fn parse_DelimitedExpression(state: ParseState) -> ParseResult<DelimitedExpression> {
-    run_rule_parser(
-        DelimitedExpression_impl::rule_parser,
-        "DelimitedExpression",
-        state,
-    )
-}
 mod Identifier_impl {
     use super::*;
     use super::*;
@@ -1229,10 +1258,6 @@ mod Identifier_impl {
         Ok((state.slice_until(&new_state).to_string(), new_state))
     }
 }
-pub type Identifier = String;
-pub fn parse_Identifier(state: ParseState) -> ParseResult<Identifier> {
-    run_rule_parser(Identifier_impl::rule_parser, "Identifier", state)
-}
 mod DirectiveExpression_impl {
     use super::*;
     mod choice_0 {
@@ -1287,19 +1312,6 @@ mod DirectiveExpression_impl {
         Ok((result._override, new_state))
     }
 }
-#[derive(Debug)]
-pub enum DirectiveExpression__override {
-    NoSkipWsDirective(NoSkipWsDirective),
-    StringDirective(StringDirective),
-}
-pub use DirectiveExpression__override as DirectiveExpression;
-pub fn parse_DirectiveExpression(state: ParseState) -> ParseResult<DirectiveExpression> {
-    run_rule_parser(
-        DirectiveExpression_impl::rule_parser,
-        "DirectiveExpression",
-        state,
-    )
-}
 mod StringDirective_impl {
     use super::*;
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -1311,10 +1323,6 @@ mod StringDirective_impl {
         parse(state)
     }
 }
-pub type StringDirective = ();
-pub fn parse_StringDirective(state: ParseState) -> ParseResult<StringDirective> {
-    run_rule_parser(StringDirective_impl::rule_parser, "StringDirective", state)
-}
 mod NoSkipWsDirective_impl {
     use super::*;
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
@@ -1325,12 +1333,4 @@ mod NoSkipWsDirective_impl {
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
-}
-pub type NoSkipWsDirective = ();
-pub fn parse_NoSkipWsDirective(state: ParseState) -> ParseResult<NoSkipWsDirective> {
-    run_rule_parser(
-        NoSkipWsDirective_impl::rule_parser,
-        "NoSkipWsDirective",
-        state,
-    )
 }

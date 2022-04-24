@@ -33,20 +33,41 @@ pub struct FieldDescriptor<'a> {
     pub boxed: bool,
 }
 
-pub trait CodegenOuter {
+pub trait CodegenGrammar {
     fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream>;
 }
 
-impl CodegenOuter for Grammar {
+impl CodegenGrammar for Grammar {
     fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        self.rules
-            .iter()
-            .map(|rule| rule.generate_code(settings))
-            .collect()
+        let mut all_types = TokenStream::new();
+        let mut all_parsers = TokenStream::new();
+        let mut all_impls = TokenStream::new();
+        for rule in &self.rules {
+            let (types, parsers, impls) = rule.generate_code(settings)?;
+            all_types.extend(types);
+            all_parsers.extend(parsers);
+            all_impls.extend(impls);
+        }
+        Ok(quote!(
+            #all_types
+            #all_parsers
+            #all_impls
+        ))
     }
 }
-impl CodegenOuter for Rule {
-    fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+
+trait CodegenRule {
+    fn generate_code(
+        &self,
+        settings: &CodegenSettings,
+    ) -> Result<(TokenStream, TokenStream, TokenStream)>;
+}
+
+impl CodegenRule for Rule {
+    fn generate_code(
+        &self,
+        settings: &CodegenSettings,
+    ) -> Result<(TokenStream, TokenStream, TokenStream)> {
         let mut string_flag = false;
         let mut skip_whitespace = settings.skip_whitespace;
         for directive in &self.directives {
@@ -71,61 +92,71 @@ impl CodegenOuter for Rule {
         );
         if string_flag {
             let parsed_types = self.definition.generate_types(&settings, "Parsed")?;
-            Ok(quote!(
-                mod #rule_mod{
-                    use super::*;
-                    use super::*;
-                    #choice_body
-                    #parsed_types
-                    pub fn rule_parser (state: ParseState) -> ParseResult<String> {
-                        let (_, new_state) = parse(state.clone())?;
-                        Ok((state.slice_until(&new_state).to_string(), new_state))
+            Ok((
+                quote!(pub type #rule_type = String;),
+                outer_parser,
+                quote!(
+                    mod #rule_mod{
+                        use super::*;
+                        use super::*;
+                        #choice_body
+                        #parsed_types
+                        pub fn rule_parser (state: ParseState) -> ParseResult<String> {
+                            let (_, new_state) = parse(state.clone())?;
+                            Ok((state.slice_until(&new_state).to_string(), new_state))
+                        }
                     }
-                }
-                pub type #rule_type = String;
-                #outer_parser
+                ),
             ))
         } else if fields.len() == 1 && fields[0].name == "_override" {
             let field = &fields[0];
             if field.type_names.len() <= 1 {
                 // Simple case
                 let override_type = generate_field_type(&self.name, field, &settings);
-                Ok(quote!(
-                    mod #rule_mod{
-                        use super::*;
-                        #choice_body
-                        pub struct Parsed {
-                            _override: super::#rule_type,
+                Ok((
+                    quote!(
+                        pub use #override_type as #rule_type;
+                    ),
+                    outer_parser,
+                    quote!(
+                        mod #rule_mod{
+                            use super::*;
+                            #choice_body
+                            pub struct Parsed {
+                                _override: super::#rule_type,
+                            }
+                            use super::#rule_type as Parsed__override;
+                            pub fn rule_parser (state: ParseState) -> ParseResult<super::#rule_type> {
+                                let (result, new_state) = parse(state)?;
+                                Ok((result._override, new_state))
+                            }
                         }
-                        use super::#rule_type as Parsed__override;
-                        pub fn rule_parser (state: ParseState) -> ParseResult<super::#rule_type> {
-                            let (result, new_state) = parse(state)?;
-                            Ok((result._override, new_state))
-                        }
-                    }
-                    pub use #override_type as #rule_type;
-                    #outer_parser
+                    ),
                 ))
             } else {
                 // Enum case
                 let override_type = generate_field_type(&self.name, field, &settings);
                 let enum_type = generate_enum_type(&self.name, field, &settings);
-                Ok(quote!(
-                    mod #rule_mod{
-                        use super::*;
-                        #choice_body
-                        pub struct Parsed {
-                            _override: super::#rule_type,
+                Ok((
+                    quote!(
+                        #enum_type
+                        pub use #override_type as #rule_type;
+                    ),
+                    outer_parser,
+                    quote!(
+                        mod #rule_mod{
+                            use super::*;
+                            #choice_body
+                            pub struct Parsed {
+                                _override: super::#rule_type,
+                            }
+                            use super::#rule_type as Parsed__override;
+                            pub fn rule_parser (state: ParseState) -> ParseResult<super::#rule_type> {
+                                let (result, new_state) = parse(state)?;
+                                Ok((result._override, new_state))
+                            }
                         }
-                        use super::#rule_type as Parsed__override;
-                        pub fn rule_parser (state: ParseState) -> ParseResult<super::#rule_type> {
-                            let (result, new_state) = parse(state)?;
-                            Ok((result._override, new_state))
-                        }
-                    }
-                    #enum_type
-                    pub use #override_type as #rule_type;
-                    #outer_parser
+                    ),
                 ))
             }
         } else {
@@ -133,17 +164,20 @@ impl CodegenOuter for Rule {
             let used_types = self
                 .definition
                 .generate_use_super_as_parsed(&settings, &self.name)?;
-            Ok(quote!(
-                mod #rule_mod{
-                    use super::*;
-                    #choice_body
-                    #used_types
-                    pub fn rule_parser (state: ParseState) -> ParseResult<Parsed> {
-                        parse(state)
+            Ok((
+                quote!(#parsed_types),
+                outer_parser,
+                quote!(
+                    mod #rule_mod{
+                        use super::*;
+                        #choice_body
+                        #used_types
+                        pub fn rule_parser (state: ParseState) -> ParseResult<Parsed> {
+                            parse(state)
+                        }
                     }
-                }
-                #parsed_types
-                #outer_parser
+
+                ),
             ))
         }
     }

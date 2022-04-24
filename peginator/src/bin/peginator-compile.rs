@@ -7,7 +7,7 @@ use std::fs;
 use anyhow::Result;
 use clap::Parser;
 
-use peginator::codegen::CodegenOuter;
+use peginator::codegen::CodegenGrammar;
 use peginator::codegen::CodegenSettings;
 use peginator::grammar::parse_Grammar;
 use peginator::runtime::ParseState;
