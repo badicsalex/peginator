@@ -63,11 +63,29 @@ impl<'a> ParseState<'a> {
         self.s().is_empty()
     }
 
+    /// Advance the parsing pointer n bytes
+    ///
+    /// # Safety
+    /// Callers of this function are responsible that these preconditions are satisfied:
+    ///    Indexes must lie on UTF-8 sequence boundaries.
     #[inline]
-    pub fn advance(self, length: usize) -> Self {
+    #[warn(unsafe_op_in_unsafe_fn)]
+    pub unsafe fn advance(self, length: usize) -> Self {
+        // We are eschewing mainly the utf-8 codepoint check here,
+        // because the caller can be sure that everything is fine.
+
+        if length > self.partial_string.len() {
+            // This should be optimized out in most cases
+            panic!("String length overrun in advance()")
+        };
         Self {
             start_index: self.start_index + length,
-            partial_string: &self.partial_string[length..],
+            // SAFETY:
+            // Callers of this function are responsible that these preconditions are satisfied:
+            //    Indexes must lie on UTF-8 sequence boundaries.
+            //    The starting index must not exceed the ending index;
+            //    Indexes must be within bounds of the original slice;
+            partial_string: unsafe { self.partial_string.get_unchecked(length..) },
             ..self
         }
     }
@@ -80,9 +98,14 @@ impl<'a> ParseState<'a> {
     #[inline]
     pub fn skip_whitespace(self) -> Self {
         let mut result = self;
-        while let Some(ch) = result.s().chars().next() {
-            if ch.is_whitespace() {
-                result = result.advance(ch.len_utf8());
+        while !result.s().is_empty() {
+            if result.s().as_bytes()[0].is_ascii_whitespace() {
+                // SAFETY:
+                // Callers of this function are responsible that these preconditions are satisfied:
+                //    Indexes must lie on UTF-8 sequence boundaries.
+                //
+                // The byte we are skipping is ASCII, so we are OK.
+                result = unsafe { result.advance(1) };
             } else {
                 break;
             }
@@ -112,7 +135,12 @@ pub type ParseResult<'a, T> = Result<(T, ParseState<'a>), ParseError>;
 #[inline(always)]
 pub fn parse_char_internal(state: ParseState) -> ParseResult<char> {
     let result = state.s().chars().next().ok_or(ParseError)?;
-    Ok((result, state.advance(result.len_utf8())))
+    // SAFETY:
+    // Callers of this function are responsible that these preconditions are satisfied:
+    //    Indexes must lie on UTF-8 sequence boundaries.
+    //
+    // We are skipping a full character, so we should be OK.
+    Ok((result, unsafe { state.advance(result.len_utf8()) }))
 }
 
 #[inline(always)]
@@ -120,27 +148,71 @@ pub fn parse_string_literal<'a>(state: ParseState<'a>, s: &str) -> ParseResult<'
     if !state.s().starts_with(s) {
         Err(ParseError)
     } else {
-        Ok(((), state.advance(s.len())))
+        // SAFETY:
+        // Callers of this function are responsible that these preconditions are satisfied:
+        //    Indexes must lie on UTF-8 sequence boundaries.
+        //
+        // We are skipping a correct string's length, so we should be OK.
+        Ok(((), unsafe { state.advance(s.len()) }))
     }
 }
 
 #[inline(always)]
 pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
-    let result = state.s().chars().next().ok_or(ParseError)?;
-    if result != c {
+    if c.is_ascii() {
+        // fast path
+        let s = state.s();
+        if s.is_empty() || s.as_bytes()[0] != c as u8 {
+            Err(ParseError)
+        } else {
+            // SAFETY:
+            // Callers of this function are responsible that these preconditions are satisfied:
+            //    Indexes must lie on UTF-8 sequence boundaries.
+            //
+            // The byte we are skipping is ASCII, so we are OK.
+            Ok(((), unsafe { state.advance(1) }))
+        }
+    } else if !state.s().starts_with(c) {
+        // utf-8 path
         Err(ParseError)
     } else {
-        Ok(((), state.advance(result.len_utf8())))
+        // SAFETY:
+        // Callers of this function are responsible that these preconditions are satisfied:
+        //    Indexes must lie on UTF-8 sequence boundaries.
+        //
+        // We are skipping a full character, so we should be OK.
+        Ok(((), unsafe { state.advance(c.len_utf8()) }))
     }
 }
 
 #[inline(always)]
 pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseResult<()> {
-    let result = state.s().chars().next().ok_or(ParseError)?;
-    if result < from || result > to {
-        Err(ParseError)
+    if from.is_ascii() && to.is_ascii() {
+        // fast path
+        let s = state.s();
+        if s.is_empty() || s.as_bytes()[0] < from as u8 || s.as_bytes()[0] > to as u8 {
+            Err(ParseError)
+        } else {
+            // SAFETY:
+            // Callers of this function are responsible that these preconditions are satisfied:
+            //    Indexes must lie on UTF-8 sequence boundaries.
+            //
+            // The byte we are skipping is ASCII, so we are OK.
+            Ok(((), unsafe { state.advance(1) }))
+        }
     } else {
-        Ok(((), state.advance(result.len_utf8())))
+        // utf-8 path
+        let result = state.s().chars().next().ok_or(ParseError)?;
+        if result < from || result > to {
+            Err(ParseError)
+        } else {
+            // SAFETY:
+            // Callers of this function are responsible that these preconditions are satisfied:
+            //    Indexes must lie on UTF-8 sequence boundaries.
+            //
+            // We are skipping a full character, so we should be OK.
+            Ok(((), unsafe { state.advance(result.len_utf8()) }))
+        }
     }
 }
 
