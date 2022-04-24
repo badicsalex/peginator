@@ -611,17 +611,16 @@ mod CharacterLiteral_impl {
         let (_, state) = part_2::parse(state)?;
         Ok((Parsed { _override }, state))
     }
-    #[derive(Debug)]
     pub struct Parsed {
-        pub _override: char,
+        _override: super::CharacterLiteral,
     }
-    pub type OverrideType = char;
-    pub fn rule_parser(state: ParseState) -> ParseResult<OverrideType> {
+    use super::CharacterLiteral as Parsed__override;
+    pub fn rule_parser(state: ParseState) -> ParseResult<super::CharacterLiteral> {
         let (result, new_state) = parse(state)?;
         Ok((result._override, new_state))
     }
 }
-pub use CharacterLiteral_impl::OverrideType as CharacterLiteral;
+pub use char as CharacterLiteral;
 pub fn parse_CharacterLiteral(state: ParseState) -> ParseResult<CharacterLiteral> {
     run_rule_parser(
         CharacterLiteral_impl::rule_parser,
@@ -1137,29 +1136,28 @@ mod DelimitedExpression_impl {
         }
         Err(ParseError)
     }
-    #[derive(Debug)]
-    pub enum Parsed__override {
-        CharacterLiteral(crate::grammar::generated::CharacterLiteral),
-        CharacterRange(crate::grammar::generated::CharacterRange),
-        Closure(crate::grammar::generated::Closure),
-        Field(crate::grammar::generated::Field),
-        Group(crate::grammar::generated::Group),
-        NegativeLookahead(crate::grammar::generated::NegativeLookahead),
-        Optional(crate::grammar::generated::Optional),
-        OverrideField(crate::grammar::generated::OverrideField),
-        StringLiteral(crate::grammar::generated::StringLiteral),
-    }
-    #[derive(Debug)]
     pub struct Parsed {
-        pub _override: Parsed__override,
+        _override: super::DelimitedExpression,
     }
-    pub type OverrideType = Parsed__override;
-    pub fn rule_parser(state: ParseState) -> ParseResult<OverrideType> {
+    use super::DelimitedExpression as Parsed__override;
+    pub fn rule_parser(state: ParseState) -> ParseResult<super::DelimitedExpression> {
         let (result, new_state) = parse(state)?;
         Ok((result._override, new_state))
     }
 }
-pub use DelimitedExpression_impl::OverrideType as DelimitedExpression;
+#[derive(Debug)]
+pub enum DelimitedExpression__override {
+    CharacterLiteral(crate::grammar::generated::CharacterLiteral),
+    CharacterRange(crate::grammar::generated::CharacterRange),
+    Closure(crate::grammar::generated::Closure),
+    Field(crate::grammar::generated::Field),
+    Group(crate::grammar::generated::Group),
+    NegativeLookahead(crate::grammar::generated::NegativeLookahead),
+    Optional(crate::grammar::generated::Optional),
+    OverrideField(crate::grammar::generated::OverrideField),
+    StringLiteral(crate::grammar::generated::StringLiteral),
+}
+pub use DelimitedExpression__override as DelimitedExpression;
 pub fn parse_DelimitedExpression(state: ParseState) -> ParseResult<DelimitedExpression> {
     run_rule_parser(
         DelimitedExpression_impl::rule_parser,
@@ -1280,22 +1278,21 @@ mod DirectiveExpression_impl {
         }
         Err(ParseError)
     }
-    #[derive(Debug)]
-    pub enum Parsed__override {
-        NoSkipWsDirective(crate::grammar::generated::NoSkipWsDirective),
-        StringDirective(crate::grammar::generated::StringDirective),
-    }
-    #[derive(Debug)]
     pub struct Parsed {
-        pub _override: Parsed__override,
+        _override: super::DirectiveExpression,
     }
-    pub type OverrideType = Parsed__override;
-    pub fn rule_parser(state: ParseState) -> ParseResult<OverrideType> {
+    use super::DirectiveExpression as Parsed__override;
+    pub fn rule_parser(state: ParseState) -> ParseResult<super::DirectiveExpression> {
         let (result, new_state) = parse(state)?;
         Ok((result._override, new_state))
     }
 }
-pub use DirectiveExpression_impl::OverrideType as DirectiveExpression;
+#[derive(Debug)]
+pub enum DirectiveExpression__override {
+    NoSkipWsDirective(crate::grammar::generated::NoSkipWsDirective),
+    StringDirective(crate::grammar::generated::StringDirective),
+}
+pub use DirectiveExpression__override as DirectiveExpression;
 pub fn parse_DirectiveExpression(state: ParseState) -> ParseResult<DirectiveExpression> {
     run_rule_parser(
         DirectiveExpression_impl::rule_parser,
