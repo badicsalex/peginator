@@ -43,15 +43,15 @@ mod Grammar_impl {
         }
         Ok((Parsed { rules }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub rules: Vec<crate::grammar::generated::Rule>,
-    }
+    use super::Grammar as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use Grammar_impl::Parsed as Grammar;
+#[derive(Debug)]
+pub struct Grammar {
+    pub rules: Vec<crate::grammar::generated::Rule>,
+}
 pub fn parse_Grammar(state: ParseState) -> ParseResult<Grammar> {
     run_rule_parser(Grammar_impl::rule_parser, "Grammar", state)
 }
@@ -136,17 +136,17 @@ mod Rule_impl {
             state,
         ))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub directives: Vec<crate::grammar::generated::DirectiveExpression>,
-        pub name: crate::grammar::generated::Identifier,
-        pub definition: crate::grammar::generated::Choice,
-    }
+    use super::Rule as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use Rule_impl::Parsed as Rule;
+#[derive(Debug)]
+pub struct Rule {
+    pub directives: Vec<crate::grammar::generated::DirectiveExpression>,
+    pub name: crate::grammar::generated::Identifier,
+    pub definition: crate::grammar::generated::Choice,
+}
 pub fn parse_Rule(state: ParseState) -> ParseResult<Rule> {
     run_rule_parser(Rule_impl::rule_parser, "Rule", state)
 }
@@ -221,15 +221,15 @@ mod Choice_impl {
         choices.extend(result.choices);
         Ok((Parsed { choices }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub choices: Vec<crate::grammar::generated::Sequence>,
-    }
+    use super::Choice as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use Choice_impl::Parsed as Choice;
+#[derive(Debug)]
+pub struct Choice {
+    pub choices: Vec<crate::grammar::generated::Sequence>,
+}
 pub fn parse_Choice(state: ParseState) -> ParseResult<Choice> {
     run_rule_parser(Choice_impl::rule_parser, "Choice", state)
 }
@@ -256,15 +256,15 @@ mod Sequence_impl {
         }
         Ok((Parsed { parts }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub parts: Vec<crate::grammar::generated::DelimitedExpression>,
-    }
+    use super::Sequence as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use Sequence_impl::Parsed as Sequence;
+#[derive(Debug)]
+pub struct Sequence {
+    pub parts: Vec<crate::grammar::generated::DelimitedExpression>,
+}
 pub fn parse_Sequence(state: ParseState) -> ParseResult<Sequence> {
     run_rule_parser(Sequence_impl::rule_parser, "Sequence", state)
 }
@@ -305,15 +305,15 @@ mod Group_impl {
         let (_, state) = part_2::parse(state)?;
         Ok((Parsed { body }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub body: crate::grammar::generated::Choice,
-    }
+    use super::Group as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use Group_impl::Parsed as Group;
+#[derive(Debug)]
+pub struct Group {
+    pub body: crate::grammar::generated::Choice,
+}
 pub fn parse_Group(state: ParseState) -> ParseResult<Group> {
     run_rule_parser(Group_impl::rule_parser, "Group", state)
 }
@@ -354,15 +354,15 @@ mod Optional_impl {
         let (_, state) = part_2::parse(state)?;
         Ok((Parsed { body }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub body: crate::grammar::generated::Choice,
-    }
+    use super::Optional as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use Optional_impl::Parsed as Optional;
+#[derive(Debug)]
+pub struct Optional {
+    pub body: crate::grammar::generated::Choice,
+}
 pub fn parse_Optional(state: ParseState) -> ParseResult<Optional> {
     run_rule_parser(Optional_impl::rule_parser, "Optional", state)
 }
@@ -438,16 +438,16 @@ mod Closure_impl {
         at_least_one = at_least_one.or(result.at_least_one);
         Ok((Parsed { body, at_least_one }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub body: crate::grammar::generated::Choice,
-        pub at_least_one: Option<crate::grammar::generated::AtLeastOneMarker>,
-    }
+    use super::Closure as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use Closure_impl::Parsed as Closure;
+#[derive(Debug)]
+pub struct Closure {
+    pub body: crate::grammar::generated::Choice,
+    pub at_least_one: Option<crate::grammar::generated::AtLeastOneMarker>,
+}
 pub fn parse_Closure(state: ParseState) -> ParseResult<Closure> {
     run_rule_parser(Closure_impl::rule_parser, "Closure", state)
 }
@@ -457,12 +457,12 @@ mod AtLeastOneMarker_impl {
         let state = state.skip_whitespace();
         parse_character_literal(state, '+')
     }
-    pub type Parsed = ();
+    use super::AtLeastOneMarker as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use AtLeastOneMarker_impl::Parsed as AtLeastOneMarker;
+pub type AtLeastOneMarker = ();
 pub fn parse_AtLeastOneMarker(state: ParseState) -> ParseResult<AtLeastOneMarker> {
     run_rule_parser(
         AtLeastOneMarker_impl::rule_parser,
@@ -503,15 +503,15 @@ mod NegativeLookahead_impl {
         let expr = result.expr;
         Ok((Parsed { expr }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub expr: Box<crate::grammar::generated::DelimitedExpression>,
-    }
+    use super::NegativeLookahead as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use NegativeLookahead_impl::Parsed as NegativeLookahead;
+#[derive(Debug)]
+pub struct NegativeLookahead {
+    pub expr: Box<crate::grammar::generated::DelimitedExpression>,
+}
 pub fn parse_NegativeLookahead(state: ParseState) -> ParseResult<NegativeLookahead> {
     run_rule_parser(
         NegativeLookahead_impl::rule_parser,
@@ -561,16 +561,16 @@ mod CharacterRange_impl {
         let to = result.to;
         Ok((Parsed { from, to }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub from: crate::grammar::generated::CharacterLiteral,
-        pub to: crate::grammar::generated::CharacterLiteral,
-    }
+    use super::CharacterRange as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use CharacterRange_impl::Parsed as CharacterRange;
+#[derive(Debug)]
+pub struct CharacterRange {
+    pub from: crate::grammar::generated::CharacterLiteral,
+    pub to: crate::grammar::generated::CharacterLiteral,
+}
 pub fn parse_CharacterRange(state: ParseState) -> ParseResult<CharacterRange> {
     run_rule_parser(CharacterRange_impl::rule_parser, "CharacterRange", state)
 }
@@ -666,15 +666,15 @@ mod StringLiteral_impl {
         let (_, state) = part_2::parse(state)?;
         Ok((Parsed { body }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub body: crate::grammar::generated::StringLiteralBody,
-    }
+    use super::StringLiteral as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use StringLiteral_impl::Parsed as StringLiteral;
+#[derive(Debug)]
+pub struct StringLiteral {
+    pub body: crate::grammar::generated::StringLiteralBody,
+}
 pub fn parse_StringLiteral(state: ParseState) -> ParseResult<StringLiteral> {
     run_rule_parser(StringLiteral_impl::rule_parser, "StringLiteral", state)
 }
@@ -874,17 +874,17 @@ mod Field_impl {
         let typ = result.typ;
         Ok((Parsed { name, boxed, typ }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub name: Option<crate::grammar::generated::Identifier>,
-        pub boxed: Option<crate::grammar::generated::BoxMarker>,
-        pub typ: crate::grammar::generated::Identifier,
-    }
+    use super::Field as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use Field_impl::Parsed as Field;
+#[derive(Debug)]
+pub struct Field {
+    pub name: Option<crate::grammar::generated::Identifier>,
+    pub boxed: Option<crate::grammar::generated::BoxMarker>,
+    pub typ: crate::grammar::generated::Identifier,
+}
 pub fn parse_Field(state: ParseState) -> ParseResult<Field> {
     run_rule_parser(Field_impl::rule_parser, "Field", state)
 }
@@ -894,12 +894,12 @@ mod BoxMarker_impl {
         let state = state.skip_whitespace();
         parse_character_literal(state, '*')
     }
-    pub type Parsed = ();
+    use super::BoxMarker as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use BoxMarker_impl::Parsed as BoxMarker;
+pub type BoxMarker = ();
 pub fn parse_BoxMarker(state: ParseState) -> ParseResult<BoxMarker> {
     run_rule_parser(BoxMarker_impl::rule_parser, "BoxMarker", state)
 }
@@ -940,15 +940,15 @@ mod OverrideField_impl {
         let typ = result.typ;
         Ok((Parsed { typ }, state))
     }
-    #[derive(Debug)]
-    pub struct Parsed {
-        pub typ: crate::grammar::generated::Identifier,
-    }
+    use super::OverrideField as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use OverrideField_impl::Parsed as OverrideField;
+#[derive(Debug)]
+pub struct OverrideField {
+    pub typ: crate::grammar::generated::Identifier,
+}
 pub fn parse_OverrideField(state: ParseState) -> ParseResult<OverrideField> {
     run_rule_parser(OverrideField_impl::rule_parser, "OverrideField", state)
 }
@@ -1066,7 +1066,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::Group(result._override),
+                    _override: Parsed__override::Group(result._override),
                 },
                 new_state,
             ));
@@ -1074,7 +1074,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_1::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::Optional(result._override),
+                    _override: Parsed__override::Optional(result._override),
                 },
                 new_state,
             ));
@@ -1082,7 +1082,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_2::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::Closure(result._override),
+                    _override: Parsed__override::Closure(result._override),
                 },
                 new_state,
             ));
@@ -1090,7 +1090,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_3::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::NegativeLookahead(result._override),
+                    _override: Parsed__override::NegativeLookahead(result._override),
                 },
                 new_state,
             ));
@@ -1098,7 +1098,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_4::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::CharacterRange(result._override),
+                    _override: Parsed__override::CharacterRange(result._override),
                 },
                 new_state,
             ));
@@ -1106,7 +1106,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_5::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::CharacterLiteral(result._override),
+                    _override: Parsed__override::CharacterLiteral(result._override),
                 },
                 new_state,
             ));
@@ -1114,7 +1114,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_6::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::StringLiteral(result._override),
+                    _override: Parsed__override::StringLiteral(result._override),
                 },
                 new_state,
             ));
@@ -1122,7 +1122,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_7::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::OverrideField(result._override),
+                    _override: Parsed__override::OverrideField(result._override),
                 },
                 new_state,
             ));
@@ -1130,7 +1130,7 @@ mod DelimitedExpression_impl {
         if let Ok((result, new_state)) = choice_8::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::Field(result._override),
+                    _override: Parsed__override::Field(result._override),
                 },
                 new_state,
             ));
@@ -1138,7 +1138,7 @@ mod DelimitedExpression_impl {
         Err(ParseError)
     }
     #[derive(Debug)]
-    pub enum E__override {
+    pub enum Parsed__override {
         CharacterLiteral(crate::grammar::generated::CharacterLiteral),
         CharacterRange(crate::grammar::generated::CharacterRange),
         Closure(crate::grammar::generated::Closure),
@@ -1151,9 +1151,9 @@ mod DelimitedExpression_impl {
     }
     #[derive(Debug)]
     pub struct Parsed {
-        pub _override: E__override,
+        pub _override: Parsed__override,
     }
-    pub type OverrideType = E__override;
+    pub type OverrideType = Parsed__override;
     pub fn rule_parser(state: ParseState) -> ParseResult<OverrideType> {
         let (result, new_state) = parse(state)?;
         Ok((result._override, new_state))
@@ -1265,7 +1265,7 @@ mod DirectiveExpression_impl {
         if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::StringDirective(result._override),
+                    _override: Parsed__override::StringDirective(result._override),
                 },
                 new_state,
             ));
@@ -1273,7 +1273,7 @@ mod DirectiveExpression_impl {
         if let Ok((result, new_state)) = choice_1::parse(state.clone()) {
             return Ok((
                 Parsed {
-                    _override: E__override::NoSkipWsDirective(result._override),
+                    _override: Parsed__override::NoSkipWsDirective(result._override),
                 },
                 new_state,
             ));
@@ -1281,15 +1281,15 @@ mod DirectiveExpression_impl {
         Err(ParseError)
     }
     #[derive(Debug)]
-    pub enum E__override {
+    pub enum Parsed__override {
         NoSkipWsDirective(crate::grammar::generated::NoSkipWsDirective),
         StringDirective(crate::grammar::generated::StringDirective),
     }
     #[derive(Debug)]
     pub struct Parsed {
-        pub _override: E__override,
+        pub _override: Parsed__override,
     }
-    pub type OverrideType = E__override;
+    pub type OverrideType = Parsed__override;
     pub fn rule_parser(state: ParseState) -> ParseResult<OverrideType> {
         let (result, new_state) = parse(state)?;
         Ok((result._override, new_state))
@@ -1309,12 +1309,12 @@ mod StringDirective_impl {
         let state = state.skip_whitespace();
         parse_string_literal(state, "@string")
     }
-    pub type Parsed = ();
+    use super::StringDirective as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use StringDirective_impl::Parsed as StringDirective;
+pub type StringDirective = ();
 pub fn parse_StringDirective(state: ParseState) -> ParseResult<StringDirective> {
     run_rule_parser(StringDirective_impl::rule_parser, "StringDirective", state)
 }
@@ -1324,12 +1324,12 @@ mod NoSkipWsDirective_impl {
         let state = state.skip_whitespace();
         parse_string_literal(state, "@no_skip_ws")
     }
-    pub type Parsed = ();
+    use super::NoSkipWsDirective as Parsed;
     pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
         parse(state)
     }
 }
-pub use NoSkipWsDirective_impl::Parsed as NoSkipWsDirective;
+pub type NoSkipWsDirective = ();
 pub fn parse_NoSkipWsDirective(state: ParseState) -> ParseResult<NoSkipWsDirective> {
     run_rule_parser(
         NoSkipWsDirective_impl::rule_parser,

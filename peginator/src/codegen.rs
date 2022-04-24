@@ -69,7 +69,7 @@ impl CodegenOuter for Rule {
         let rule_type = format_ident!("{}", self.name);
         let parser_name = format_ident!("parse_{}", self.name);
         let runtime_prefix = &settings.runtime_prefix;
-        let choice_body = self.definition.generate_code(&settings)?;
+        let choice_body = self.definition.generate_code_spec(&settings)?;
         let fields = self.definition.get_fields()?;
         let outer_parser = quote!(
             pub fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
@@ -77,10 +77,12 @@ impl CodegenOuter for Rule {
             }
         );
         if string_flag {
+            let parsed_types = self.definition.generate_types(&settings, "Parsed")?;
             Ok(quote!(
                 mod #rule_mod{
                     use #runtime_prefix *;
                     #choice_body
+                    #parsed_types
                     pub fn rule_parser (state: ParseState) -> ParseResult<String> {
                         let (_, new_state) = parse(state.clone())?;
                         Ok((state.slice_until(&new_state).to_string(), new_state))
@@ -90,11 +92,13 @@ impl CodegenOuter for Rule {
                 #outer_parser
             ))
         } else if fields.len() == 1 && fields[0].name == "_override" {
-            let override_type = generate_field_type(&fields[0], &settings);
+            let override_type = generate_field_type("Parsed", &fields[0], &settings);
+            let parsed_types = self.definition.generate_types(&settings, "Parsed")?;
             Ok(quote!(
                 mod #rule_mod{
                     use #runtime_prefix *;
                     #choice_body
+                    #parsed_types
                     // Inside here, because an enum might need to be exported
                     pub type OverrideType = #override_type;
                     pub fn rule_parser (state: ParseState) -> ParseResult<OverrideType> {
@@ -106,15 +110,20 @@ impl CodegenOuter for Rule {
                 #outer_parser
             ))
         } else {
+            let parsed_types = self.definition.generate_types(&settings, &self.name)?;
+            let used_types = self
+                .definition
+                .generate_use_super_as_parsed(&settings, &self.name)?;
             Ok(quote!(
                 mod #rule_mod{
                     use #runtime_prefix *;
                     #choice_body
+                    #used_types
                     pub fn rule_parser (state: ParseState) -> ParseResult<Parsed> {
                         parse(state)
                     }
                 }
-                pub use #rule_mod::Parsed as #rule_type;
+                #parsed_types
                 #outer_parser
             ))
         }
@@ -127,25 +136,58 @@ trait Codegen {
 
     fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let spec_body = self.generate_code_spec(settings)?;
+        let types = self.generate_types(settings, "Parsed")?;
+        Ok(quote!(
+            #spec_body
+            #types
+        ))
+    }
+
+    fn generate_types(&self, settings: &CodegenSettings, type_name: &str) -> Result<TokenStream> {
         let fields = self.get_fields()?;
-        let parsed_type = generate_parsed_struct_type(&fields, settings);
+        let parsed_type = generate_parsed_struct_type(type_name, &fields, settings);
         let enum_types: TokenStream = fields
             .iter()
             .filter(|f| f.type_names.len() > 1)
-            .map(|f| generate_enum_type(f, settings))
+            .map(|f| generate_enum_type(type_name, f, settings))
             .collect();
         Ok(quote!(
-            #spec_body
             #enum_types
             #parsed_type
         ))
     }
+
+    fn generate_use_super_as_parsed(
+        &self,
+        settings: &CodegenSettings,
+        type_name: &str,
+    ) -> Result<TokenStream> {
+        let fields = self.get_fields()?;
+        let type_ident = format_ident!("{}", type_name);
+        let enum_types: TokenStream = fields
+            .iter()
+            .filter(|f| f.type_names.len() > 1)
+            .map(|f| {
+                let outer_name = format_ident!("{}_{}", type_name, f.name);
+                let inner_name = format_ident!("Parsed_{}", f.name);
+                quote!(use super::#outer_name as #inner_name)
+            })
+            .collect();
+        Ok(quote!(
+            use super::#type_ident as Parsed;
+            #enum_types
+        ))
+    }
 }
 
-fn generate_field_type(field: &FieldDescriptor, settings: &CodegenSettings) -> TokenStream {
+fn generate_field_type(
+    parent_type: &str,
+    field: &FieldDescriptor,
+    settings: &CodegenSettings,
+) -> TokenStream {
     let prefix = &settings.grammar_module_prefix;
     let field_inner_type_ident: TokenStream = if field.type_names.len() > 1 {
-        let ident = format_ident!("E_{}", field.name);
+        let ident = format_ident!("{}_{}", parent_type, field.name);
         quote!(#ident)
     } else {
         let type_name = field.type_names.iter().next().unwrap();
@@ -175,9 +217,13 @@ fn generate_field_type(field: &FieldDescriptor, settings: &CodegenSettings) -> T
     }
 }
 
-fn generate_enum_type(field: &FieldDescriptor, settings: &CodegenSettings) -> TokenStream {
+fn generate_enum_type(
+    parent_type: &str,
+    field: &FieldDescriptor,
+    settings: &CodegenSettings,
+) -> TokenStream {
     let prefix = &settings.grammar_module_prefix;
-    let ident = format_ident!("E_{}", field.name);
+    let ident = format_ident!("{}_{}", parent_type, field.name);
     let type_idents: Vec<Ident> = field.type_names.iter().map(|n| quick_ident(n)).collect();
     quote!(
         #[derive(Debug)]
@@ -188,12 +234,14 @@ fn generate_enum_type(field: &FieldDescriptor, settings: &CodegenSettings) -> To
 }
 
 fn generate_parsed_struct_type(
+    type_name: &str,
     fields: &[FieldDescriptor],
     settings: &CodegenSettings,
 ) -> TokenStream {
+    let type_ident = format_ident!("{}", type_name);
     if fields.is_empty() {
         quote!(
-            pub type Parsed = ();
+            pub type #type_ident = ();
         )
     } else {
         let field_names: Vec<Ident> = fields
@@ -202,11 +250,11 @@ fn generate_parsed_struct_type(
             .collect();
         let field_types: Vec<TokenStream> = fields
             .iter()
-            .map(|f| generate_field_type(f, settings))
+            .map(|f| generate_field_type(type_name, f, settings))
             .collect();
         quote!(
             #[derive(Debug)]
-            pub struct Parsed {
+            pub struct #type_ident {
                 #( pub #field_names: #field_types, )*
             }
         )
@@ -354,7 +402,7 @@ impl Choice {
         inner_field: &FieldDescriptor,
     ) -> TokenStream {
         let name = format_ident!("{}", my_field.name);
-        let enum_type = format_ident!("E_{}", my_field.name);
+        let enum_type = format_ident!("Parsed_{}", my_field.name);
         if my_field.type_names.len() < 2 {
             quote!( result.#name)
         } else if inner_field.type_names.len() < 2 {
@@ -452,7 +500,7 @@ impl Sequence {
         let declarations: TokenStream = fields
             .iter()
             .map(|f| {
-                let typ = generate_field_type(f, settings);
+                let typ = generate_field_type("Parsed", f, settings);
                 let name_ident = format_ident!("{}", f.name);
                 match f.arity {
                     Arity::One => quote!(),
@@ -644,7 +692,7 @@ impl Codegen for Closure {
         let declarations: TokenStream = fields
             .iter()
             .map(|f| {
-                let typ = generate_field_type(f, settings);
+                let typ = generate_field_type("Parsed", f, settings);
                 let name_ident = format_ident!("{}", f.name);
                 quote!(let mut #name_ident: #typ = Vec::new();)
             })
