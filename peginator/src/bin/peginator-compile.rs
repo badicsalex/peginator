@@ -7,10 +7,10 @@ use std::fs;
 use anyhow::Result;
 use clap::Parser;
 
-use peginator::codegen::CodegenGrammar;
-use peginator::codegen::CodegenSettings;
-use peginator::grammar::parse_Grammar;
-use peginator::runtime::ParseSettings;
+use peginator::parse_Grammar;
+use peginator::CodegenGrammar;
+use peginator::CodegenSettings;
+use peginator::ParseSettings;
 
 /// Compile EBNF grammar into rust parser code.
 #[derive(Parser, Debug)]
