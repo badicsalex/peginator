@@ -11,15 +11,15 @@ use peginator::CodegenGrammar;
 use peginator::CodegenSettings;
 use peginator::Grammar;
 use peginator::ParseSettings;
-use peginator::Parser as PeginatorParser;
+use peginator::PegParser;
 
 /// Compile EBNF grammar into rust parser code.
 #[derive(Parser, Debug)]
 #[clap(version, about)]
 struct Args {
     /// Module path of the built-in peginator code
-    #[clap(short, long, default_value_t = String::from("peginator::runtime"))]
-    runtime_module_prefix: String,
+    #[clap(short, long, default_value_t = String::from("peginator"))]
+    peginator_crate_name: String,
 
     /// Print the parsed AST and exit
     #[clap(short, long)]
@@ -48,9 +48,9 @@ fn main() -> Result<()> {
 
     let settings = CodegenSettings {
         skip_whitespace: true,
+        peginator_crate_name: args.peginator_crate_name,
     };
     let generated_code = parsed_grammar.generate_code(&settings)?;
-    println!("use {}::*;", args.runtime_module_prefix);
     println!("{}", generated_code);
     Ok(())
 }

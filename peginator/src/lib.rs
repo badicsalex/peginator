@@ -10,26 +10,13 @@ pub mod runtime;
 
 pub use codegen::{CodegenGrammar, CodegenSettings};
 pub use grammar::Grammar;
-pub use runtime::{ParseSettings, Parser};
+pub use runtime::{ParseSettings, PegParser};
 
 use proc_macro2::TokenStream;
-use quote::quote;
 
 use anyhow::Result;
 
 pub fn peginator_compile(peg_grammar: &str) -> Result<TokenStream> {
-    let parsed_grammar = Grammar::parse_advanced(
-        peg_grammar,
-        &ParseSettings {
-            ..Default::default()
-        },
-    )?;
-    let settings = CodegenSettings {
-        skip_whitespace: true,
-    };
-    let generated_code = parsed_grammar.generate_code(&settings)?;
-    Ok(quote!(
-        use peginator::runtime::*;
-        #generated_code
-    ))
+    let parsed_grammar = Grammar::parse_advanced(peg_grammar, &ParseSettings::default())?;
+    parsed_grammar.generate_code(&CodegenSettings::default())
 }

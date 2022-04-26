@@ -4,6 +4,8 @@
 
 use peginator_macro::peginate;
 
+use peginator::PegParser;
+
 peginate!("@export Simple = c:char;");
 
 #[test]

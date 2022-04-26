@@ -16,6 +16,16 @@ fn quick_ident(s: &str) -> Ident {
 
 pub struct CodegenSettings {
     pub skip_whitespace: bool,
+    pub peginator_crate_name: String,
+}
+
+impl Default for CodegenSettings {
+    fn default() -> Self {
+        Self {
+            skip_whitespace: true,
+            peginator_crate_name: "peginator".into(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -42,17 +52,23 @@ impl CodegenGrammar for Grammar {
         let mut all_types = TokenStream::new();
         let mut all_parsers = TokenStream::new();
         let mut all_impls = TokenStream::new();
+        let peginator_crate = format_ident!("{}", settings.peginator_crate_name);
         for rule in &self.rules {
             let (exported, types, impls) = rule.generate_code(settings)?;
             all_types.extend(types);
             all_impls.extend(impls);
             let rule_ident = format_ident!("{}", rule.name);
-            let internal_parser_name = format_ident!("parse_{}_internal", rule.name);
+            let internal_parser_name = format_ident!("parse_{}", rule.name);
             if exported {
                 all_parsers.extend(quote!(
-                    impl Parser for #rule_ident {
-                        fn parse_advanced(s: &str, settings: &ParseSettings) -> Result<Self, ParseError> {
-                            Ok(#internal_parser_name(ParseState::new(s, settings))?.0)
+                    impl peginator_generated::PegParser for #rule_ident {
+                        fn parse_advanced(
+                            s: &str,
+                            settings: &peginator_generated::ParseSettings)
+                        -> Result<Self, peginator_generated::ParseError> {
+                            Ok(peginator_generated::#internal_parser_name(
+                                peginator_generated::ParseState::new(s, settings)
+                            )?.0)
                         }
                     }
                 ))
@@ -61,7 +77,12 @@ impl CodegenGrammar for Grammar {
         Ok(quote!(
             #all_types
             #all_parsers
-            #all_impls
+            mod peginator_generated {
+                use super::*;
+                pub use #peginator_crate::runtime::{ParseError, ParseSettings, ParseState, PegParser};
+                use #peginator_crate::runtime::*;
+                #all_impls
+            }
         ))
     }
 }
@@ -87,16 +108,19 @@ impl CodegenRule for Rule {
             }
         }
 
-        let settings = CodegenSettings { skip_whitespace };
+        let settings = CodegenSettings {
+            skip_whitespace,
+            ..Default::default()
+        };
 
         let name = &self.name;
         let rule_mod = format_ident!("{}_impl", self.name);
         let rule_type = format_ident!("{}", self.name);
-        let parser_name = format_ident!("parse_{}_internal", self.name);
+        let parser_name = format_ident!("parse_{}", self.name);
         let choice_body = self.definition.generate_code_spec(&settings)?;
         let fields = self.definition.get_fields()?;
         let outer_parser = quote!(
-            fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
+            pub(super) fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
                 run_rule_parser(#rule_mod::rule_parser, #name, state)
             }
         );
@@ -110,7 +134,6 @@ impl CodegenRule for Rule {
                 quote!(pub type #rule_type = String;),
                 quote!(
                     mod #rule_mod{
-                        use super::*;
                         use super::*;
                         #choice_body
                         #parsed_types
@@ -956,7 +979,7 @@ impl Codegen for EndOfInput {
 
 impl Codegen for OverrideField {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let parser_name = format_ident!("parse_{}_internal", self.typ);
+        let parser_name = format_ident!("parse_{}", self.typ);
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
         } else {
@@ -984,7 +1007,7 @@ impl Codegen for OverrideField {
 
 impl Codegen for Field {
     fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let parser_name = format_ident!("parse_{}_internal", self.typ);
+        let parser_name = format_ident!("parse_{}", self.typ);
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
         } else {

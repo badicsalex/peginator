@@ -16,7 +16,7 @@ impl std::fmt::Display for ParseError {
 
 impl Error for ParseError {}
 
-pub trait Parser: Sized {
+pub trait PegParser: Sized {
     fn parse(s: &str) -> Result<Self, ParseError> {
         Self::parse_advanced(s, &ParseSettings::default())
     }
@@ -136,7 +136,7 @@ impl<'a> ParseState<'a> {
 pub type ParseResult<'a, T> = Result<(T, ParseState<'a>), ParseError>;
 
 #[inline(always)]
-pub fn parse_char_internal(state: ParseState) -> ParseResult<char> {
+pub fn parse_char(state: ParseState) -> ParseResult<char> {
     let result = state.s().chars().next().ok_or(ParseError)?;
     // SAFETY:
     // Callers of this function are responsible that these preconditions are satisfied:
