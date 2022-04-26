@@ -1,4 +1,4 @@
-Grammar = {rules:Rule ";"} ;
+Grammar = {rules:Rule ";"} $ ;
 
 Rule = {directives:DirectiveExpression} name:Identifier "=" definition:Choice;
 
@@ -39,6 +39,7 @@ DelimitedExpression =
     @:CharacterRange |
     @:CharacterLiteral |
     @:StringLiteral |
+    @:EndOfInput |
     @:OverrideField |
     @:Field
 ;
@@ -51,3 +52,5 @@ Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9' | '_'}+;
 DirectiveExpression = @:StringDirective | @:NoSkipWsDirective;
 StringDirective = "@string";
 NoSkipWsDirective = "@no_skip_ws";
+
+EndOfInput = '$';

@@ -647,6 +647,7 @@ impl Codegen for DelimitedExpression {
             DelimitedExpression::CharacterRange(a) => a.generate_code_spec(settings),
             DelimitedExpression::CharacterLiteral(a) => a.generate_code_spec(settings),
             DelimitedExpression::StringLiteral(a) => a.generate_code_spec(settings),
+            DelimitedExpression::EndOfInput(a) => a.generate_code_spec(settings),
             DelimitedExpression::OverrideField(a) => a.generate_code_spec(settings),
             DelimitedExpression::Field(a) => a.generate_code_spec(settings),
         }
@@ -661,6 +662,7 @@ impl Codegen for DelimitedExpression {
             DelimitedExpression::CharacterRange(a) => a.get_fields(),
             DelimitedExpression::CharacterLiteral(a) => a.get_fields(),
             DelimitedExpression::StringLiteral(a) => a.get_fields(),
+            DelimitedExpression::EndOfInput(a) => a.get_fields(),
             DelimitedExpression::OverrideField(a) => a.get_fields(),
             DelimitedExpression::Field(a) => a.get_fields(),
         }
@@ -903,6 +905,31 @@ impl Codegen for StringLiteral {
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #skip_ws
                 parse_string_literal(state, #literal)
+            }
+        ))
+    }
+
+    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+        Ok(Vec::new())
+    }
+}
+
+impl Codegen for EndOfInput {
+    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+        let skip_ws = if settings.skip_whitespace {
+            quote!(let state = state.skip_whitespace();)
+        } else {
+            quote!()
+        };
+        Ok(quote!(
+            #[inline(always)]
+            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                #skip_ws
+                if state.is_empty() {
+                    Ok(((), state))
+                } else {
+                    Err(ParseError)
+                }
             }
         ))
     }
