@@ -182,6 +182,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_Grammar(state: ParseState) -> ParseResult<Grammar> {
         run_rule_parser(Grammar_impl::rule_parser, "Grammar", state)
     }
@@ -277,6 +278,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_Rule(state: ParseState) -> ParseResult<Rule> {
         run_rule_parser(Rule_impl::rule_parser, "Rule", state)
     }
@@ -363,6 +365,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_Choice(state: ParseState) -> ParseResult<Choice> {
         run_rule_parser(Choice_impl::rule_parser, "Choice", state)
     }
@@ -397,6 +400,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_Sequence(state: ParseState) -> ParseResult<Sequence> {
         run_rule_parser(Sequence_impl::rule_parser, "Sequence", state)
     }
@@ -447,6 +451,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_Group(state: ParseState) -> ParseResult<Group> {
         run_rule_parser(Group_impl::rule_parser, "Group", state)
     }
@@ -497,6 +502,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_Optional(state: ParseState) -> ParseResult<Optional> {
         run_rule_parser(Optional_impl::rule_parser, "Optional", state)
     }
@@ -583,6 +589,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_Closure(state: ParseState) -> ParseResult<Closure> {
         run_rule_parser(Closure_impl::rule_parser, "Closure", state)
     }
@@ -599,6 +606,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_AtLeastOneMarker(state: ParseState) -> ParseResult<AtLeastOneMarker> {
         run_rule_parser(
             AtLeastOneMarker_impl::rule_parser,
@@ -648,6 +656,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_NegativeLookahead(state: ParseState) -> ParseResult<NegativeLookahead> {
         run_rule_parser(
             NegativeLookahead_impl::rule_parser,
@@ -707,6 +716,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_CharacterRange(state: ParseState) -> ParseResult<CharacterRange> {
         run_rule_parser(CharacterRange_impl::rule_parser, "CharacterRange", state)
     }
@@ -761,6 +771,7 @@ mod peginator_generated {
             Ok((result._override, new_state))
         }
     }
+    #[inline]
     pub(super) fn parse_CharacterLiteral(state: ParseState) -> ParseResult<CharacterLiteral> {
         run_rule_parser(
             CharacterLiteral_impl::rule_parser,
@@ -815,6 +826,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_StringLiteral(state: ParseState) -> ParseResult<StringLiteral> {
         run_rule_parser(StringLiteral_impl::rule_parser, "StringLiteral", state)
     }
@@ -895,6 +907,7 @@ mod peginator_generated {
             Ok((state.slice_until(&new_state).to_string(), new_state))
         }
     }
+    #[inline]
     pub(super) fn parse_StringLiteralBody(state: ParseState) -> ParseResult<StringLiteralBody> {
         run_rule_parser(
             StringLiteralBody_impl::rule_parser,
@@ -1035,6 +1048,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_Field(state: ParseState) -> ParseResult<Field> {
         run_rule_parser(Field_impl::rule_parser, "Field", state)
     }
@@ -1051,6 +1065,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_BoxMarker(state: ParseState) -> ParseResult<BoxMarker> {
         run_rule_parser(BoxMarker_impl::rule_parser, "BoxMarker", state)
     }
@@ -1101,6 +1116,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_OverrideField(state: ParseState) -> ParseResult<OverrideField> {
         run_rule_parser(OverrideField_impl::rule_parser, "OverrideField", state)
     }
@@ -1330,6 +1346,7 @@ mod peginator_generated {
             Ok((result._override, new_state))
         }
     }
+    #[inline]
     pub(super) fn parse_DelimitedExpression(state: ParseState) -> ParseResult<DelimitedExpression> {
         run_rule_parser(
             DelimitedExpression_impl::rule_parser,
@@ -1408,6 +1425,7 @@ mod peginator_generated {
             Ok((state.slice_until(&new_state).to_string(), new_state))
         }
     }
+    #[inline]
     pub(super) fn parse_Identifier(state: ParseState) -> ParseResult<Identifier> {
         run_rule_parser(Identifier_impl::rule_parser, "Identifier", state)
     }
@@ -1490,6 +1508,7 @@ mod peginator_generated {
             Ok((result._override, new_state))
         }
     }
+    #[inline]
     pub(super) fn parse_DirectiveExpression(state: ParseState) -> ParseResult<DirectiveExpression> {
         run_rule_parser(
             DirectiveExpression_impl::rule_parser,
@@ -1510,6 +1529,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_StringDirective(state: ParseState) -> ParseResult<StringDirective> {
         run_rule_parser(StringDirective_impl::rule_parser, "StringDirective", state)
     }
@@ -1526,6 +1546,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_NoSkipWsDirective(state: ParseState) -> ParseResult<NoSkipWsDirective> {
         run_rule_parser(
             NoSkipWsDirective_impl::rule_parser,
@@ -1546,6 +1567,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_ExportDirective(state: ParseState) -> ParseResult<ExportDirective> {
         run_rule_parser(ExportDirective_impl::rule_parser, "ExportDirective", state)
     }
@@ -1562,6 +1584,7 @@ mod peginator_generated {
             parse(state)
         }
     }
+    #[inline]
     pub(super) fn parse_EndOfInput(state: ParseState) -> ParseResult<EndOfInput> {
         run_rule_parser(EndOfInput_impl::rule_parser, "EndOfInput", state)
     }

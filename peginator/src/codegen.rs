@@ -125,6 +125,7 @@ impl CodegenRule for Rule {
         let choice_body = self.definition.generate_code_spec(&settings)?;
         let fields = self.definition.get_fields()?;
         let outer_parser = quote!(
+            #[inline]
             pub(super) fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
                 run_rule_parser(#rule_mod::rule_parser, #name, state)
             }
