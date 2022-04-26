@@ -56,6 +56,7 @@ pub type BoxMarker = ();
 pub struct OverrideField {
     pub typ: Identifier,
 }
+#[allow(non_camel_case_types)]
 #[derive(Debug)]
 pub enum DelimitedExpression__override {
     CharacterLiteral(CharacterLiteral),
@@ -71,6 +72,7 @@ pub enum DelimitedExpression__override {
 }
 pub use DelimitedExpression__override as DelimitedExpression;
 pub type Identifier = String;
+#[allow(non_camel_case_types)]
 #[derive(Debug)]
 pub enum DirectiveExpression__override {
     ExportDirective(ExportDirective),
@@ -93,6 +95,7 @@ impl peginator_generated::PegParser for Grammar {
         )
     }
 }
+#[allow(non_snake_case, unused_variables, unused_imports)]
 mod peginator_generated {
     use super::*;
     use crate::runtime::*;

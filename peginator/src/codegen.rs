@@ -77,6 +77,11 @@ impl CodegenGrammar for Grammar {
         Ok(quote!(
             #all_types
             #all_parsers
+            #[allow(
+                non_snake_case,
+                unused_variables,
+                unused_imports,
+            )]
             mod peginator_generated {
                 use super::*;
                 pub use #peginator_crate::runtime::{ParseError, ParseSettings, ParseState, PegParser};
@@ -323,6 +328,7 @@ fn generate_enum_type(
     let ident = format_ident!("{}_{}", parent_type, field.name);
     let type_idents: Vec<Ident> = field.type_names.iter().map(|n| quick_ident(n)).collect();
     quote!(
+        #[allow(non_camel_case_types)]
         #[derive(Debug)]
         pub enum #ident {
             #(#type_idents(#type_idents),)*
