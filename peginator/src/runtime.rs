@@ -41,11 +41,6 @@ impl<'a> ParseState<'a> {
     }
 
     #[inline]
-    pub fn enable_tracing(self, tracing: bool) -> Self {
-        Self { tracing, ..self }
-    }
-
-    #[inline]
     pub fn print_trace<F: Fn() -> ColoredString>(&self, f: F) {
         if self.tracing {
             let indentation = "    ".repeat(self.indentation_level);
@@ -98,7 +93,7 @@ impl<'a> ParseState<'a> {
     #[inline]
     pub fn skip_whitespace(self) -> Self {
         let mut result = self;
-        while !result.s().is_empty() {
+        while !result.is_empty() {
             if result.s().as_bytes()[0].is_ascii_whitespace() {
                 // SAFETY:
                 // Callers of this function are responsible that these preconditions are satisfied:
@@ -161,8 +156,7 @@ pub fn parse_string_literal<'a>(state: ParseState<'a>, s: &str) -> ParseResult<'
 pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
     if c.is_ascii() {
         // fast path
-        let s = state.s();
-        if s.is_empty() || s.as_bytes()[0] != c as u8 {
+        if state.is_empty() || state.s().as_bytes()[0] != c as u8 {
             Err(ParseError)
         } else {
             // SAFETY:
@@ -189,8 +183,10 @@ pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
 pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseResult<()> {
     if from.is_ascii() && to.is_ascii() {
         // fast path
-        let s = state.s();
-        if s.is_empty() || s.as_bytes()[0] < from as u8 || s.as_bytes()[0] > to as u8 {
+        if state.is_empty()
+            || state.s().as_bytes()[0] < from as u8
+            || state.s().as_bytes()[0] > to as u8
+        {
             Err(ParseError)
         } else {
             // SAFETY:
