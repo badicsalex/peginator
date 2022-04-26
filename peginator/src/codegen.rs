@@ -47,16 +47,13 @@ impl CodegenGrammar for Grammar {
             all_types.extend(types);
             all_impls.extend(impls);
             let rule_ident = format_ident!("{}", rule.name);
-            let parser_name = format_ident!("parse_{}", rule.name);
-            let advanced_parser_name = format_ident!("parse_{}_advanced", rule.name);
             let internal_parser_name = format_ident!("parse_{}_internal", rule.name);
             if exported {
                 all_parsers.extend(quote!(
-                    pub fn #parser_name(s: &str) -> Result<#rule_ident, ParseError> {
-                        #advanced_parser_name(s, &ParseSettings::default())
-                    }
-                    pub fn #advanced_parser_name(s: &str, settings: &ParseSettings) -> Result<#rule_ident, ParseError> {
-                        Ok(#internal_parser_name(ParseState::new(s, settings))?.0)
+                    impl Parser for #rule_ident {
+                        fn parse_advanced(s: &str, settings: &ParseSettings) -> Result<Self, ParseError> {
+                            Ok(#internal_parser_name(ParseState::new(s, settings))?.0)
+                        }
                     }
                 ))
             }

@@ -83,11 +83,10 @@ pub type StringDirective = ();
 pub type NoSkipWsDirective = ();
 pub type ExportDirective = ();
 pub type EndOfInput = ();
-pub fn parse_Grammar(s: &str) -> Result<Grammar, ParseError> {
-    parse_Grammar_advanced(s, &ParseSettings::default())
-}
-pub fn parse_Grammar_advanced(s: &str, settings: &ParseSettings) -> Result<Grammar, ParseError> {
-    Ok(parse_Grammar_internal(ParseState::new(s, settings))?.0)
+impl Parser for Grammar {
+    fn parse_advanced(s: &str, settings: &ParseSettings) -> Result<Self, ParseError> {
+        Ok(parse_Grammar_internal(ParseState::new(s, settings))?.0)
+    }
 }
 mod Grammar_impl {
     use super::*;

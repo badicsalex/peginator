@@ -16,6 +16,14 @@ impl std::fmt::Display for ParseError {
 
 impl Error for ParseError {}
 
+pub trait Parser: Sized {
+    fn parse(s: &str) -> Result<Self, ParseError> {
+        Self::parse_advanced(s, &ParseSettings::default())
+    }
+
+    fn parse_advanced(s: &str, settings: &ParseSettings) -> Result<Self, ParseError>;
+}
+
 #[derive(Debug, Default)]
 pub struct ParseSettings {
     pub tracing: bool,

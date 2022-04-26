@@ -8,6 +8,6 @@ peginate!("@export Simple = c:char;");
 
 #[test]
 fn test_macro() {
-    let s: Simple = parse_Simple("xyz").unwrap();
+    let s: Simple = Simple::parse("xyz").unwrap();
     assert!(s.c == 'x');
 }
