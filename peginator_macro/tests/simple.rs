@@ -4,10 +4,10 @@
 
 use peginator_macro::peginate;
 
+peginate!("Simple = c:char;");
+
 #[test]
 fn test_macro() {
-    peginate!(
-        "mehet/a/
-    menet"
-    )
+    let s: Simple = parse_Simple("xyz").unwrap();
+    assert!(s.c == 'x');
 }
