@@ -7,7 +7,7 @@ use std::fs;
 use anyhow::Result;
 use clap::Parser;
 
-use peginator::parse_Grammar;
+use peginator::parse_Grammar_advanced;
 use peginator::CodegenGrammar;
 use peginator::CodegenSettings;
 use peginator::ParseSettings;
@@ -34,7 +34,7 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
     let grammar = fs::read_to_string(args.grammar_file)?;
-    let parsed_grammar = parse_Grammar(
+    let parsed_grammar = parse_Grammar_advanced(
         &grammar,
         &ParseSettings {
             tracing: args.trace,

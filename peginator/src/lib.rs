@@ -9,7 +9,7 @@ mod codegen;
 mod runtime;
 
 pub use codegen::{CodegenGrammar, CodegenSettings};
-pub use grammar::parse_Grammar;
+pub use grammar::{parse_Grammar, parse_Grammar_advanced};
 pub use runtime::ParseSettings;
 
 use proc_macro2::TokenStream;
@@ -17,7 +17,7 @@ use proc_macro2::TokenStream;
 use anyhow::Result;
 
 pub fn peginator_compile(peg_grammar: &str) -> Result<TokenStream> {
-    let parsed_grammar = parse_Grammar(
+    let parsed_grammar = parse_Grammar_advanced(
         peg_grammar,
         &ParseSettings {
             ..Default::default()
