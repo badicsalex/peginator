@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 
 use crate::grammar::*;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote};
 
@@ -43,21 +43,23 @@ impl CodegenGrammar for Grammar {
         let mut all_parsers = TokenStream::new();
         let mut all_impls = TokenStream::new();
         for rule in &self.rules {
-            let (types, impls) = rule.generate_code(settings)?;
+            let (exported, types, impls) = rule.generate_code(settings)?;
             all_types.extend(types);
             all_impls.extend(impls);
             let rule_ident = format_ident!("{}", rule.name);
             let parser_name = format_ident!("parse_{}", rule.name);
             let advanced_parser_name = format_ident!("parse_{}_advanced", rule.name);
             let internal_parser_name = format_ident!("parse_{}_internal", rule.name);
-            all_parsers.extend(quote!(
-                pub fn #parser_name(s: &str) -> Result<#rule_ident, ParseError> {
-                    #advanced_parser_name(s, &ParseSettings::default())
-                }
-                pub fn #advanced_parser_name(s: &str, settings: &ParseSettings) -> Result<#rule_ident, ParseError> {
-                    Ok(#internal_parser_name(ParseState::new(s, settings))?.0)
-                }
-            ))
+            if exported {
+                all_parsers.extend(quote!(
+                    pub fn #parser_name(s: &str) -> Result<#rule_ident, ParseError> {
+                        #advanced_parser_name(s, &ParseSettings::default())
+                    }
+                    pub fn #advanced_parser_name(s: &str, settings: &ParseSettings) -> Result<#rule_ident, ParseError> {
+                        Ok(#internal_parser_name(ParseState::new(s, settings))?.0)
+                    }
+                ))
+            }
         }
         Ok(quote!(
             #all_types
@@ -68,17 +70,23 @@ impl CodegenGrammar for Grammar {
 }
 
 trait CodegenRule {
-    fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)>;
+    fn generate_code(&self, settings: &CodegenSettings)
+        -> Result<(bool, TokenStream, TokenStream)>;
 }
 
 impl CodegenRule for Rule {
-    fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)> {
+    fn generate_code(
+        &self,
+        settings: &CodegenSettings,
+    ) -> Result<(bool, TokenStream, TokenStream)> {
         let mut string_flag = false;
         let mut skip_whitespace = settings.skip_whitespace;
+        let mut export = false;
         for directive in &self.directives {
             match directive {
                 DirectiveExpression::StringDirective(_) => string_flag = true,
                 DirectiveExpression::NoSkipWsDirective(_) => skip_whitespace = false,
+                DirectiveExpression::ExportDirective(_) => export = true,
             }
         }
 
@@ -96,8 +104,12 @@ impl CodegenRule for Rule {
             }
         );
         if string_flag {
+            if export {
+                bail!("@string rules cannot be @export-ed");
+            };
             let parsed_types = self.definition.generate_types(&settings, "Parsed")?;
             Ok((
+                false,
                 quote!(pub type #rule_type = String;),
                 quote!(
                     mod #rule_mod{
@@ -115,11 +127,15 @@ impl CodegenRule for Rule {
                 ),
             ))
         } else if fields.len() == 1 && fields[0].name == "_override" {
+            if export {
+                bail!("Overridden (containing '@:') rules cannot be @export-ed");
+            };
             let field = &fields[0];
             if field.type_names.len() <= 1 {
                 // Simple case
                 let override_type = generate_field_type(&self.name, field, &settings);
                 Ok((
+                    false,
                     quote!(
                         pub use #override_type as #rule_type;
                     ),
@@ -145,6 +161,7 @@ impl CodegenRule for Rule {
                 let override_type = generate_field_type(&self.name, field, &settings);
                 let enum_type = generate_enum_type(&self.name, field, &settings);
                 Ok((
+                    false,
                     quote!(
                         #enum_type
                         pub use #override_type as #rule_type;
@@ -173,6 +190,7 @@ impl CodegenRule for Rule {
                 .definition
                 .generate_use_super_as_parsed(&settings, &self.name)?;
             Ok((
+                export,
                 quote!(#parsed_types),
                 quote!(
                     mod #rule_mod{

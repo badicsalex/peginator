@@ -1,3 +1,4 @@
+@export
 Grammar = {rules:Rule ";"} $ ;
 
 Rule = {directives:DirectiveExpression} name:Identifier "=" definition:Choice;
@@ -49,8 +50,9 @@ DelimitedExpression =
 @no_skip_ws
 Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9' | '_'}+;
 
-DirectiveExpression = @:StringDirective | @:NoSkipWsDirective;
+DirectiveExpression = @:StringDirective | @:NoSkipWsDirective | @:ExportDirective;
 StringDirective = "@string";
 NoSkipWsDirective = "@no_skip_ws";
+ExportDirective = "@export";
 
 EndOfInput = '$';

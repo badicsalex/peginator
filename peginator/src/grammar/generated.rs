@@ -74,186 +74,20 @@ pub use DelimitedExpression__override as DelimitedExpression;
 pub type Identifier = String;
 #[derive(Debug)]
 pub enum DirectiveExpression__override {
+    ExportDirective(ExportDirective),
     NoSkipWsDirective(NoSkipWsDirective),
     StringDirective(StringDirective),
 }
 pub use DirectiveExpression__override as DirectiveExpression;
 pub type StringDirective = ();
 pub type NoSkipWsDirective = ();
+pub type ExportDirective = ();
 pub type EndOfInput = ();
 pub fn parse_Grammar(s: &str) -> Result<Grammar, ParseError> {
     parse_Grammar_advanced(s, &ParseSettings::default())
 }
 pub fn parse_Grammar_advanced(s: &str, settings: &ParseSettings) -> Result<Grammar, ParseError> {
     Ok(parse_Grammar_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_Rule(s: &str) -> Result<Rule, ParseError> {
-    parse_Rule_advanced(s, &ParseSettings::default())
-}
-pub fn parse_Rule_advanced(s: &str, settings: &ParseSettings) -> Result<Rule, ParseError> {
-    Ok(parse_Rule_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_Choice(s: &str) -> Result<Choice, ParseError> {
-    parse_Choice_advanced(s, &ParseSettings::default())
-}
-pub fn parse_Choice_advanced(s: &str, settings: &ParseSettings) -> Result<Choice, ParseError> {
-    Ok(parse_Choice_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_Sequence(s: &str) -> Result<Sequence, ParseError> {
-    parse_Sequence_advanced(s, &ParseSettings::default())
-}
-pub fn parse_Sequence_advanced(s: &str, settings: &ParseSettings) -> Result<Sequence, ParseError> {
-    Ok(parse_Sequence_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_Group(s: &str) -> Result<Group, ParseError> {
-    parse_Group_advanced(s, &ParseSettings::default())
-}
-pub fn parse_Group_advanced(s: &str, settings: &ParseSettings) -> Result<Group, ParseError> {
-    Ok(parse_Group_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_Optional(s: &str) -> Result<Optional, ParseError> {
-    parse_Optional_advanced(s, &ParseSettings::default())
-}
-pub fn parse_Optional_advanced(s: &str, settings: &ParseSettings) -> Result<Optional, ParseError> {
-    Ok(parse_Optional_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_Closure(s: &str) -> Result<Closure, ParseError> {
-    parse_Closure_advanced(s, &ParseSettings::default())
-}
-pub fn parse_Closure_advanced(s: &str, settings: &ParseSettings) -> Result<Closure, ParseError> {
-    Ok(parse_Closure_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_AtLeastOneMarker(s: &str) -> Result<AtLeastOneMarker, ParseError> {
-    parse_AtLeastOneMarker_advanced(s, &ParseSettings::default())
-}
-pub fn parse_AtLeastOneMarker_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<AtLeastOneMarker, ParseError> {
-    Ok(parse_AtLeastOneMarker_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_NegativeLookahead(s: &str) -> Result<NegativeLookahead, ParseError> {
-    parse_NegativeLookahead_advanced(s, &ParseSettings::default())
-}
-pub fn parse_NegativeLookahead_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<NegativeLookahead, ParseError> {
-    Ok(parse_NegativeLookahead_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_CharacterRange(s: &str) -> Result<CharacterRange, ParseError> {
-    parse_CharacterRange_advanced(s, &ParseSettings::default())
-}
-pub fn parse_CharacterRange_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<CharacterRange, ParseError> {
-    Ok(parse_CharacterRange_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_CharacterLiteral(s: &str) -> Result<CharacterLiteral, ParseError> {
-    parse_CharacterLiteral_advanced(s, &ParseSettings::default())
-}
-pub fn parse_CharacterLiteral_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<CharacterLiteral, ParseError> {
-    Ok(parse_CharacterLiteral_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_StringLiteral(s: &str) -> Result<StringLiteral, ParseError> {
-    parse_StringLiteral_advanced(s, &ParseSettings::default())
-}
-pub fn parse_StringLiteral_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<StringLiteral, ParseError> {
-    Ok(parse_StringLiteral_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_StringLiteralBody(s: &str) -> Result<StringLiteralBody, ParseError> {
-    parse_StringLiteralBody_advanced(s, &ParseSettings::default())
-}
-pub fn parse_StringLiteralBody_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<StringLiteralBody, ParseError> {
-    Ok(parse_StringLiteralBody_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_Field(s: &str) -> Result<Field, ParseError> {
-    parse_Field_advanced(s, &ParseSettings::default())
-}
-pub fn parse_Field_advanced(s: &str, settings: &ParseSettings) -> Result<Field, ParseError> {
-    Ok(parse_Field_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_BoxMarker(s: &str) -> Result<BoxMarker, ParseError> {
-    parse_BoxMarker_advanced(s, &ParseSettings::default())
-}
-pub fn parse_BoxMarker_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<BoxMarker, ParseError> {
-    Ok(parse_BoxMarker_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_OverrideField(s: &str) -> Result<OverrideField, ParseError> {
-    parse_OverrideField_advanced(s, &ParseSettings::default())
-}
-pub fn parse_OverrideField_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<OverrideField, ParseError> {
-    Ok(parse_OverrideField_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_DelimitedExpression(s: &str) -> Result<DelimitedExpression, ParseError> {
-    parse_DelimitedExpression_advanced(s, &ParseSettings::default())
-}
-pub fn parse_DelimitedExpression_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<DelimitedExpression, ParseError> {
-    Ok(parse_DelimitedExpression_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_Identifier(s: &str) -> Result<Identifier, ParseError> {
-    parse_Identifier_advanced(s, &ParseSettings::default())
-}
-pub fn parse_Identifier_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<Identifier, ParseError> {
-    Ok(parse_Identifier_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_DirectiveExpression(s: &str) -> Result<DirectiveExpression, ParseError> {
-    parse_DirectiveExpression_advanced(s, &ParseSettings::default())
-}
-pub fn parse_DirectiveExpression_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<DirectiveExpression, ParseError> {
-    Ok(parse_DirectiveExpression_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_StringDirective(s: &str) -> Result<StringDirective, ParseError> {
-    parse_StringDirective_advanced(s, &ParseSettings::default())
-}
-pub fn parse_StringDirective_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<StringDirective, ParseError> {
-    Ok(parse_StringDirective_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_NoSkipWsDirective(s: &str) -> Result<NoSkipWsDirective, ParseError> {
-    parse_NoSkipWsDirective_advanced(s, &ParseSettings::default())
-}
-pub fn parse_NoSkipWsDirective_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<NoSkipWsDirective, ParseError> {
-    Ok(parse_NoSkipWsDirective_internal(ParseState::new(s, settings))?.0)
-}
-pub fn parse_EndOfInput(s: &str) -> Result<EndOfInput, ParseError> {
-    parse_EndOfInput_advanced(s, &ParseSettings::default())
-}
-pub fn parse_EndOfInput_advanced(
-    s: &str,
-    settings: &ParseSettings,
-) -> Result<EndOfInput, ParseError> {
-    Ok(parse_EndOfInput_internal(ParseState::new(s, settings))?.0)
 }
 mod Grammar_impl {
     use super::*;
@@ -1596,6 +1430,19 @@ mod DirectiveExpression_impl {
             pub _override: NoSkipWsDirective,
         }
     }
+    mod choice_2 {
+        use super::*;
+        #[inline(always)]
+        pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            let state = state.skip_whitespace();
+            let (_override, state) = parse_ExportDirective_internal(state)?;
+            Ok((Parsed { _override }, state))
+        }
+        #[derive(Debug)]
+        pub struct Parsed {
+            pub _override: ExportDirective,
+        }
+    }
     #[inline(always)]
     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
         if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
@@ -1610,6 +1457,14 @@ mod DirectiveExpression_impl {
             return Ok((
                 Parsed {
                     _override: Parsed__override::NoSkipWsDirective(result._override),
+                },
+                new_state,
+            ));
+        }
+        if let Ok((result, new_state)) = choice_2::parse(state.clone()) {
+            return Ok((
+                Parsed {
+                    _override: Parsed__override::ExportDirective(result._override),
                 },
                 new_state,
             ));
@@ -1668,6 +1523,22 @@ fn parse_NoSkipWsDirective_internal(state: ParseState) -> ParseResult<NoSkipWsDi
         "NoSkipWsDirective",
         state,
     )
+}
+mod ExportDirective_impl {
+    use super::*;
+    #[inline(always)]
+    pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+        let state = state.skip_whitespace();
+        parse_string_literal(state, "@export")
+    }
+    use super::ExportDirective as Parsed;
+    #[inline(always)]
+    pub fn rule_parser(state: ParseState) -> ParseResult<Parsed> {
+        parse(state)
+    }
+}
+fn parse_ExportDirective_internal(state: ParseState) -> ParseResult<ExportDirective> {
+    run_rule_parser(ExportDirective_impl::rule_parser, "ExportDirective", state)
 }
 mod EndOfInput_impl {
     use super::*;

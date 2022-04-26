@@ -4,7 +4,7 @@
 
 use peginator_macro::peginate;
 
-peginate!("Simple = c:char;");
+peginate!("@export Simple = c:char;");
 
 #[test]
 fn test_macro() {
