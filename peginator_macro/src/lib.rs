@@ -9,5 +9,7 @@ use proc_macro::TokenStream;
 pub fn peginate(input: TokenStream) -> TokenStream {
     let param: syn::LitStr =
         syn::parse(input).expect("peginate!() expects a single string as a parameter");
-    peginator_compile(&param.value()).unwrap().into()
+    peginator_compile(&param.value())
+        .expect("Error during grammar compilation")
+        .into()
 }
