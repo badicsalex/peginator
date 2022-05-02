@@ -95,7 +95,7 @@ impl peginator_generated::PegParser for Grammar {
         )
     }
 }
-#[allow(non_snake_case, unused_variables, unused_imports)]
+#[allow(non_snake_case, unused_variables, unused_imports, unused_mut)]
 mod peginator_generated {
     use super::*;
     use crate::runtime::*;
@@ -135,9 +135,8 @@ mod peginator_generated {
                 }
                 #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                    let mut rules: Vec<Rule> = Vec::new();
                     let (result, state) = part_0::parse(state)?;
-                    rules.extend(result.rules);
+                    let mut rules = result.rules;
                     let (_, state) = part_1::parse(state)?;
                     Ok((Parsed { rules }, state))
                 }
@@ -176,9 +175,8 @@ mod peginator_generated {
         }
         #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-            let mut rules: Vec<Rule> = Vec::new();
             let (result, state) = part_0::parse(state)?;
-            rules.extend(result.rules);
+            let mut rules = result.rules;
             let (_, state) = part_1::parse(state)?;
             Ok((Parsed { rules }, state))
         }
@@ -266,14 +264,13 @@ mod peginator_generated {
         }
         #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-            let mut directives: Vec<DirectiveExpression> = Vec::new();
             let (result, state) = part_0::parse(state)?;
-            directives.extend(result.directives);
+            let mut directives = result.directives;
             let (result, state) = part_1::parse(state)?;
-            let name = result.name;
+            let mut name = result.name;
             let (_, state) = part_2::parse(state)?;
             let (result, state) = part_3::parse(state)?;
-            let definition = result.definition;
+            let mut definition = result.definition;
             Ok((
                 Parsed {
                     directives,
@@ -346,10 +343,9 @@ mod peginator_generated {
                 }
                 #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                    let mut choices: Vec<Sequence> = Vec::new();
                     let (_, state) = part_0::parse(state)?;
                     let (result, state) = part_1::parse(state)?;
-                    choices.extend(result.choices);
+                    let mut choices = result.choices;
                     Ok((Parsed { choices }, state))
                 }
                 #[derive(Debug)]
@@ -374,9 +370,8 @@ mod peginator_generated {
         }
         #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-            let mut choices: Vec<Sequence> = Vec::new();
             let (result, state) = part_0::parse(state)?;
-            choices.extend(result.choices);
+            let mut choices = result.choices;
             let (result, state) = part_1::parse(state)?;
             choices.extend(result.choices);
             Ok((Parsed { choices }, state))
@@ -468,7 +463,7 @@ mod peginator_generated {
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let (_, state) = part_0::parse(state)?;
             let (result, state) = part_1::parse(state)?;
-            let body = result.body;
+            let mut body = result.body;
             let (_, state) = part_2::parse(state)?;
             Ok((Parsed { body }, state))
         }
@@ -519,7 +514,7 @@ mod peginator_generated {
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let (_, state) = part_0::parse(state)?;
             let (result, state) = part_1::parse(state)?;
-            let body = result.body;
+            let mut body = result.body;
             let (_, state) = part_2::parse(state)?;
             Ok((Parsed { body }, state))
         }
@@ -611,13 +606,12 @@ mod peginator_generated {
         }
         #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-            let mut at_least_one: Option<AtLeastOneMarker> = None;
             let (_, state) = part_0::parse(state)?;
             let (result, state) = part_1::parse(state)?;
-            let body = result.body;
+            let mut body = result.body;
             let (_, state) = part_2::parse(state)?;
             let (result, state) = part_3::parse(state)?;
-            at_least_one = at_least_one.or(result.at_least_one);
+            let mut at_least_one = result.at_least_one;
             Ok((Parsed { body, at_least_one }, state))
         }
         use super::Closure as Parsed;
@@ -684,7 +678,7 @@ mod peginator_generated {
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let (_, state) = part_0::parse(state)?;
             let (result, state) = part_1::parse(state)?;
-            let expr = result.expr;
+            let mut expr = result.expr;
             Ok((Parsed { expr }, state))
         }
         use super::NegativeLookahead as Parsed;
@@ -741,10 +735,10 @@ mod peginator_generated {
         #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let (result, state) = part_0::parse(state)?;
-            let from = result.from;
+            let mut from = result.from;
             let (_, state) = part_1::parse(state)?;
             let (result, state) = part_2::parse(state)?;
-            let to = result.to;
+            let mut to = result.to;
             Ok((Parsed { from, to }, state))
         }
         use super::CharacterRange as Parsed;
@@ -794,7 +788,7 @@ mod peginator_generated {
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let (_, state) = part_0::parse(state)?;
             let (result, state) = part_1::parse(state)?;
-            let _override = result._override;
+            let mut _override = result._override;
             let (_, state) = part_2::parse(state)?;
             Ok((Parsed { _override }, state))
         }
@@ -853,7 +847,7 @@ mod peginator_generated {
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let (_, state) = part_0::parse(state)?;
             let (result, state) = part_1::parse(state)?;
-            let body = result.body;
+            let mut body = result.body;
             let (_, state) = part_2::parse(state)?;
             Ok((Parsed { body }, state))
         }
@@ -1025,13 +1019,11 @@ mod peginator_generated {
                 }
                 #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                    let mut name: Option<Identifier> = None;
-                    let mut boxed: Option<BoxMarker> = None;
                     let (result, state) = part_0::parse(state)?;
-                    name = name.or(result.name);
+                    let mut name = result.name;
                     let (_, state) = part_1::parse(state)?;
                     let (result, state) = part_2::parse(state)?;
-                    boxed = boxed.or(result.boxed);
+                    let mut boxed = result.boxed;
                     Ok((Parsed { name, boxed }, state))
                 }
                 #[derive(Debug)]
@@ -1081,13 +1073,11 @@ mod peginator_generated {
         }
         #[inline(always)]
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-            let mut name: Option<Identifier> = None;
-            let mut boxed: Option<BoxMarker> = None;
             let (result, state) = part_0::parse(state)?;
-            name = name.or(result.name);
-            boxed = boxed.or(result.boxed);
+            let mut name = result.name;
+            let mut boxed = result.boxed;
             let (result, state) = part_1::parse(state)?;
-            let typ = result.typ;
+            let mut typ = result.typ;
             Ok((Parsed { name, boxed, typ }, state))
         }
         use super::Field as Parsed;
@@ -1155,7 +1145,7 @@ mod peginator_generated {
             let (_, state) = part_0::parse(state)?;
             let (_, state) = part_1::parse(state)?;
             let (result, state) = part_2::parse(state)?;
-            let typ = result.typ;
+            let mut typ = result.typ;
             Ok((Parsed { typ }, state))
         }
         use super::OverrideField as Parsed;

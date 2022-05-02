@@ -81,6 +81,7 @@ impl CodegenGrammar for Grammar {
                 non_snake_case,
                 unused_variables,
                 unused_imports,
+                unused_mut,
             )]
             mod peginator_generated {
                 use super::*;
@@ -592,41 +593,41 @@ impl Sequence {
     fn generate_parse_function(
         &self,
         rule_fields: &[FieldDescriptor],
-        settings: &CodegenSettings,
+        _settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let fields = self.get_filtered_rule_fields(rule_fields)?;
-        let declarations: TokenStream = fields
-            .iter()
-            .map(|f| {
-                let typ = generate_field_type("Parsed", f, settings);
-                let name_ident = format_ident!("{}", f.name);
-                match f.arity {
-                    Arity::One => quote!(),
-                    Arity::Optional => quote!(let mut #name_ident: #typ = None;),
-                    Arity::Multiple => quote!(let mut #name_ident: #typ = Vec::new();),
+        let mut calls = TokenStream::new();
+        let mut fields_seen = BTreeSet::<&str>::new();
+        for (num, part) in self.parts.iter().enumerate() {
+            let part_mod = format_ident!("part_{}", num);
+            let inner_fields = part.get_filtered_rule_fields(rule_fields)?;
+            let call = if inner_fields.is_empty() {
+                quote!(
+                    let (_, state) =  #part_mod::parse(state)?;
+                )
+            } else {
+                let mut field_assignments = TokenStream::new();
+                for field in &inner_fields {
+                    let name = format_ident!("{}", field.name);
+                    let field_assignment = if !fields_seen.contains(field.name) {
+                        fields_seen.insert(field.name);
+                        quote!(let mut #name = result.#name;)
+                    } else {
+                        match field.arity {
+                            Arity::One => quote!(let #name = result.#name;),
+                            Arity::Optional => quote!(#name = #name.or(result.#name);),
+                            Arity::Multiple => quote!(#name.extend(result.#name);),
+                        }
+                    };
+                    field_assignments.extend(field_assignment);
                 }
-            })
-            .collect();
-        let calls = self
-            .parts
-            .iter()
-            .enumerate()
-            .map(|(num, part)| {
-                let part_mod = format_ident!("part_{}", num);
-                let inner_fields = part.get_filtered_rule_fields(rule_fields)?;
-                if inner_fields.is_empty() {
-                    Ok(quote!(
-                        let (_, state) =  #part_mod::parse(state)?;
-                    ))
-                } else {
-                    let field_assignments = Self::generate_field_assignments(&inner_fields);
-                    Ok(quote!(
-                        let (result, state) =  #part_mod::parse(state)?;
-                        #field_assignments
-                    ))
-                }
-            })
-            .collect::<Result<TokenStream>>()?;
+                quote!(
+                    let (result, state) =  #part_mod::parse(state)?;
+                    #field_assignments
+                )
+            };
+            calls.extend(call);
+        }
         let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
         let parse_result = if fields.is_empty() {
             quote!(())
@@ -636,24 +637,10 @@ impl Sequence {
         Ok(quote!(
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                #declarations
                 #calls
                 Ok((#parse_result, state))
             }
         ))
-    }
-    fn generate_field_assignments(fields: &[FieldDescriptor]) -> TokenStream {
-        fields
-            .iter()
-            .map(|field| {
-                let name = format_ident!("{}", field.name);
-                match field.arity {
-                    Arity::One => quote!(let #name = result.#name;),
-                    Arity::Optional => quote!(#name = #name.or(result.#name);),
-                    Arity::Multiple => quote!(#name.extend(result.#name);),
-                }
-            })
-            .collect()
     }
 }
 
