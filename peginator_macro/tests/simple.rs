@@ -11,5 +11,5 @@ peginate!("@export Simple = c:char;");
 #[test]
 fn test_macro() {
     let s: Simple = Simple::parse("xyz").unwrap();
-    assert!(s.c == 'x');
+    assert_eq!(s.c, 'x');
 }
