@@ -111,12 +111,17 @@ mod peginator_generated {
                     #[inline(always)]
                     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                         let state = state.skip_whitespace();
-                        let (rules, state) = parse_Rule(state)?;
-                        Ok((Parsed { rules }, state))
+                        let (result, state) = parse_Rule(state)?;
+                        Ok((
+                            Parsed {
+                                rules: vec![result],
+                            },
+                            state,
+                        ))
                     }
                     #[derive(Debug)]
                     pub struct Parsed {
-                        pub rules: Rule,
+                        pub rules: Vec<Rule>,
                     }
                 }
                 mod part_1 {
@@ -130,14 +135,15 @@ mod peginator_generated {
                 }
                 #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                    let mut rules: Vec<Rule> = Vec::new();
                     let (result, state) = part_0::parse(state)?;
-                    let rules = result.rules;
+                    rules.extend(result.rules);
                     let (_, state) = part_1::parse(state)?;
                     Ok((Parsed { rules }, state))
                 }
                 #[derive(Debug)]
                 pub struct Parsed {
-                    pub rules: Rule,
+                    pub rules: Vec<Rule>,
                 }
             }
             #[inline(always)]
@@ -145,7 +151,7 @@ mod peginator_generated {
                 let mut state = state;
                 let mut rules: Vec<Rule> = Vec::new();
                 while let Ok((result, new_state)) = closure::parse(state.clone()) {
-                    rules.push(result.rules);
+                    rules.extend(result.rules);
                     state = new_state;
                 }
                 Ok((Parsed { rules }, state))
@@ -195,12 +201,17 @@ mod peginator_generated {
                 #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
-                    let (directives, state) = parse_DirectiveExpression(state)?;
-                    Ok((Parsed { directives }, state))
+                    let (result, state) = parse_DirectiveExpression(state)?;
+                    Ok((
+                        Parsed {
+                            directives: vec![result],
+                        },
+                        state,
+                    ))
                 }
                 #[derive(Debug)]
                 pub struct Parsed {
-                    pub directives: DirectiveExpression,
+                    pub directives: Vec<DirectiveExpression>,
                 }
             }
             #[inline(always)]
@@ -208,7 +219,7 @@ mod peginator_generated {
                 let mut state = state;
                 let mut directives: Vec<DirectiveExpression> = Vec::new();
                 while let Ok((result, new_state)) = closure::parse(state.clone()) {
-                    directives.push(result.directives);
+                    directives.extend(result.directives);
                     state = new_state;
                 }
                 Ok((Parsed { directives }, state))
@@ -223,8 +234,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (name, state) = parse_Identifier(state)?;
-                Ok((Parsed { name }, state))
+                let (result, state) = parse_Identifier(state)?;
+                Ok((Parsed { name: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -245,8 +256,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (definition, state) = parse_Choice(state)?;
-                Ok((Parsed { definition }, state))
+                let (result, state) = parse_Choice(state)?;
+                Ok((Parsed { definition: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -289,12 +300,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (choices, state) = parse_Sequence(state)?;
-                Ok((Parsed { choices }, state))
+                let (result, state) = parse_Sequence(state)?;
+                Ok((
+                    Parsed {
+                        choices: vec![result],
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub choices: Sequence,
+                pub choices: Vec<Sequence>,
             }
         }
         mod part_1 {
@@ -315,24 +331,30 @@ mod peginator_generated {
                     #[inline(always)]
                     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                         let state = state.skip_whitespace();
-                        let (choices, state) = parse_Sequence(state)?;
-                        Ok((Parsed { choices }, state))
+                        let (result, state) = parse_Sequence(state)?;
+                        Ok((
+                            Parsed {
+                                choices: vec![result],
+                            },
+                            state,
+                        ))
                     }
                     #[derive(Debug)]
                     pub struct Parsed {
-                        pub choices: Sequence,
+                        pub choices: Vec<Sequence>,
                     }
                 }
                 #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                    let mut choices: Vec<Sequence> = Vec::new();
                     let (_, state) = part_0::parse(state)?;
                     let (result, state) = part_1::parse(state)?;
-                    let choices = result.choices;
+                    choices.extend(result.choices);
                     Ok((Parsed { choices }, state))
                 }
                 #[derive(Debug)]
                 pub struct Parsed {
-                    pub choices: Sequence,
+                    pub choices: Vec<Sequence>,
                 }
             }
             #[inline(always)]
@@ -340,7 +362,7 @@ mod peginator_generated {
                 let mut state = state;
                 let mut choices: Vec<Sequence> = Vec::new();
                 while let Ok((result, new_state)) = closure::parse(state.clone()) {
-                    choices.push(result.choices);
+                    choices.extend(result.choices);
                     state = new_state;
                 }
                 Ok((Parsed { choices }, state))
@@ -354,7 +376,7 @@ mod peginator_generated {
         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
             let mut choices: Vec<Sequence> = Vec::new();
             let (result, state) = part_0::parse(state)?;
-            choices.push(result.choices);
+            choices.extend(result.choices);
             let (result, state) = part_1::parse(state)?;
             choices.extend(result.choices);
             Ok((Parsed { choices }, state))
@@ -376,12 +398,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (parts, state) = parse_DelimitedExpression(state)?;
-                Ok((Parsed { parts }, state))
+                let (result, state) = parse_DelimitedExpression(state)?;
+                Ok((
+                    Parsed {
+                        parts: vec![result],
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub parts: DelimitedExpression,
+                pub parts: Vec<DelimitedExpression>,
             }
         }
         #[inline(always)]
@@ -389,7 +416,7 @@ mod peginator_generated {
             let mut state = state;
             let mut parts: Vec<DelimitedExpression> = Vec::new();
             while let Ok((result, new_state)) = closure::parse(state.clone()) {
-                parts.push(result.parts);
+                parts.extend(result.parts);
                 state = new_state;
             }
             Ok((Parsed { parts }, state))
@@ -420,8 +447,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (body, state) = parse_Choice(state)?;
-                Ok((Parsed { body }, state))
+                let (result, state) = parse_Choice(state)?;
+                Ok((Parsed { body: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -471,8 +498,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (body, state) = parse_Choice(state)?;
-                Ok((Parsed { body }, state))
+                let (result, state) = parse_Choice(state)?;
+                Ok((Parsed { body: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -522,8 +549,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (body, state) = parse_Choice(state)?;
-                Ok((Parsed { body }, state))
+                let (result, state) = parse_Choice(state)?;
+                Ok((Parsed { body: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -546,12 +573,17 @@ mod peginator_generated {
                 #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     let state = state.skip_whitespace();
-                    let (at_least_one, state) = parse_AtLeastOneMarker(state)?;
-                    Ok((Parsed { at_least_one }, state))
+                    let (result, state) = parse_AtLeastOneMarker(state)?;
+                    Ok((
+                        Parsed {
+                            at_least_one: Some(result),
+                        },
+                        state,
+                    ))
                 }
                 #[derive(Debug)]
                 pub struct Parsed {
-                    pub at_least_one: AtLeastOneMarker,
+                    pub at_least_one: Option<AtLeastOneMarker>,
                 }
             }
             #[inline(always)]
@@ -559,7 +591,7 @@ mod peginator_generated {
                 if let Ok((result, new_state)) = optional::parse(state.clone()) {
                     Ok((
                         Parsed {
-                            at_least_one: Some(result.at_least_one),
+                            at_least_one: result.at_least_one,
                         },
                         new_state,
                     ))
@@ -630,10 +662,10 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (expr, state) = parse_DelimitedExpression(state)?;
+                let (result, state) = parse_DelimitedExpression(state)?;
                 Ok((
                     Parsed {
-                        expr: Box::new(expr),
+                        expr: Box::new(result),
                     },
                     state,
                 ))
@@ -671,8 +703,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (from, state) = parse_CharacterLiteral(state)?;
-                Ok((Parsed { from }, state))
+                let (result, state) = parse_CharacterLiteral(state)?;
+                Ok((Parsed { from: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -693,8 +725,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (to, state) = parse_CharacterLiteral(state)?;
-                Ok((Parsed { to }, state))
+                let (result, state) = parse_CharacterLiteral(state)?;
+                Ok((Parsed { to: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -736,8 +768,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_char(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_char(state)?;
+                Ok((Parsed { _override: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -795,8 +827,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (body, state) = parse_StringLiteralBody(state)?;
-                Ok((Parsed { body }, state))
+                let (result, state) = parse_StringLiteralBody(state)?;
+                Ok((Parsed { body: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -926,12 +958,12 @@ mod peginator_generated {
                     #[inline(always)]
                     pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                         let state = state.skip_whitespace();
-                        let (name, state) = parse_Identifier(state)?;
-                        Ok((Parsed { name }, state))
+                        let (result, state) = parse_Identifier(state)?;
+                        Ok((Parsed { name: Some(result) }, state))
                     }
                     #[derive(Debug)]
                     pub struct Parsed {
-                        pub name: Identifier,
+                        pub name: Option<Identifier>,
                     }
                 }
                 mod part_1 {
@@ -950,12 +982,17 @@ mod peginator_generated {
                         #[inline(always)]
                         pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                             let state = state.skip_whitespace();
-                            let (boxed, state) = parse_BoxMarker(state)?;
-                            Ok((Parsed { boxed }, state))
+                            let (result, state) = parse_BoxMarker(state)?;
+                            Ok((
+                                Parsed {
+                                    boxed: Some(result),
+                                },
+                                state,
+                            ))
                         }
                         #[derive(Debug)]
                         pub struct Parsed {
-                            pub boxed: BoxMarker,
+                            pub boxed: Option<BoxMarker>,
                         }
                     }
                     #[inline(always)]
@@ -963,7 +1000,7 @@ mod peginator_generated {
                         if let Ok((result, new_state)) = optional::parse(state.clone()) {
                             Ok((
                                 Parsed {
-                                    boxed: Some(result.boxed),
+                                    boxed: result.boxed,
                                 },
                                 new_state,
                             ))
@@ -978,9 +1015,10 @@ mod peginator_generated {
                 }
                 #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                    let mut name: Option<Identifier> = None;
                     let mut boxed: Option<BoxMarker> = None;
                     let (result, state) = part_0::parse(state)?;
-                    let name = result.name;
+                    name = name.or(result.name);
                     let (_, state) = part_1::parse(state)?;
                     let (result, state) = part_2::parse(state)?;
                     boxed = boxed.or(result.boxed);
@@ -988,7 +1026,7 @@ mod peginator_generated {
                 }
                 #[derive(Debug)]
                 pub struct Parsed {
-                    pub name: Identifier,
+                    pub name: Option<Identifier>,
                     pub boxed: Option<BoxMarker>,
                 }
             }
@@ -997,7 +1035,7 @@ mod peginator_generated {
                 if let Ok((result, new_state)) = optional::parse(state.clone()) {
                     Ok((
                         Parsed {
-                            name: Some(result.name),
+                            name: result.name,
                             boxed: result.boxed,
                         },
                         new_state,
@@ -1023,8 +1061,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (typ, state) = parse_Identifier(state)?;
-                Ok((Parsed { typ }, state))
+                let (result, state) = parse_Identifier(state)?;
+                Ok((Parsed { typ: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -1094,8 +1132,8 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (typ, state) = parse_Identifier(state)?;
-                Ok((Parsed { typ }, state))
+                let (result, state) = parse_Identifier(state)?;
+                Ok((Parsed { typ: result }, state))
             }
             #[derive(Debug)]
             pub struct Parsed {
@@ -1127,12 +1165,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_Group(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_Group(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::Group(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: Group,
+                pub _override: Parsed__override,
             }
         }
         mod choice_1 {
@@ -1140,12 +1183,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_Optional(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_Optional(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::Optional(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: Optional,
+                pub _override: Parsed__override,
             }
         }
         mod choice_2 {
@@ -1153,12 +1201,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_Closure(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_Closure(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::Closure(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: Closure,
+                pub _override: Parsed__override,
             }
         }
         mod choice_3 {
@@ -1166,12 +1219,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_NegativeLookahead(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_NegativeLookahead(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::NegativeLookahead(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: NegativeLookahead,
+                pub _override: Parsed__override,
             }
         }
         mod choice_4 {
@@ -1179,12 +1237,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_CharacterRange(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_CharacterRange(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::CharacterRange(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: CharacterRange,
+                pub _override: Parsed__override,
             }
         }
         mod choice_5 {
@@ -1192,12 +1255,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_CharacterLiteral(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_CharacterLiteral(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::CharacterLiteral(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: CharacterLiteral,
+                pub _override: Parsed__override,
             }
         }
         mod choice_6 {
@@ -1205,12 +1273,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_StringLiteral(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_StringLiteral(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::StringLiteral(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: StringLiteral,
+                pub _override: Parsed__override,
             }
         }
         mod choice_7 {
@@ -1218,12 +1291,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_EndOfInput(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_EndOfInput(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::EndOfInput(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: EndOfInput,
+                pub _override: Parsed__override,
             }
         }
         mod choice_8 {
@@ -1231,12 +1309,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_OverrideField(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_OverrideField(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::OverrideField(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: OverrideField,
+                pub _override: Parsed__override,
             }
         }
         mod choice_9 {
@@ -1244,12 +1327,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_Field(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_Field(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::Field(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: Field,
+                pub _override: Parsed__override,
             }
         }
         #[inline(always)]
@@ -1257,7 +1345,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::Group(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1265,7 +1353,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_1::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::Optional(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1273,7 +1361,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_2::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::Closure(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1281,7 +1369,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_3::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::NegativeLookahead(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1289,7 +1377,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_4::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::CharacterRange(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1297,7 +1385,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_5::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::CharacterLiteral(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1305,7 +1393,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_6::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::StringLiteral(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1313,7 +1401,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_7::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::EndOfInput(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1321,7 +1409,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_8::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::OverrideField(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1329,7 +1417,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_9::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::Field(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1436,12 +1524,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_StringDirective(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_StringDirective(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::StringDirective(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: StringDirective,
+                pub _override: Parsed__override,
             }
         }
         mod choice_1 {
@@ -1449,12 +1542,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_NoSkipWsDirective(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_NoSkipWsDirective(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::NoSkipWsDirective(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: NoSkipWsDirective,
+                pub _override: Parsed__override,
             }
         }
         mod choice_2 {
@@ -1462,12 +1560,17 @@ mod peginator_generated {
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 let state = state.skip_whitespace();
-                let (_override, state) = parse_ExportDirective(state)?;
-                Ok((Parsed { _override }, state))
+                let (result, state) = parse_ExportDirective(state)?;
+                Ok((
+                    Parsed {
+                        _override: Parsed__override::ExportDirective(result),
+                    },
+                    state,
+                ))
             }
             #[derive(Debug)]
             pub struct Parsed {
-                pub _override: ExportDirective,
+                pub _override: Parsed__override,
             }
         }
         #[inline(always)]
@@ -1475,7 +1578,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_0::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::StringDirective(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1483,7 +1586,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_1::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::NoSkipWsDirective(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));
@@ -1491,7 +1594,7 @@ mod peginator_generated {
             if let Ok((result, new_state)) = choice_2::parse(state.clone()) {
                 return Ok((
                     Parsed {
-                        _override: Parsed__override::ExportDirective(result._override),
+                        _override: result._override,
                     },
                     new_state,
                 ));

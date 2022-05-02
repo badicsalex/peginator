@@ -28,14 +28,14 @@ impl Default for CodegenSettings {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Arity {
     One,
     Optional,
     Multiple,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FieldDescriptor<'a> {
     pub name: &'a str,
     pub type_names: BTreeSet<&'a str>,
@@ -122,8 +122,8 @@ impl CodegenRule for Rule {
         let rule_mod = format_ident!("{}_impl", self.name);
         let rule_type = format_ident!("{}", self.name);
         let parser_name = format_ident!("parse_{}", self.name);
-        let choice_body = self.definition.generate_code_spec(&settings)?;
         let fields = self.definition.get_fields()?;
+        let choice_body = self.definition.generate_code_spec(&fields, &settings)?;
         let outer_parser = quote!(
             #[inline]
             pub(super) fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
@@ -134,7 +134,9 @@ impl CodegenRule for Rule {
             if export {
                 bail!("@string rules cannot be @export-ed");
             };
-            let parsed_types = self.definition.generate_types(&settings, "Parsed")?;
+            let parsed_types = self
+                .definition
+                .generate_struct_type(&fields, &settings, "Parsed")?;
             Ok((
                 false,
                 quote!(pub type #rule_type = String;),
@@ -211,13 +213,23 @@ impl CodegenRule for Rule {
                 ))
             }
         } else {
-            let parsed_types = self.definition.generate_types(&settings, &self.name)?;
+            let parsed_enum_types: TokenStream = fields
+                .iter()
+                .filter(|f| f.type_names.len() > 1)
+                .map(|f| generate_enum_type(&self.name, f, &settings))
+                .collect();
+            let parsed_struct_type = self
+                .definition
+                .generate_struct_type(&fields, &settings, &self.name)?;
             let used_types = self
                 .definition
                 .generate_use_super_as_parsed(&settings, &self.name)?;
             Ok((
                 export,
-                quote!(#parsed_types),
+                quote!(
+                    #parsed_struct_type
+                    #parsed_enum_types
+                ),
                 quote!(
                     mod #rule_mod{
                         use super::*;
@@ -236,30 +248,34 @@ impl CodegenRule for Rule {
 }
 
 trait Codegen {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream>;
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream>;
     fn get_fields(&self) -> Result<Vec<FieldDescriptor>>;
 
-    fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let spec_body = self.generate_code_spec(settings)?;
-        let types = self.generate_types(settings, "Parsed")?;
+    fn generate_code(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
+        let spec_body = self.generate_code_spec(rule_fields, settings)?;
+        let parsed_type = self.generate_struct_type(rule_fields, settings, "Parsed")?;
         Ok(quote!(
             #spec_body
-            #types
+            #parsed_type
         ))
     }
 
-    fn generate_types(&self, settings: &CodegenSettings, type_name: &str) -> Result<TokenStream> {
-        let fields = self.get_fields()?;
-        let parsed_type = generate_parsed_struct_type(type_name, &fields, settings);
-        let enum_types: TokenStream = fields
-            .iter()
-            .filter(|f| f.type_names.len() > 1)
-            .map(|f| generate_enum_type(type_name, f, settings))
-            .collect();
-        Ok(quote!(
-            #enum_types
-            #parsed_type
-        ))
+    fn generate_struct_type(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+        type_name: &str,
+    ) -> Result<TokenStream> {
+        let fields = self.get_filtered_rule_fields(rule_fields)?;
+        Ok(generate_parsed_struct_type(type_name, &fields, settings))
     }
 
     fn generate_use_super_as_parsed(
@@ -275,13 +291,25 @@ trait Codegen {
             .map(|f| {
                 let outer_name = format_ident!("{}_{}", type_name, f.name);
                 let inner_name = format_ident!("Parsed_{}", f.name);
-                quote!(use super::#outer_name as #inner_name)
+                quote!(use super::#outer_name as #inner_name;)
             })
             .collect();
         Ok(quote!(
             use super::#type_ident as Parsed;
             #enum_types
         ))
+    }
+
+    fn get_filtered_rule_fields<'a>(
+        &self,
+        rule_fields: &[FieldDescriptor<'a>],
+    ) -> Result<Vec<FieldDescriptor<'a>>> {
+        let fields = self.get_fields()?;
+        Ok(rule_fields
+            .iter()
+            .filter(|rf| fields.iter().any(|f| f.name == rf.name))
+            .cloned()
+            .collect())
     }
 }
 
@@ -366,9 +394,13 @@ fn generate_parsed_struct_type(
 }
 
 impl Codegen for Choice {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
         if self.choices.len() < 2 {
-            return self.choices[0].generate_code_spec(settings);
+            return self.choices[0].generate_code_spec(rule_fields, settings);
         }
         let choice_bodies = self
             .choices
@@ -376,7 +408,7 @@ impl Codegen for Choice {
             .enumerate()
             .map(|(num, choice)| -> Result<TokenStream> {
                 let choice_mod = format_ident!("choice_{}", num);
-                let sequence_body = choice.generate_code(settings)?;
+                let sequence_body = choice.generate_code(rule_fields, settings)?;
                 Ok(quote!(
                     mod #choice_mod{
                     use super::*;
@@ -385,7 +417,7 @@ impl Codegen for Choice {
                 ))
             })
             .collect::<Result<TokenStream>>()?;
-        let parse_function = self.generate_parse_function(settings)?;
+        let parse_function = self.generate_parse_function(rule_fields, settings)?;
         Ok(quote!(
             #choice_bodies
             #parse_function
@@ -422,13 +454,18 @@ impl Codegen for Choice {
 }
 
 impl Choice {
-    fn generate_parse_function(&self, _settings: &CodegenSettings) -> Result<TokenStream> {
-        let fields = self.get_fields()?;
+    fn generate_parse_function(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        _settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
+        let fields = self.get_filtered_rule_fields(rule_fields)?;
         let calls = self
             .choices
             .iter()
             .enumerate()
             .map(|(num, choice)| {
+                let inner_fields = choice.get_fields().unwrap();
                 let choice_mod = format_ident!("choice_{}", num);
                 if fields.is_empty() {
                     Ok(quote!(
@@ -437,9 +474,27 @@ impl Choice {
                         }
                     ))
                 } else {
-                    let inner_fields = choice.get_fields()?;
-                    let field_assignments =
-                        Self::generate_field_assignments(&fields, &inner_fields);
+                    let field_assignments: TokenStream = fields
+                        .iter()
+                        .map(|field| {
+                            let name = format_ident!("{}", field.name);
+                            let inner_exists = inner_fields
+                                .iter()
+                                .any(|inner_field| inner_field.name == field.name);
+                            let value = if inner_exists {
+                                quote!(result.#name)
+                            } else {
+                                match field.arity {
+                                    Arity::One => {
+                                        panic!("Outer field cannot be One if inner does not exist")
+                                    }
+                                    Arity::Optional => quote!(None),
+                                    Arity::Multiple => quote!(Vec::new()),
+                                }
+                            };
+                            quote!(#name: #value,)
+                        })
+                        .collect();
                     Ok(quote!(
                         if let Ok((result, new_state)) = #choice_mod::parse(state.clone()) {
                             return Ok((
@@ -461,75 +516,6 @@ impl Choice {
             }
         ))
     }
-
-    fn generate_field_assignments(
-        my_fields: &[FieldDescriptor],
-        inner_fields: &[FieldDescriptor],
-    ) -> TokenStream {
-        my_fields
-            .iter()
-            .map(|my_field| {
-                let name = format_ident!("{}", my_field.name);
-                let inner_field_opt = inner_fields.iter().find(|f| f.name == my_field.name);
-                let value =
-                    if let Some(inner_field) = inner_field_opt {
-                        let enum_converted = Self::generate_enum_conversion(my_field, inner_field);
-                        match (&my_field.arity, &inner_field.arity) {
-                            (Arity::One, Arity::One) => quote!(#enum_converted),
-                            (Arity::Optional, Arity::Optional) => quote!(#enum_converted),
-                            (Arity::Multiple, Arity::Multiple) => quote!(#enum_converted),
-                            (Arity::Optional, Arity::One) => quote!(Some(#enum_converted)),
-                            (Arity::Multiple, Arity::One) => quote!(vec![#enum_converted]),
-                            (Arity::Multiple, Arity::Optional) => quote!(
-                                // TODO: enum conversion
-                                if let Some(result_inner) = result.#name {
-                                    vec![result_inner]
-                                } else {
-                                    vec![]
-                                }),
-                            _ => panic!("Invalid Arity combination in choice inner => outer mapping")
-                        }
-                    } else {
-                        match my_field.arity {
-                            Arity::One => panic!("Not found Arity::One field in choice inner fields. This should never happen"),
-                            Arity::Optional => quote!(None),
-                            Arity::Multiple => quote!(Vec::new()),
-                        }
-                    };
-                quote!(#name: #value,)
-            })
-            .collect()
-    }
-
-    fn generate_enum_conversion(
-        my_field: &FieldDescriptor,
-        inner_field: &FieldDescriptor,
-    ) -> TokenStream {
-        let name = format_ident!("{}", my_field.name);
-        let enum_type = format_ident!("Parsed_{}", my_field.name);
-        if my_field.type_names.len() < 2 {
-            quote!( result.#name)
-        } else if inner_field.type_names.len() < 2 {
-            let inner_type = format_ident!("{}", inner_field.type_names.iter().next().unwrap());
-            quote!(#enum_type::#inner_type(result.#name))
-        } else {
-            let matches: TokenStream = inner_field
-                .type_names
-                .iter()
-                .map(|type_name| {
-                    let type_ident = format_ident!("{}", type_name);
-                    quote!(
-                        #type_ident(a) => #enum_type::#type_ident(a),
-                    )
-                })
-                .collect();
-            quote!(
-                match result.#name {
-                    #matches
-                }
-            )
-        }
-    }
 }
 
 fn combine_arities_for_choice(left: &Arity, right: &Arity) -> Arity {
@@ -547,7 +533,11 @@ fn combine_arities_for_choice(left: &Arity, right: &Arity) -> Arity {
 }
 
 impl Codegen for Sequence {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
         if self.parts.is_empty() {
             return Ok(quote!(
                 #[inline(always)]
@@ -557,7 +547,7 @@ impl Codegen for Sequence {
             ));
         }
         if self.parts.len() < 2 {
-            return self.parts[0].generate_code_spec(settings);
+            return self.parts[0].generate_code_spec(rule_fields, settings);
         }
         let part_bodies = self
             .parts
@@ -565,7 +555,7 @@ impl Codegen for Sequence {
             .enumerate()
             .map(|(num, part)| -> Result<TokenStream> {
                 let part_mod = format_ident!("part_{}", num);
-                let part_body = part.generate_code(settings)?;
+                let part_body = part.generate_code(rule_fields, settings)?;
                 Ok(quote!(
                     mod #part_mod{
                         use super::*;
@@ -574,7 +564,7 @@ impl Codegen for Sequence {
                 ))
             })
             .collect::<Result<TokenStream>>()?;
-        let parse_function = self.generate_parse_function(settings)?;
+        let parse_function = self.generate_parse_function(rule_fields, settings)?;
         Ok(quote!(
             #part_bodies
             #parse_function
@@ -599,8 +589,12 @@ impl Codegen for Sequence {
 }
 
 impl Sequence {
-    fn generate_parse_function(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let fields = self.get_fields()?;
+    fn generate_parse_function(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
+        let fields = self.get_filtered_rule_fields(rule_fields)?;
         let declarations: TokenStream = fields
             .iter()
             .map(|f| {
@@ -619,14 +613,13 @@ impl Sequence {
             .enumerate()
             .map(|(num, part)| {
                 let part_mod = format_ident!("part_{}", num);
-                let inner_fields = part.get_fields()?;
+                let inner_fields = part.get_filtered_rule_fields(rule_fields)?;
                 if inner_fields.is_empty() {
                     Ok(quote!(
                         let (_, state) =  #part_mod::parse(state)?;
                     ))
                 } else {
-                    let field_assignments =
-                        Self::generate_field_assignments(&fields, &inner_fields);
+                    let field_assignments = Self::generate_field_assignments(&inner_fields);
                     Ok(quote!(
                         let (result, state) =  #part_mod::parse(state)?;
                         #field_assignments
@@ -649,33 +642,15 @@ impl Sequence {
             }
         ))
     }
-    fn generate_field_assignments(
-        my_fields: &[FieldDescriptor],
-        inner_fields: &[FieldDescriptor],
-    ) -> TokenStream {
-        inner_fields
+    fn generate_field_assignments(fields: &[FieldDescriptor]) -> TokenStream {
+        fields
             .iter()
-            .map(|inner_field| {
-                let my_field = my_fields
-                    .iter()
-                    .find(|f| f.name == inner_field.name)
-                    .unwrap();
-                let name = format_ident!("{}", my_field.name);
-                // TODO: Enum conversion
-                match (&my_field.arity, &inner_field.arity) {
-                    (Arity::One, Arity::One) => quote!(let #name = result.#name;),
-                    (Arity::Optional, Arity::Optional) => quote!(#name = #name.or(result.#name);),
-                    (Arity::Multiple, Arity::Multiple) => quote!(#name.extend(result.#name);),
-                    (Arity::Optional, Arity::One) => quote!(#name = Some(result.#name);),
-                    (Arity::Multiple, Arity::One) => quote!(#name.push(result.#name);),
-                    (Arity::Multiple, Arity::Optional) => quote!(
-                        if let Some(result_inner) = result.#name {
-                            vec![result_inner]
-                        } else {
-                            vec![]
-                        }
-                    ),
-                    _ => panic!("Invalid Arity combination in sequence inner => outer mapping"),
+            .map(|field| {
+                let name = format_ident!("{}", field.name);
+                match field.arity {
+                    Arity::One => quote!(let #name = result.#name;),
+                    Arity::Optional => quote!(#name = #name.or(result.#name);),
+                    Arity::Multiple => quote!(#name.extend(result.#name);),
                 }
             })
             .collect()
@@ -683,18 +658,24 @@ impl Sequence {
 }
 
 impl Codegen for DelimitedExpression {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
         match self {
-            DelimitedExpression::Group(a) => a.generate_code_spec(settings),
-            DelimitedExpression::Optional(a) => a.generate_code_spec(settings),
-            DelimitedExpression::Closure(a) => a.generate_code_spec(settings),
-            DelimitedExpression::NegativeLookahead(a) => a.generate_code_spec(settings),
-            DelimitedExpression::CharacterRange(a) => a.generate_code_spec(settings),
-            DelimitedExpression::CharacterLiteral(a) => a.generate_code_spec(settings),
-            DelimitedExpression::StringLiteral(a) => a.generate_code_spec(settings),
-            DelimitedExpression::EndOfInput(a) => a.generate_code_spec(settings),
-            DelimitedExpression::OverrideField(a) => a.generate_code_spec(settings),
-            DelimitedExpression::Field(a) => a.generate_code_spec(settings),
+            DelimitedExpression::Group(a) => a.generate_code_spec(rule_fields, settings),
+            DelimitedExpression::Optional(a) => a.generate_code_spec(rule_fields, settings),
+            DelimitedExpression::Closure(a) => a.generate_code_spec(rule_fields, settings),
+            DelimitedExpression::NegativeLookahead(a) => {
+                a.generate_code_spec(rule_fields, settings)
+            }
+            DelimitedExpression::CharacterRange(a) => a.generate_code_spec(rule_fields, settings),
+            DelimitedExpression::CharacterLiteral(a) => a.generate_code_spec(rule_fields, settings),
+            DelimitedExpression::StringLiteral(a) => a.generate_code_spec(rule_fields, settings),
+            DelimitedExpression::EndOfInput(a) => a.generate_code_spec(rule_fields, settings),
+            DelimitedExpression::OverrideField(a) => a.generate_code_spec(rule_fields, settings),
+            DelimitedExpression::Field(a) => a.generate_code_spec(rule_fields, settings),
         }
     }
 
@@ -715,8 +696,12 @@ impl Codegen for DelimitedExpression {
 }
 
 impl Codegen for Group {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        self.body.generate_code_spec(settings)
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
+        self.body.generate_code_spec(rule_fields, settings)
     }
 
     fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
@@ -725,29 +710,27 @@ impl Codegen for Group {
 }
 
 impl Codegen for Optional {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let body = self.body.generate_code(settings)?;
-        let inner_fields = self.body.get_fields()?;
-        let happy_case_fields: TokenStream = inner_fields
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
+        let body = self.body.generate_code(rule_fields, settings)?;
+        let fields = self.body.get_filtered_rule_fields(rule_fields)?;
+        let happy_case_fields: TokenStream = fields
             .iter()
-            .map(|inner_field| {
-                let name = format_ident!("{}", inner_field.name);
-                // TODO: enum conversion
-                let value = match &inner_field.arity {
-                    Arity::One => quote!(Some(result.#name)),
-                    Arity::Optional => quote!(result.#name),
-                    Arity::Multiple => quote!(result.#name),
-                };
-                quote!(#name: #value,)
+            .map(|field| {
+                let name = format_ident!("{}", field.name);
+                quote!(#name: result.#name,)
             })
             .collect();
-        let unhappy_case_fields: TokenStream = inner_fields
+        let unhappy_case_fields: TokenStream = fields
             .iter()
-            .map(|inner_field| {
-                let name = format_ident!("{}", inner_field.name);
-                // TODO: enum conversion
-                let value = match &inner_field.arity {
-                    Arity::One => quote!(None),
+            .map(|field| {
+                let name = format_ident!("{}", field.name);
+                // TODO: Default::default() should be universal here
+                let value = match &field.arity {
+                    Arity::One => panic!("Outer arity of optionals should never be One"),
                     Arity::Optional => quote!(None),
                     Arity::Multiple => quote!(Vec::new()),
                 };
@@ -791,10 +774,13 @@ fn set_arity_to_optional(fields: Vec<FieldDescriptor>) -> Vec<FieldDescriptor> {
     fields
 }
 impl Codegen for Closure {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let closure_body = self.body.generate_code(settings)?;
-        let fields = self.get_fields()?;
-        let inner_fields = self.body.get_fields()?;
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
+        let closure_body = self.body.generate_code(rule_fields, settings)?;
+        let fields = self.body.get_filtered_rule_fields(rule_fields)?;
         let declarations: TokenStream = fields
             .iter()
             .map(|f| {
@@ -803,22 +789,11 @@ impl Codegen for Closure {
                 quote!(let mut #name_ident: #typ = Vec::new();)
             })
             .collect();
-        let assignments: TokenStream = inner_fields
+        let assignments: TokenStream = fields
             .iter()
-            .map(|inner_field| {
-                let name = format_ident!("{}", inner_field.name);
-                // TODO: Enum conversion
-                match &inner_field.arity {
-                    Arity::One => quote!(#name.push(result.#name);),
-                    Arity::Optional => quote!(
-                        if let Some(result_inner) = result.#name {
-                            vec![result_inner]
-                        } else {
-                            vec![]
-                        }
-                    ),
-                    Arity::Multiple => quote!(#name.extend(result.#name);),
-                }
+            .map(|field| {
+                let name = format_ident!("{}", field.name);
+                quote!(#name.extend(result.#name);)
             })
             .collect();
         let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
@@ -870,8 +845,12 @@ fn set_arity_to_multiple(fields: Vec<FieldDescriptor>) -> Vec<FieldDescriptor> {
 }
 
 impl Codegen for NegativeLookahead {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
-        let body = self.expr.generate_code(settings)?;
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
+        let body = self.expr.generate_code(rule_fields, settings)?;
         Ok(quote!(
             mod negative_lookahead{
                 use super::*;
@@ -888,12 +867,18 @@ impl Codegen for NegativeLookahead {
     }
 
     fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+        // TODO: check if body has fields. It should NOT, since capturing in a negative lookeahead
+        // is not supported at all.
         Ok(Vec::new())
     }
 }
 
 impl Codegen for CharacterRange {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(
+        &self,
+        _rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
         let from = &self.from;
         let to = &self.to;
         let skip_ws = if settings.skip_whitespace {
@@ -916,7 +901,11 @@ impl Codegen for CharacterRange {
 }
 
 impl Codegen for CharacterLiteral {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(
+        &self,
+        _rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
         let literal = &self;
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
@@ -938,7 +927,11 @@ impl Codegen for CharacterLiteral {
 }
 
 impl Codegen for StringLiteral {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(
+        &self,
+        _rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
         let literal = &self.body;
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
@@ -960,7 +953,11 @@ impl Codegen for StringLiteral {
 }
 
 impl Codegen for EndOfInput {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(
+        &self,
+        _rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
         } else {
@@ -985,19 +982,25 @@ impl Codegen for EndOfInput {
 }
 
 impl Codegen for OverrideField {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
+        // TODO: CONVERT
         let parser_name = format_ident!("parse_{}", self.typ);
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
         } else {
             quote!()
         };
+        let field_conversion = generate_field_converter("_override", &self.typ, rule_fields);
         Ok(quote!(
             #[inline(always)]
             pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                 #skip_ws
-                let (_override, state) = #parser_name (state)?;
-                Ok((Parsed{ _override }, state))
+                let (result, state) = #parser_name (state)?;
+                Ok((Parsed{ _override: #field_conversion }, state))
             }
         ))
     }
@@ -1013,7 +1016,11 @@ impl Codegen for OverrideField {
 }
 
 impl Codegen for Field {
-    fn generate_code_spec(&self, settings: &CodegenSettings) -> Result<TokenStream> {
+    fn generate_code_spec(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<TokenStream> {
         let parser_name = format_ident!("parse_{}", self.typ);
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
@@ -1022,17 +1029,13 @@ impl Codegen for Field {
         };
         if let Some(field_name) = &self.name {
             let field_ident = format_ident!("{}", field_name);
-            let maybe_boxed = if self.boxed.is_some() {
-                quote!(#field_ident: Box::new(#field_ident))
-            } else {
-                quote!(#field_ident)
-            };
+            let field_conversion = generate_field_converter(field_name, &self.typ, rule_fields);
             Ok(quote!(
                 #[inline(always)]
                 pub fn parse(state: ParseState) -> ParseResult<Parsed> {
                     #skip_ws
-                    let (#field_ident, state) = #parser_name (state)?;
-                    Ok((Parsed{ #maybe_boxed }, state))
+                    let (result, state) = #parser_name (state)?;
+                    Ok((Parsed{ #field_ident: #field_conversion }, state))
                 }
             ))
         } else {
@@ -1058,5 +1061,40 @@ impl Codegen for Field {
         } else {
             Ok(Vec::new())
         }
+    }
+}
+
+fn generate_field_converter(
+    field_name: &str,
+    field_type_name: &str,
+    rule_fields: &[FieldDescriptor],
+) -> TokenStream {
+    let field = rule_fields
+        .iter()
+        .find(|f| f.name == field_name)
+        .expect("Field not found in rule_fields");
+    let enumified_field = if field.type_names.len() > 1 {
+        let enum_type_name = format_ident!("Parsed_{}", field_name);
+        let field_type_ident = format_ident!("{}", field_type_name);
+        quote!(#enum_type_name::#field_type_ident(result))
+    } else {
+        quote!(result)
+    };
+    match field.arity {
+        Arity::One => {
+            if field.boxed {
+                quote!(Box::new(#enumified_field))
+            } else {
+                quote!(#enumified_field)
+            }
+        }
+        Arity::Optional => {
+            if field.boxed {
+                quote!(Some(Box::new(#enumified_field)))
+            } else {
+                quote!(Some(#enumified_field))
+            }
+        }
+        Arity::Multiple => quote!(vec![#enumified_field]),
     }
 }
