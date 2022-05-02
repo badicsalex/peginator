@@ -596,7 +596,12 @@ mod peginator_generated {
                         new_state,
                     ))
                 } else {
-                    Ok((Parsed { at_least_one: None }, state))
+                    Ok((
+                        Parsed {
+                            at_least_one: Default::default(),
+                        },
+                        state,
+                    ))
                 }
             }
             #[derive(Debug)]
@@ -1005,7 +1010,12 @@ mod peginator_generated {
                                 new_state,
                             ))
                         } else {
-                            Ok((Parsed { boxed: None }, state))
+                            Ok((
+                                Parsed {
+                                    boxed: Default::default(),
+                                },
+                                state,
+                            ))
                         }
                     }
                     #[derive(Debug)]
@@ -1043,8 +1053,8 @@ mod peginator_generated {
                 } else {
                     Ok((
                         Parsed {
-                            name: None,
-                            boxed: None,
+                            name: Default::default(),
+                            boxed: Default::default(),
                         },
                         state,
                     ))

@@ -728,13 +728,7 @@ impl Codegen for Optional {
             .iter()
             .map(|field| {
                 let name = format_ident!("{}", field.name);
-                // TODO: Default::default() should be universal here
-                let value = match &field.arity {
-                    Arity::One => panic!("Outer arity of optionals should never be One"),
-                    Arity::Optional => quote!(None),
-                    Arity::Multiple => quote!(Vec::new()),
-                };
-                quote!(#name: #value,)
+                quote!(#name: Default::default(),)
             })
             .collect();
         Ok(quote!(
