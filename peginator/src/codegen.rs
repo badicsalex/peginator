@@ -359,7 +359,7 @@ fn generate_enum_type(
     let type_idents: Vec<Ident> = field.type_names.iter().map(|n| quick_ident(n)).collect();
     quote!(
         #[allow(non_camel_case_types)]
-        #[derive(Debug)]
+        #[derive(Debug, Clone, PartialEq, Eq)]
         pub enum #ident {
             #(#type_idents(#type_idents),)*
         }
@@ -386,7 +386,7 @@ fn generate_parsed_struct_type(
             .map(|f| generate_field_type(type_name, f, settings))
             .collect();
         quote!(
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct #type_ident {
                 #( pub #field_names: #field_types, )*
             }

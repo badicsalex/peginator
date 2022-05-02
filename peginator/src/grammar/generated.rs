@@ -1,63 +1,63 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Grammar {
     pub rules: Vec<Rule>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Rule {
     pub directives: Vec<DirectiveExpression>,
     pub name: Identifier,
     pub definition: Choice,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Choice {
     pub choices: Vec<Sequence>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Sequence {
     pub parts: Vec<DelimitedExpression>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Group {
     pub body: Choice,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Optional {
     pub body: Choice,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Closure {
     pub body: Choice,
     pub at_least_one: Option<AtLeastOneMarker>,
 }
 pub type AtLeastOneMarker = ();
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NegativeLookahead {
     pub expr: Box<DelimitedExpression>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CharacterRange {
     pub from: CharacterLiteral,
     pub to: CharacterLiteral,
 }
 pub use char as CharacterLiteral;
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StringLiteral {
     pub body: StringLiteralBody,
 }
 pub type StringLiteralBody = String;
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Field {
     pub name: Option<Identifier>,
     pub boxed: Option<BoxMarker>,
     pub typ: Identifier,
 }
 pub type BoxMarker = ();
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OverrideField {
     pub typ: Identifier,
 }
 #[allow(non_camel_case_types)]
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DelimitedExpression__override {
     CharacterLiteral(CharacterLiteral),
     CharacterRange(CharacterRange),
@@ -73,7 +73,7 @@ pub enum DelimitedExpression__override {
 pub use DelimitedExpression__override as DelimitedExpression;
 pub type Identifier = String;
 #[allow(non_camel_case_types)]
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DirectiveExpression__override {
     ExportDirective(ExportDirective),
     NoSkipWsDirective(NoSkipWsDirective),
@@ -119,7 +119,7 @@ mod peginator_generated {
                             state,
                         ))
                     }
-                    #[derive(Debug)]
+                    #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed {
                         pub rules: Vec<Rule>,
                     }
@@ -140,7 +140,7 @@ mod peginator_generated {
                     let (_, state) = part_1::parse(state)?;
                     Ok((Parsed { rules }, state))
                 }
-                #[derive(Debug)]
+                #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
                     pub rules: Vec<Rule>,
                 }
@@ -155,7 +155,7 @@ mod peginator_generated {
                 }
                 Ok((Parsed { rules }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub rules: Vec<Rule>,
             }
@@ -207,7 +207,7 @@ mod peginator_generated {
                         state,
                     ))
                 }
-                #[derive(Debug)]
+                #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
                     pub directives: Vec<DirectiveExpression>,
                 }
@@ -222,7 +222,7 @@ mod peginator_generated {
                 }
                 Ok((Parsed { directives }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub directives: Vec<DirectiveExpression>,
             }
@@ -235,7 +235,7 @@ mod peginator_generated {
                 let (result, state) = parse_Identifier(state)?;
                 Ok((Parsed { name: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub name: Identifier,
             }
@@ -257,7 +257,7 @@ mod peginator_generated {
                 let (result, state) = parse_Choice(state)?;
                 Ok((Parsed { definition: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub definition: Choice,
             }
@@ -305,7 +305,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub choices: Vec<Sequence>,
             }
@@ -336,7 +336,7 @@ mod peginator_generated {
                             state,
                         ))
                     }
-                    #[derive(Debug)]
+                    #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed {
                         pub choices: Vec<Sequence>,
                     }
@@ -348,7 +348,7 @@ mod peginator_generated {
                     let mut choices = result.choices;
                     Ok((Parsed { choices }, state))
                 }
-                #[derive(Debug)]
+                #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
                     pub choices: Vec<Sequence>,
                 }
@@ -363,7 +363,7 @@ mod peginator_generated {
                 }
                 Ok((Parsed { choices }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub choices: Vec<Sequence>,
             }
@@ -401,7 +401,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub parts: Vec<DelimitedExpression>,
             }
@@ -445,7 +445,7 @@ mod peginator_generated {
                 let (result, state) = parse_Choice(state)?;
                 Ok((Parsed { body: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub body: Choice,
             }
@@ -496,7 +496,7 @@ mod peginator_generated {
                 let (result, state) = parse_Choice(state)?;
                 Ok((Parsed { body: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub body: Choice,
             }
@@ -547,7 +547,7 @@ mod peginator_generated {
                 let (result, state) = parse_Choice(state)?;
                 Ok((Parsed { body: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub body: Choice,
             }
@@ -576,7 +576,7 @@ mod peginator_generated {
                         state,
                     ))
                 }
-                #[derive(Debug)]
+                #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
                     pub at_least_one: Option<AtLeastOneMarker>,
                 }
@@ -599,7 +599,7 @@ mod peginator_generated {
                     ))
                 }
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub at_least_one: Option<AtLeastOneMarker>,
             }
@@ -669,7 +669,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub expr: Box<DelimitedExpression>,
             }
@@ -705,7 +705,7 @@ mod peginator_generated {
                 let (result, state) = parse_CharacterLiteral(state)?;
                 Ok((Parsed { from: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub from: CharacterLiteral,
             }
@@ -727,7 +727,7 @@ mod peginator_generated {
                 let (result, state) = parse_CharacterLiteral(state)?;
                 Ok((Parsed { to: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub to: CharacterLiteral,
             }
@@ -770,7 +770,7 @@ mod peginator_generated {
                 let (result, state) = parse_char(state)?;
                 Ok((Parsed { _override: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: char,
             }
@@ -829,7 +829,7 @@ mod peginator_generated {
                 let (result, state) = parse_StringLiteralBody(state)?;
                 Ok((Parsed { body: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub body: StringLiteralBody,
             }
@@ -960,7 +960,7 @@ mod peginator_generated {
                         let (result, state) = parse_Identifier(state)?;
                         Ok((Parsed { name: Some(result) }, state))
                     }
-                    #[derive(Debug)]
+                    #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed {
                         pub name: Option<Identifier>,
                     }
@@ -989,7 +989,7 @@ mod peginator_generated {
                                 state,
                             ))
                         }
-                        #[derive(Debug)]
+                        #[derive(Debug, Clone, PartialEq, Eq)]
                         pub struct Parsed {
                             pub boxed: Option<BoxMarker>,
                         }
@@ -1012,7 +1012,7 @@ mod peginator_generated {
                             ))
                         }
                     }
-                    #[derive(Debug)]
+                    #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed {
                         pub boxed: Option<BoxMarker>,
                     }
@@ -1026,7 +1026,7 @@ mod peginator_generated {
                     let mut boxed = result.boxed;
                     Ok((Parsed { name, boxed }, state))
                 }
-                #[derive(Debug)]
+                #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
                     pub name: Option<Identifier>,
                     pub boxed: Option<BoxMarker>,
@@ -1052,7 +1052,7 @@ mod peginator_generated {
                     ))
                 }
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub name: Option<Identifier>,
                 pub boxed: Option<BoxMarker>,
@@ -1066,7 +1066,7 @@ mod peginator_generated {
                 let (result, state) = parse_Identifier(state)?;
                 Ok((Parsed { typ: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub typ: Identifier,
             }
@@ -1135,7 +1135,7 @@ mod peginator_generated {
                 let (result, state) = parse_Identifier(state)?;
                 Ok((Parsed { typ: result }, state))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub typ: Identifier,
             }
@@ -1173,7 +1173,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1191,7 +1191,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1209,7 +1209,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1227,7 +1227,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1245,7 +1245,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1263,7 +1263,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1281,7 +1281,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1299,7 +1299,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1317,7 +1317,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1335,7 +1335,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1532,7 +1532,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1550,7 +1550,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
@@ -1568,7 +1568,7 @@ mod peginator_generated {
                     state,
                 ))
             }
-            #[derive(Debug)]
+            #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
                 pub _override: Parsed__override,
             }
