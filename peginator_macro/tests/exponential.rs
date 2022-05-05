@@ -17,13 +17,12 @@ peginate!(
 );
 
 #[test]
-#[ignore = "Awaiting memoization"]
 #[timeout(1000)]
 fn test_macro() {
-    let s = Root::parse("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc.")
+    let s = Root::parse(&format!("{:a>100}{:c>100}.", "", ""))
         .unwrap()
         .parsed;
     let expected: Option<Box<Recursive>> =
-        (0..61).fold(None, |r, _| Some(Box::new(Recursive { inner: r })));
+        (0..101).fold(None, |r, _| Some(Box::new(Recursive { inner: r })));
     assert_eq!(s, *expected.unwrap());
 }

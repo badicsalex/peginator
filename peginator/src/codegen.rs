@@ -52,6 +52,7 @@ impl CodegenGrammar for Grammar {
         let mut all_types = TokenStream::new();
         let mut all_parsers = TokenStream::new();
         let mut all_impls = TokenStream::new();
+        let mut cache_entries = TokenStream::new();
         let peginator_crate = format_ident!("{}", settings.peginator_crate_name);
         for rule in &self.rules {
             let (exported, types, impls) = rule.generate_code(settings)?;
@@ -67,12 +68,16 @@ impl CodegenGrammar for Grammar {
                             settings: &peginator_generated::ParseSettings)
                         -> Result<Self, peginator_generated::ParseError> {
                             Ok(peginator_generated::#internal_parser_name(
-                                peginator_generated::ParseState::new(s, settings)
+                                peginator_generated::ParseState::new(s, settings),
+                                &mut Default::default(),
                             )?.0)
                         }
                     }
                 ))
             }
+
+            let cache_entry_ident = format_ident!("c_{}", rule.name);
+            cache_entries.extend(quote!(pub #cache_entry_ident: CacheEntries<'a, #rule_ident>,));
         }
         Ok(quote!(
             #all_types
@@ -87,6 +92,11 @@ impl CodegenGrammar for Grammar {
                 use super::*;
                 pub use #peginator_crate::runtime::{ParseError, ParseSettings, ParseState, PegParser};
                 use #peginator_crate::runtime::*;
+
+                #[derive(Default)]
+                pub struct ParseCache<'a> {
+                    #cache_entries
+                }
                 #all_impls
             }
         ))
@@ -123,12 +133,20 @@ impl CodegenRule for Rule {
         let rule_mod = format_ident!("{}_impl", self.name);
         let rule_type = format_ident!("{}", self.name);
         let parser_name = format_ident!("parse_{}", self.name);
+        let cache_entry_ident = format_ident!("c_{}", self.name);
         let fields = self.definition.get_fields()?;
         let choice_body = self.definition.generate_code_spec(&fields, &settings)?;
         let outer_parser = quote!(
             #[inline]
-            pub(super) fn #parser_name (state: ParseState) -> ParseResult<#rule_type> {
-                run_rule_parser(#rule_mod::rule_parser, #name, state)
+            pub(super) fn #parser_name <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, #rule_type> {
+                let cache_key = state.cache_key();
+                if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
+                    cached.clone()
+                } else {
+                    let result = run_rule_parser(#rule_mod::rule_parser, #name, state, cache);
+                    cache.#cache_entry_ident.insert(cache_key, result.clone());
+                    result
+                }
             }
         );
         if string_flag {
@@ -147,8 +165,8 @@ impl CodegenRule for Rule {
                         #choice_body
                         #parsed_types
                         #[inline(always)]
-                        pub fn rule_parser (state: ParseState) -> ParseResult<String> {
-                            let (_, new_state) = parse(state.clone())?;
+                        pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, String> {
+                            let (_, new_state) = parse(state.clone(), cache)?;
                             Ok((state.slice_until(&new_state).to_string(), new_state))
                         }
                     }
@@ -177,8 +195,8 @@ impl CodegenRule for Rule {
                             }
                             use super::#rule_type as Parsed__override;
                             #[inline(always)]
-                            pub fn rule_parser (state: ParseState) -> ParseResult<super::#rule_type> {
-                                let (result, new_state) = parse(state)?;
+                            pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
+                                let (result, new_state) = parse(state, cache)?;
                                 Ok((result._override, new_state))
                             }
                         }
@@ -204,8 +222,8 @@ impl CodegenRule for Rule {
                             }
                             use super::#rule_type as Parsed__override;
                             #[inline(always)]
-                            pub fn rule_parser (state: ParseState) -> ParseResult<super::#rule_type> {
-                                let (result, new_state) = parse(state)?;
+                            pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
+                                let (result, new_state) = parse(state, cache)?;
                                 Ok((result._override, new_state))
                             }
                         }
@@ -237,8 +255,8 @@ impl CodegenRule for Rule {
                         #choice_body
                         #used_types
                         #[inline(always)]
-                        pub fn rule_parser (state: ParseState) -> ParseResult<Parsed> {
-                            parse(state)
+                        pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+                            parse(state, cache)
                         }
                     }
                     #outer_parser
@@ -470,7 +488,7 @@ impl Choice {
                 let choice_mod = format_ident!("choice_{}", num);
                 if fields.is_empty() {
                     Ok(quote!(
-                        if let Ok((_, new_state)) = #choice_mod::parse(state.clone()) {
+                        if let Ok((_, new_state)) = #choice_mod::parse(state.clone(), cache) {
                             return Ok(((), new_state));
                         }
                     ))
@@ -497,7 +515,7 @@ impl Choice {
                         })
                         .collect();
                     Ok(quote!(
-                        if let Ok((result, new_state)) = #choice_mod::parse(state.clone()) {
+                        if let Ok((result, new_state)) = #choice_mod::parse(state.clone(), cache) {
                             return Ok((
                                 Parsed{
                                     #field_assignments
@@ -511,7 +529,7 @@ impl Choice {
             .collect::<Result<TokenStream>>()?;
         Ok(quote!(
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #calls
                 Err(ParseError)
             }
@@ -542,7 +560,10 @@ impl Codegen for Sequence {
         if self.parts.is_empty() {
             return Ok(quote!(
                 #[inline(always)]
-                pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
                     Ok(((), state))
                 }
             ));
@@ -603,7 +624,7 @@ impl Sequence {
             let inner_fields = part.get_filtered_rule_fields(rule_fields)?;
             let call = if inner_fields.is_empty() {
                 quote!(
-                    let (_, state) =  #part_mod::parse(state)?;
+                    let (_, state) =  #part_mod::parse(state, cache)?;
                 )
             } else {
                 let mut field_assignments = TokenStream::new();
@@ -622,7 +643,7 @@ impl Sequence {
                     field_assignments.extend(field_assignment);
                 }
                 quote!(
-                    let (result, state) =  #part_mod::parse(state)?;
+                    let (result, state) =  #part_mod::parse(state, cache)?;
                     #field_assignments
                 )
             };
@@ -636,7 +657,7 @@ impl Sequence {
         };
         Ok(quote!(
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #calls
                 Ok((#parse_result, state))
             }
@@ -724,8 +745,8 @@ impl Codegen for Optional {
                 #body
             }
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                if let Ok((result, new_state)) = optional::parse(state.clone()) {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+                if let Ok((result, new_state)) = optional::parse(state.clone(), cache) {
                     Ok((Parsed{
                         #happy_case_fields
                     }, new_state))
@@ -785,7 +806,7 @@ impl Codegen for Closure {
         };
         let at_least_one_body = if self.at_least_one.is_some() {
             quote!(
-                let (result, new_state) = closure::parse(state)?;
+                let (result, new_state) = closure::parse(state, cache)?;
                 #assignments
                 state = new_state;
             )
@@ -799,11 +820,11 @@ impl Codegen for Closure {
                 #closure_body
             }
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 let mut state = state;
                 #declarations
                 #at_least_one_body
-                while let Ok((result, new_state)) = closure::parse(state.clone()) {
+                while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
                     #assignments
                     state = new_state;
                 }
@@ -838,8 +859,8 @@ impl Codegen for NegativeLookahead {
                 #body
             }
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
-                match negative_lookahead::parse (state.clone()) {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+                match negative_lookahead::parse (state.clone(), cache) {
                     Ok(_) => Err(ParseError),
                     Err(_) => Ok(((), state)),
                 }
@@ -869,7 +890,7 @@ impl Codegen for CharacterRange {
         };
         Ok(quote!(
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 parse_character_range(state, #from, #to)
             }
@@ -895,7 +916,7 @@ impl Codegen for CharacterLiteral {
         };
         Ok(quote!(
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 parse_character_literal(state, #literal)
             }
@@ -921,7 +942,7 @@ impl Codegen for StringLiteral {
         };
         Ok(quote!(
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 parse_string_literal(state, #literal)
             }
@@ -946,7 +967,7 @@ impl Codegen for EndOfInput {
         };
         Ok(quote!(
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 if state.is_empty() {
                     Ok(((), state))
@@ -978,9 +999,9 @@ impl Codegen for OverrideField {
         let field_conversion = generate_field_converter("_override", &self.typ, rule_fields);
         Ok(quote!(
             #[inline(always)]
-            pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                let (result, state) = #parser_name (state)?;
+                let (result, state) = #parser_name (state, cache)?;
                 Ok((Parsed{ _override: #field_conversion }, state))
             }
         ))
@@ -1013,18 +1034,18 @@ impl Codegen for Field {
             let field_conversion = generate_field_converter(field_name, &self.typ, rule_fields);
             Ok(quote!(
                 #[inline(always)]
-                pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                     #skip_ws
-                    let (result, state) = #parser_name (state)?;
+                    let (result, state) = #parser_name (state, cache)?;
                     Ok((Parsed{ #field_ident: #field_conversion }, state))
                 }
             ))
         } else {
             Ok(quote!(
                 #[inline(always)]
-                pub fn parse(state: ParseState) -> ParseResult<Parsed> {
+                pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                     #skip_ws
-                    let (_, state) = #parser_name (state)?;
+                    let (_, state) = #parser_name (state, cache)?;
                     Ok(((), state))
                 }
             ))

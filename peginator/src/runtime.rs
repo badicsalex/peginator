@@ -3,9 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 use colored::*;
-use std::error::Error;
+use std::{collections::HashMap, error::Error};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ParseError;
 
 impl std::fmt::Display for ParseError {
@@ -131,12 +131,22 @@ impl<'a> ParseState<'a> {
             ..self
         }
     }
+
+    #[inline]
+    pub fn cache_key(&self) -> usize {
+        self.start_index
+    }
 }
 
 pub type ParseResult<'a, T> = Result<(T, ParseState<'a>), ParseError>;
 
+pub type CacheEntries<'a, T> = HashMap<usize, ParseResult<'a, T>>;
+
+/// Hand-written 'rule parser' for parsing a single cahracter.
+///
+/// Should always look just like all the other generated parse functions.
 #[inline(always)]
-pub fn parse_char(state: ParseState) -> ParseResult<char> {
+pub fn parse_char<'a, _CT>(state: ParseState<'a>, _cache: &_CT) -> ParseResult<'a, char> {
     let result = state.s().chars().next().ok_or(ParseError)?;
     // SAFETY:
     // Callers of this function are responsible that these preconditions are satisfied:
@@ -221,17 +231,18 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
 }
 
 #[inline(always)]
-pub fn run_rule_parser<'a, T, F>(
+pub fn run_rule_parser<'a, T, F, CT>(
     f: F,
     name: &'static str,
     state: ParseState<'a>,
+    cache: &mut CT,
 ) -> ParseResult<'a, T>
 where
-    F: Fn(ParseState) -> ParseResult<T>,
+    F: for<'b> Fn(ParseState<'a>, &'b mut CT) -> ParseResult<'a, T>,
 {
     state.print_trace(|| format!("{}?", name).yellow());
     state.print_trace(|| format!("{:?}", state.s().chars().take(50).collect::<String>()).normal());
-    let result = f(state.clone().indent());
+    let result = f(state.clone().indent(), cache);
     state.print_trace(|| {
         if result.is_ok() {
             "Ok".green()
