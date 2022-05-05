@@ -23,8 +23,8 @@ fn to_palindrome_struct(s: &str) -> Palindrome {
     let result: Option<Box<Palindrome>> = s.chars().rev().fold(None, |p, c| {
         Some(Box::new(Palindrome {
             letter: match c {
-                'a' => Palindrome_letter::A(()),
-                _ => Palindrome_letter::B(()),
+                'a' => Palindrome_letter::A(A),
+                _ => Palindrome_letter::B(B),
             },
             inner: p,
         }))

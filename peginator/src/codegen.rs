@@ -392,7 +392,8 @@ fn generate_parsed_struct_type(
     let type_ident = format_ident!("{}", type_name);
     if fields.is_empty() {
         quote!(
-            pub type #type_ident = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct #type_ident;
         )
     } else {
         let field_names: Vec<Ident> = fields
@@ -489,7 +490,7 @@ impl Choice {
                 if fields.is_empty() {
                     Ok(quote!(
                         if let Ok((_, new_state)) = #choice_mod::parse(state.clone(), cache) {
-                            return Ok(((), new_state));
+                            return Ok((Parsed, new_state));
                         }
                     ))
                 } else {
@@ -564,7 +565,7 @@ impl Codegen for Sequence {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    Ok(((), state))
+                    Ok((Parsed, state))
                 }
             ));
         }
@@ -650,11 +651,7 @@ impl Sequence {
             calls.extend(call);
         }
         let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
-        let parse_result = if fields.is_empty() {
-            quote!(())
-        } else {
-            quote!(Parsed{ #( #field_names,)* })
-        };
+        let parse_result = quote!(Parsed{ #( #field_names,)* });
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
@@ -799,11 +796,7 @@ impl Codegen for Closure {
             })
             .collect();
         let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
-        let parse_result = if fields.is_empty() {
-            quote!(())
-        } else {
-            quote!(Parsed{ #( #field_names,)* })
-        };
+        let parse_result = quote!(Parsed{ #( #field_names,)* });
         let at_least_one_body = if self.at_least_one.is_some() {
             quote!(
                 let (result, new_state) = closure::parse(state, cache)?;
@@ -862,7 +855,7 @@ impl Codegen for NegativeLookahead {
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 match negative_lookahead::parse (state.clone(), cache) {
                     Ok(_) => Err(ParseError),
-                    Err(_) => Ok(((), state)),
+                    Err(_) => Ok((Parsed, state)),
                 }
             }
         ))
@@ -892,7 +885,8 @@ impl Codegen for CharacterRange {
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                parse_character_range(state, #from, #to)
+                let (_, state) = parse_character_range(state, #from, #to)?;
+                Ok((Parsed, state))
             }
         ))
     }
@@ -918,7 +912,8 @@ impl Codegen for CharacterLiteral {
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                parse_character_literal(state, #literal)
+                let (_, state) = parse_character_literal(state, #literal)?;
+                Ok((Parsed, state))
             }
         ))
     }
@@ -944,7 +939,8 @@ impl Codegen for StringLiteral {
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                parse_string_literal(state, #literal)
+                let (_, state) = parse_string_literal(state, #literal)?;
+                Ok((Parsed, state))
             }
         ))
     }
@@ -970,7 +966,7 @@ impl Codegen for EndOfInput {
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 if state.is_empty() {
-                    Ok(((), state))
+                    Ok((Parsed, state))
                 } else {
                     Err(ParseError)
                 }
@@ -1046,7 +1042,7 @@ impl Codegen for Field {
                 pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                     #skip_ws
                     let (_, state) = #parser_name (state, cache)?;
-                    Ok(((), state))
+                    Ok((Parsed, state))
                 }
             ))
         }

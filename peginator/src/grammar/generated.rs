@@ -29,7 +29,8 @@ pub struct Closure {
     pub body: Choice,
     pub at_least_one: Option<AtLeastOneMarker>,
 }
-pub type AtLeastOneMarker = ();
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AtLeastOneMarker;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NegativeLookahead {
     pub expr: Box<DelimitedExpression>,
@@ -51,7 +52,8 @@ pub struct Field {
     pub boxed: Option<BoxMarker>,
     pub typ: Identifier,
 }
-pub type BoxMarker = ();
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BoxMarker;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OverrideField {
     pub typ: Identifier,
@@ -80,10 +82,14 @@ pub enum DirectiveExpression__override {
     StringDirective(StringDirective),
 }
 pub use DirectiveExpression__override as DirectiveExpression;
-pub type StringDirective = ();
-pub type NoSkipWsDirective = ();
-pub type ExportDirective = ();
-pub type EndOfInput = ();
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StringDirective;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NoSkipWsDirective;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExportDirective;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EndOfInput;
 impl peginator_generated::PegParser for Grammar {
     fn parse_advanced(
         s: &str,
@@ -162,9 +168,11 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        parse_string_literal(state, ";")
+                        let (_, state) = parse_string_literal(state, ";")?;
+                        Ok((Parsed, state))
                     }
-                    pub type Parsed = ();
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed;
                 }
                 #[inline(always)]
                 pub fn parse<'a>(
@@ -208,12 +216,13 @@ mod peginator_generated {
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
                 if state.is_empty() {
-                    Ok(((), state))
+                    Ok((Parsed, state))
                 } else {
                     Err(ParseError)
                 }
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         #[inline(always)]
         pub fn parse<'a>(
@@ -315,9 +324,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "=")
+                let (_, state) = parse_string_literal(state, "=")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_3 {
             use super::*;
@@ -414,9 +425,11 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        parse_string_literal(state, "|")
+                        let (_, state) = parse_string_literal(state, "|")?;
+                        Ok((Parsed, state))
                     }
-                    pub type Parsed = ();
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed;
                 }
                 mod part_1 {
                     use super::*;
@@ -575,9 +588,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "(")
+                let (_, state) = parse_string_literal(state, "(")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_1 {
             use super::*;
@@ -603,9 +618,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, ")")
+                let (_, state) = parse_string_literal(state, ")")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         #[inline(always)]
         pub fn parse<'a>(
@@ -651,9 +668,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "[")
+                let (_, state) = parse_string_literal(state, "[")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_1 {
             use super::*;
@@ -679,9 +698,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "]")
+                let (_, state) = parse_string_literal(state, "]")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         #[inline(always)]
         pub fn parse<'a>(
@@ -727,9 +748,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "{")
+                let (_, state) = parse_string_literal(state, "{")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_1 {
             use super::*;
@@ -755,9 +778,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "}")
+                let (_, state) = parse_string_literal(state, "}")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_3 {
             use super::*;
@@ -852,7 +877,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            parse_character_literal(state, '+')
+            let (_, state) = parse_character_literal(state, '+')?;
+            Ok((Parsed, state))
         }
         use super::AtLeastOneMarker as Parsed;
         #[inline(always)]
@@ -892,9 +918,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "!")
+                let (_, state) = parse_string_literal(state, "!")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_1 {
             use super::*;
@@ -981,9 +1009,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "..")
+                let (_, state) = parse_string_literal(state, "..")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_2 {
             use super::*;
@@ -1051,9 +1081,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "'")
+                let (_, state) = parse_string_literal(state, "'")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_1 {
             use super::*;
@@ -1079,9 +1111,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "'")
+                let (_, state) = parse_string_literal(state, "'")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         #[inline(always)]
         pub fn parse<'a>(
@@ -1136,9 +1170,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_character_literal(state, '"')
+                let (_, state) = parse_character_literal(state, '"')?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_1 {
             use super::*;
@@ -1164,9 +1200,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_character_literal(state, '"')
+                let (_, state) = parse_character_literal(state, '"')?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         #[inline(always)]
         pub fn parse<'a>(
@@ -1218,9 +1256,11 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    parse_string_literal(state, "\\\\\\\"")
+                    let (_, state) = parse_string_literal(state, "\\\\\\\"")?;
+                    Ok((Parsed, state))
                 }
-                pub type Parsed = ();
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
             }
             mod choice_1 {
                 use super::*;
@@ -1233,9 +1273,11 @@ mod peginator_generated {
                             state: ParseState<'a>,
                             cache: &mut ParseCache<'a>,
                         ) -> ParseResult<'a, Parsed> {
-                            parse_character_literal(state, '"')
+                            let (_, state) = parse_character_literal(state, '"')?;
+                            Ok((Parsed, state))
                         }
-                        pub type Parsed = ();
+                        #[derive(Debug, Clone, PartialEq, Eq)]
+                        pub struct Parsed;
                     }
                     #[inline(always)]
                     pub fn parse<'a>(
@@ -1244,10 +1286,11 @@ mod peginator_generated {
                     ) -> ParseResult<'a, Parsed> {
                         match negative_lookahead::parse(state.clone(), cache) {
                             Ok(_) => Err(ParseError),
-                            Err(_) => Ok(((), state)),
+                            Err(_) => Ok((Parsed, state)),
                         }
                     }
-                    pub type Parsed = ();
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed;
                 }
                 mod part_1 {
                     use super::*;
@@ -1257,9 +1300,10 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let (_, state) = parse_char(state, cache)?;
-                        Ok(((), state))
+                        Ok((Parsed, state))
                     }
-                    pub type Parsed = ();
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed;
                 }
                 #[inline(always)]
                 pub fn parse<'a>(
@@ -1268,9 +1312,10 @@ mod peginator_generated {
                 ) -> ParseResult<'a, Parsed> {
                     let (_, state) = part_0::parse(state, cache)?;
                     let (_, state) = part_1::parse(state, cache)?;
-                    Ok(((), state))
+                    Ok((Parsed {}, state))
                 }
-                pub type Parsed = ();
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
             }
             #[inline(always)]
             pub fn parse<'a>(
@@ -1278,14 +1323,15 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 if let Ok((_, new_state)) = choice_0::parse(state.clone(), cache) {
-                    return Ok(((), new_state));
+                    return Ok((Parsed, new_state));
                 }
                 if let Ok((_, new_state)) = choice_1::parse(state.clone(), cache) {
-                    return Ok(((), new_state));
+                    return Ok((Parsed, new_state));
                 }
                 Err(ParseError)
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         #[inline(always)]
         pub fn parse<'a>(
@@ -1296,9 +1342,10 @@ mod peginator_generated {
             while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
                 state = new_state;
             }
-            Ok(((), state))
+            Ok((Parsed {}, state))
         }
-        pub type Parsed = ();
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
@@ -1357,9 +1404,11 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        parse_string_literal(state, ":")
+                        let (_, state) = parse_string_literal(state, ":")?;
+                        Ok((Parsed, state))
                     }
-                    pub type Parsed = ();
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed;
                 }
                 mod part_2 {
                     use super::*;
@@ -1516,7 +1565,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            parse_character_literal(state, '*')
+            let (_, state) = parse_character_literal(state, '*')?;
+            Ok((Parsed, state))
         }
         use super::BoxMarker as Parsed;
         #[inline(always)]
@@ -1551,9 +1601,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, "@")
+                let (_, state) = parse_string_literal(state, "@")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_1 {
             use super::*;
@@ -1563,9 +1615,11 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                parse_string_literal(state, ":")
+                let (_, state) = parse_string_literal(state, ":")?;
+                Ok((Parsed, state))
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         mod part_2 {
             use super::*;
@@ -1966,9 +2020,11 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    parse_character_range(state, 'a', 'z')
+                    let (_, state) = parse_character_range(state, 'a', 'z')?;
+                    Ok((Parsed, state))
                 }
-                pub type Parsed = ();
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
             }
             mod choice_1 {
                 use super::*;
@@ -1977,9 +2033,11 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    parse_character_range(state, 'A', 'Z')
+                    let (_, state) = parse_character_range(state, 'A', 'Z')?;
+                    Ok((Parsed, state))
                 }
-                pub type Parsed = ();
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
             }
             mod choice_2 {
                 use super::*;
@@ -1988,9 +2046,11 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    parse_character_range(state, '0', '9')
+                    let (_, state) = parse_character_range(state, '0', '9')?;
+                    Ok((Parsed, state))
                 }
-                pub type Parsed = ();
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
             }
             mod choice_3 {
                 use super::*;
@@ -1999,9 +2059,11 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    parse_character_literal(state, '_')
+                    let (_, state) = parse_character_literal(state, '_')?;
+                    Ok((Parsed, state))
                 }
-                pub type Parsed = ();
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
             }
             #[inline(always)]
             pub fn parse<'a>(
@@ -2009,20 +2071,21 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 if let Ok((_, new_state)) = choice_0::parse(state.clone(), cache) {
-                    return Ok(((), new_state));
+                    return Ok((Parsed, new_state));
                 }
                 if let Ok((_, new_state)) = choice_1::parse(state.clone(), cache) {
-                    return Ok(((), new_state));
+                    return Ok((Parsed, new_state));
                 }
                 if let Ok((_, new_state)) = choice_2::parse(state.clone(), cache) {
-                    return Ok(((), new_state));
+                    return Ok((Parsed, new_state));
                 }
                 if let Ok((_, new_state)) = choice_3::parse(state.clone(), cache) {
-                    return Ok(((), new_state));
+                    return Ok((Parsed, new_state));
                 }
                 Err(ParseError)
             }
-            pub type Parsed = ();
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
         }
         #[inline(always)]
         pub fn parse<'a>(
@@ -2035,9 +2098,10 @@ mod peginator_generated {
             while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
                 state = new_state;
             }
-            Ok(((), state))
+            Ok((Parsed {}, state))
         }
-        pub type Parsed = ();
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
@@ -2199,7 +2263,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            parse_string_literal(state, "@string")
+            let (_, state) = parse_string_literal(state, "@string")?;
+            Ok((Parsed, state))
         }
         use super::StringDirective as Parsed;
         #[inline(always)]
@@ -2237,7 +2302,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            parse_string_literal(state, "@no_skip_ws")
+            let (_, state) = parse_string_literal(state, "@no_skip_ws")?;
+            Ok((Parsed, state))
         }
         use super::NoSkipWsDirective as Parsed;
         #[inline(always)]
@@ -2275,7 +2341,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            parse_string_literal(state, "@export")
+            let (_, state) = parse_string_literal(state, "@export")?;
+            Ok((Parsed, state))
         }
         use super::ExportDirective as Parsed;
         #[inline(always)]
@@ -2313,7 +2380,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            parse_character_literal(state, '$')
+            let (_, state) = parse_character_literal(state, '$')?;
+            Ok((Parsed, state))
         }
         use super::EndOfInput as Parsed;
         #[inline(always)]
