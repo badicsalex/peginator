@@ -489,8 +489,9 @@ impl Choice {
                 let choice_mod = format_ident!("choice_{}", num);
                 if fields.is_empty() {
                     Ok(quote!(
-                        if let Ok((_, new_state)) = #choice_mod::parse(state.clone(), cache) {
-                            return Ok((Parsed, new_state));
+                        match #choice_mod::parse(state.clone(), cache) {
+                            Ok((_, new_state)) => return Ok((Parsed, new_state)),
+                            Err(err) => state = state.record_error(err),
                         }
                     ))
                 } else {
@@ -516,13 +517,14 @@ impl Choice {
                         })
                         .collect();
                     Ok(quote!(
-                        if let Ok((result, new_state)) = #choice_mod::parse(state.clone(), cache) {
-                            return Ok((
+                        match #choice_mod::parse(state.clone(), cache) {
+                            Ok((result, new_state)) => return Ok((
                                 Parsed{
                                     #field_assignments
                                 },
                                 new_state
-                            ));
+                            )),
+                            Err(err) => state = state.record_error(err),
                         }
                     ))
                 }
@@ -531,8 +533,9 @@ impl Choice {
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+                let mut state = state;
                 #calls
-                Err(ParseError)
+                Err(state.report_farthest_error())
             }
         ))
     }
@@ -817,9 +820,17 @@ impl Codegen for Closure {
                 let mut state = state;
                 #declarations
                 #at_least_one_body
-                while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
-                    #assignments
-                    state = new_state;
+                loop {
+                    match closure::parse(state.clone(), cache) {
+                        Ok((result, new_state)) => {
+                            #assignments
+                            state = new_state;
+                        },
+                        Err(err) => {
+                            state = state.record_error(err);
+                            break;
+                        }
+                    }
                 }
                 Ok((#parse_result, state))
             }
@@ -854,7 +865,7 @@ impl Codegen for NegativeLookahead {
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 match negative_lookahead::parse (state.clone(), cache) {
-                    Ok(_) => Err(ParseError),
+                    Ok(_) => Err(state.report_error(ParseErrorSpecifics::NegativeLookaheadFailed)),
                     Err(_) => Ok((Parsed, state)),
                 }
             }
@@ -968,7 +979,7 @@ impl Codegen for EndOfInput {
                 if state.is_empty() {
                     Ok((Parsed, state))
                 } else {
-                    Err(ParseError)
+                    Err(state.report_error(ParseErrorSpecifics::ExpectedEoi))
                 }
             }
         ))

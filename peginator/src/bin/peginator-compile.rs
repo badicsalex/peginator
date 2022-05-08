@@ -2,6 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use colored::*;
 use std::fs;
 
 use anyhow::Result;
@@ -12,6 +13,7 @@ use peginator::CodegenSettings;
 use peginator::Grammar;
 use peginator::ParseSettings;
 use peginator::PegParser;
+use peginator::PrettyParseError;
 
 /// Compile EBNF grammar into rust parser code.
 #[derive(Parser, Debug)]
@@ -32,15 +34,16 @@ struct Args {
     grammar_file: String,
 }
 
-fn main() -> Result<()> {
+fn main_wrap() -> Result<()> {
     let args = Args::parse();
-    let grammar = fs::read_to_string(args.grammar_file)?;
+    let grammar = fs::read_to_string(&args.grammar_file)?;
     let parsed_grammar = Grammar::parse_advanced(
         &grammar,
         &ParseSettings {
             tracing: args.trace,
         },
-    )?;
+    )
+    .map_err(|err| PrettyParseError::from_parse_error(&err, &grammar, Some(&args.grammar_file)))?;
     if args.ast_only {
         println!("{:#?}", parsed_grammar);
         return Ok(());
@@ -53,4 +56,10 @@ fn main() -> Result<()> {
     let generated_code = parsed_grammar.generate_code(&settings)?;
     println!("{}", generated_code);
     Ok(())
+}
+
+fn main() {
+    if let Err(e) = main_wrap() {
+        println!("{}: {}", "Error".red().bold(), e)
+    }
 }

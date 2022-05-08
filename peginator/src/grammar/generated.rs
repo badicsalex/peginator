@@ -196,9 +196,17 @@ mod peginator_generated {
             ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
                 let mut rules: Vec<Rule> = Vec::new();
-                while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
-                    rules.extend(result.rules);
-                    state = new_state;
+                loop {
+                    match closure::parse(state.clone(), cache) {
+                        Ok((result, new_state)) => {
+                            rules.extend(result.rules);
+                            state = new_state;
+                        }
+                        Err(err) => {
+                            state = state.record_error(err);
+                            break;
+                        }
+                    }
                 }
                 Ok((Parsed { rules }, state))
             }
@@ -218,7 +226,7 @@ mod peginator_generated {
                 if state.is_empty() {
                     Ok((Parsed, state))
                 } else {
-                    Err(ParseError)
+                    Err(state.report_error(ParseErrorSpecifics::ExpectedEoi))
                 }
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -289,9 +297,17 @@ mod peginator_generated {
             ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
                 let mut directives: Vec<DirectiveExpression> = Vec::new();
-                while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
-                    directives.extend(result.directives);
-                    state = new_state;
+                loop {
+                    match closure::parse(state.clone(), cache) {
+                        Ok((result, new_state)) => {
+                            directives.extend(result.directives);
+                            state = new_state;
+                        }
+                        Err(err) => {
+                            state = state.record_error(err);
+                            break;
+                        }
+                    }
                 }
                 Ok((Parsed { directives }, state))
             }
@@ -474,9 +490,17 @@ mod peginator_generated {
             ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
                 let mut choices: Vec<Sequence> = Vec::new();
-                while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
-                    choices.extend(result.choices);
-                    state = new_state;
+                loop {
+                    match closure::parse(state.clone(), cache) {
+                        Ok((result, new_state)) => {
+                            choices.extend(result.choices);
+                            state = new_state;
+                        }
+                        Err(err) => {
+                            state = state.record_error(err);
+                            break;
+                        }
+                    }
                 }
                 Ok((Parsed { choices }, state))
             }
@@ -549,9 +573,17 @@ mod peginator_generated {
         ) -> ParseResult<'a, Parsed> {
             let mut state = state;
             let mut parts: Vec<DelimitedExpression> = Vec::new();
-            while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
-                parts.extend(result.parts);
-                state = new_state;
+            loop {
+                match closure::parse(state.clone(), cache) {
+                    Ok((result, new_state)) => {
+                        parts.extend(result.parts);
+                        state = new_state;
+                    }
+                    Err(err) => {
+                        state = state.record_error(err);
+                        break;
+                    }
+                }
             }
             Ok((Parsed { parts }, state))
         }
@@ -1285,7 +1317,10 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         match negative_lookahead::parse(state.clone(), cache) {
-                            Ok(_) => Err(ParseError),
+                            Ok(_) => {
+                                Err(state
+                                    .report_error(ParseErrorSpecifics::NegativeLookaheadFailed))
+                            }
                             Err(_) => Ok((Parsed, state)),
                         }
                     }
@@ -1322,13 +1357,16 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                if let Ok((_, new_state)) = choice_0::parse(state.clone(), cache) {
-                    return Ok((Parsed, new_state));
+                let mut state = state;
+                match choice_0::parse(state.clone(), cache) {
+                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
+                    Err(err) => state = state.record_error(err),
                 }
-                if let Ok((_, new_state)) = choice_1::parse(state.clone(), cache) {
-                    return Ok((Parsed, new_state));
+                match choice_1::parse(state.clone(), cache) {
+                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
+                    Err(err) => state = state.record_error(err),
                 }
-                Err(ParseError)
+                Err(state.report_farthest_error())
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -1339,8 +1377,16 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let mut state = state;
-            while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
-                state = new_state;
+            loop {
+                match closure::parse(state.clone(), cache) {
+                    Ok((result, new_state)) => {
+                        state = new_state;
+                    }
+                    Err(err) => {
+                        state = state.record_error(err);
+                        break;
+                    }
+                }
             }
             Ok((Parsed {}, state))
         }
@@ -1893,87 +1939,118 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            if let Ok((result, new_state)) = choice_0::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            let mut state = state;
+            match choice_0::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_1::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_1::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_2::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_2::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_3::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_3::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_4::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_4::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_5::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_5::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_6::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_6::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_7::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_7::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_8::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_8::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_9::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_9::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            Err(ParseError)
+            Err(state.report_farthest_error())
         }
         pub struct Parsed {
             _override: super::DelimitedExpression,
@@ -2070,19 +2147,24 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                if let Ok((_, new_state)) = choice_0::parse(state.clone(), cache) {
-                    return Ok((Parsed, new_state));
+                let mut state = state;
+                match choice_0::parse(state.clone(), cache) {
+                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
+                    Err(err) => state = state.record_error(err),
                 }
-                if let Ok((_, new_state)) = choice_1::parse(state.clone(), cache) {
-                    return Ok((Parsed, new_state));
+                match choice_1::parse(state.clone(), cache) {
+                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
+                    Err(err) => state = state.record_error(err),
                 }
-                if let Ok((_, new_state)) = choice_2::parse(state.clone(), cache) {
-                    return Ok((Parsed, new_state));
+                match choice_2::parse(state.clone(), cache) {
+                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
+                    Err(err) => state = state.record_error(err),
                 }
-                if let Ok((_, new_state)) = choice_3::parse(state.clone(), cache) {
-                    return Ok((Parsed, new_state));
+                match choice_3::parse(state.clone(), cache) {
+                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
+                    Err(err) => state = state.record_error(err),
                 }
-                Err(ParseError)
+                Err(state.report_farthest_error())
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -2095,8 +2177,16 @@ mod peginator_generated {
             let mut state = state;
             let (result, new_state) = closure::parse(state, cache)?;
             state = new_state;
-            while let Ok((result, new_state)) = closure::parse(state.clone(), cache) {
-                state = new_state;
+            loop {
+                match closure::parse(state.clone(), cache) {
+                    Ok((result, new_state)) => {
+                        state = new_state;
+                    }
+                    Err(err) => {
+                        state = state.record_error(err);
+                        break;
+                    }
+                }
             }
             Ok((Parsed {}, state))
         }
@@ -2195,31 +2285,41 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            if let Ok((result, new_state)) = choice_0::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            let mut state = state;
+            match choice_0::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_1::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_1::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            if let Ok((result, new_state)) = choice_2::parse(state.clone(), cache) {
-                return Ok((
-                    Parsed {
-                        _override: result._override,
-                    },
-                    new_state,
-                ));
+            match choice_2::parse(state.clone(), cache) {
+                Ok((result, new_state)) => {
+                    return Ok((
+                        Parsed {
+                            _override: result._override,
+                        },
+                        new_state,
+                    ))
+                }
+                Err(err) => state = state.record_error(err),
             }
-            Err(ParseError)
+            Err(state.report_farthest_error())
         }
         pub struct Parsed {
             _override: super::DirectiveExpression,

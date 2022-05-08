@@ -1,8 +1,9 @@
 use std::{ffi::OsStr, fs, path::PathBuf, process::Command};
 
 use anyhow::Result;
+use colored::*;
 
-use crate::{CodegenGrammar, Grammar, PegParser};
+use crate::{CodegenGrammar, Grammar, PegParser, PrettyParseError};
 
 #[derive(Debug, Default)]
 #[must_use]
@@ -45,12 +46,13 @@ impl Compile {
 
     fn run_on_single_file(source: &PathBuf, destination: &PathBuf, format: bool) -> Result<()> {
         let grammar = fs::read_to_string(source)?;
-        let parsed_grammar = Grammar::parse(&grammar)?;
+        let parsed_grammar = Grammar::parse(&grammar)
+            .map_err(|err| PrettyParseError::from_parse_error(&err, &grammar, source.to_str()))?;
         let generated_code = parsed_grammar.generate_code(&Default::default())?;
         fs::write(destination, generated_code.to_string())?;
         if format {
             Command::new("rustfmt").arg(destination).status()?;
-        }
+        };
         Ok(())
     }
 
@@ -77,6 +79,22 @@ impl Compile {
                     .unwrap_or_else(|| self.source_path.with_extension("rs")),
                 self.format,
             )
+        }
+    }
+
+    pub fn run_exit_on_error(self) {
+        colored::control::set_override(true);
+        let result = self.run();
+        if let Err(error) = result {
+            // I absolutely hate how this is a global, because there is no way to know if it was forced
+            // already. Thankfully we are exiting right after this.
+            eprintln!(
+                "{red_error}{colon} {error}",
+                red_error = "error".red().bold(),
+                colon = ":".bold().white(),
+                error = error
+            );
+            std::process::exit(1);
         }
     }
 }

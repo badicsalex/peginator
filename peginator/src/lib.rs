@@ -11,7 +11,7 @@ pub mod runtime;
 
 pub use codegen::{CodegenGrammar, CodegenSettings};
 pub use grammar::Grammar;
-pub use runtime::{ParseSettings, PegParser};
+pub use runtime::{ParseError, ParseSettings, PegParser, PrettyParseError};
 
 use proc_macro2::TokenStream;
 
