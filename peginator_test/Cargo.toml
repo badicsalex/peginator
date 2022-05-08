@@ -1,0 +1,15 @@
+[package]
+name = "peginator_test"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+peginator = { path = "../peginator" }
+
+[build-dependencies]
+peginator = { path = "../peginator" }
+
+[dev-dependencies]
+ntest = "0.7.5"

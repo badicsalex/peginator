@@ -2,22 +2,9 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use peginator_macro::peginate;
-
+mod grammar;
+use grammar::*;
 use peginator::PegParser;
-
-peginate!(
-    "
-    @export
-    Palindrome = 
-        letter:A inner:*Palindrome 'a' |
-        letter:B inner:*Palindrome 'b' |
-        letter:A 'a' |
-        letter:B 'b';
-    A = 'a';
-    B = 'b';
-"
-);
 
 fn to_palindrome_struct(s: &str) -> Palindrome {
     let result: Option<Box<Palindrome>> = s.chars().rev().fold(None, |p, c| {
@@ -33,7 +20,7 @@ fn to_palindrome_struct(s: &str) -> Palindrome {
 }
 
 #[test]
-fn test_macro() {
+fn test_parsing() {
     let s = Palindrome::parse("aabbaaaabbaabbaaabab").unwrap();
     assert_eq!(s, to_palindrome_struct("aabbaa"));
     let s = Palindrome::parse("aabbaaaabbaaaabbaaabab").unwrap();

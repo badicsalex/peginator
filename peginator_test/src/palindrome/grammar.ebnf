@@ -1,0 +1,8 @@
+@export
+Palindrome = 
+    letter:A inner:*Palindrome 'a' |
+    letter:B inner:*Palindrome 'b' |
+    letter:A 'a' |
+    letter:B 'b';
+A = 'a';
+B = 'b';

@@ -1,0 +1,19 @@
+@export
+Simple = (a:EnumVal1 | a:EnumVal2) | (a:EnumVal3 | a:EnumVal4);
+
+@export
+WithOpt = (a:EnumVal1 | a:EnumVal2) | (a:EnumVal3 | a:EnumVal4|);
+
+@export
+WithMult = {a:EnumVal1 | a:EnumVal2}+ | (a:EnumVal3 | a:EnumVal4);
+
+@export
+WithMultOpt = {a:EnumVal1 | a:EnumVal2}+ | (a:EnumVal3 | a:EnumVal4|);
+
+@export
+OneOpt = a:EnumVal1 [a:EnumVal2];
+
+EnumVal1 = '1';
+EnumVal2 = '2';
+EnumVal3 = '3';
+EnumVal4 = '4';

@@ -2,34 +2,9 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use peginator_macro::peginate;
-
+mod grammar;
+use grammar::*;
 use peginator::PegParser;
-
-peginate!(
-    r##"
-@export
-Simple = (a:EnumVal1 | a:EnumVal2) | (a:EnumVal3 | a:EnumVal4);
-
-@export
-WithOpt = (a:EnumVal1 | a:EnumVal2) | (a:EnumVal3 | a:EnumVal4|);
-
-@export
-WithMult = {a:EnumVal1 | a:EnumVal2}+ | (a:EnumVal3 | a:EnumVal4);
-
-@export
-WithMultOpt = {a:EnumVal1 | a:EnumVal2}+ | (a:EnumVal3 | a:EnumVal4|);
-
-@export
-OneOpt = a:EnumVal1 [a:EnumVal2];
-
-EnumVal1 = '1';
-EnumVal2 = '2';
-EnumVal3 = '3';
-EnumVal4 = '4';
-
-"##
-);
 
 #[test]
 fn test_simple() {

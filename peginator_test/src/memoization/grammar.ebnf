@@ -1,0 +1,4 @@
+@export
+Root = parsed:Recursive '.' $;
+
+Recursive = 'a' inner:*Recursive 'b' | 'a' inner:*Recursive 'c'|;

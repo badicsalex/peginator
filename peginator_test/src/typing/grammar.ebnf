@@ -1,0 +1,3 @@
+@export Simple = c:Tag1 | c:Tag2;
+Tag1 = '1';
+Tag2 = '2';

@@ -1,2 +1,2 @@
 [workspace]
-members = ["peginator", "peginator_macro"]
+members = ["peginator", "peginator_macro", "peginator_test"]
