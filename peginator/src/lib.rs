@@ -6,6 +6,7 @@ mod grammar;
 
 mod codegen;
 
+pub mod buildscript;
 pub mod runtime;
 
 pub use codegen::{CodegenGrammar, CodegenSettings};
