@@ -13,31 +13,16 @@ impl CodegenRule for Rule {
         &self,
         settings: &CodegenSettings,
     ) -> Result<(bool, TokenStream, TokenStream)> {
-        let mut string_flag = false;
-        let mut skip_whitespace = settings.skip_whitespace;
-        let mut export = false;
-        for directive in &self.directives {
-            match directive {
-                DirectiveExpression::StringDirective(_) => string_flag = true,
-                DirectiveExpression::NoSkipWsDirective(_) => skip_whitespace = false,
-                DirectiveExpression::ExportDirective(_) => export = true,
-            }
-        }
-
+        let flags = self.flags();
         let settings = CodegenSettings {
-            skip_whitespace,
+            skip_whitespace: settings.skip_whitespace && !flags.no_skip_ws,
             ..Default::default()
         };
 
         let fields = self.definition.get_fields()?;
         let is_override = fields.len() == 1 && fields[0].name == "_override";
 
-        if export && is_override {
-            bail!("Overridden (containing '@:') rules cannot be @export-ed");
-        }
-        if export && string_flag {
-            bail!("@string rules cannot be @export-ed");
-        }
+        Self::check_flags(&flags, is_override)?;
 
         let name = &self.name;
         let rule_mod = format_ident!("{}_impl", self.name);
@@ -46,7 +31,7 @@ impl CodegenRule for Rule {
         let cache_entry_ident = format_ident!("c_{}", self.name);
         let choice_body = self.definition.generate_code(&fields, &settings)?;
 
-        let (types, inner_code) = if string_flag {
+        let (types, inner_code) = if flags.string {
             self.generate_string_rule(&settings)?
         } else if is_override {
             self.generate_override_rule(&fields, &settings)?
@@ -55,7 +40,7 @@ impl CodegenRule for Rule {
         };
 
         Ok((
-            export,
+            flags.export,
             types,
             quote!(
                 mod #rule_mod{
@@ -79,7 +64,36 @@ impl CodegenRule for Rule {
     }
 }
 
+#[derive(Debug, Default)]
+struct RuleFlags {
+    pub no_skip_ws: bool,
+    pub export: bool,
+    pub string: bool,
+}
+
 impl Rule {
+    fn flags(&self) -> RuleFlags {
+        let mut result = RuleFlags::default();
+        for directive in &self.directives {
+            match directive {
+                DirectiveExpression::StringDirective(_) => result.string = true,
+                DirectiveExpression::NoSkipWsDirective(_) => result.no_skip_ws = true,
+                DirectiveExpression::ExportDirective(_) => result.export = true,
+            }
+        }
+        result
+    }
+
+    fn check_flags(flags: &RuleFlags, is_override: bool) -> Result<()> {
+        if flags.export && is_override {
+            bail!("Overridden (containing '@:') rules cannot be @export-ed");
+        }
+        if flags.export && flags.string {
+            bail!("@string rules cannot be @export-ed");
+        }
+        Ok(())
+    }
+
     fn generate_string_rule(
         &self,
         _settings: &CodegenSettings,
