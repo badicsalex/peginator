@@ -108,8 +108,8 @@ impl Rule {
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, String> {
                     let ok_result = parse(state.clone(), cache)?;
-                    let new_state = ok_result.state.clone();
-                    Ok(ok_result.map(|_| state.slice_until(&new_state).to_string()))
+                    Ok(ok_result
+                        .map_with_state(|_, new_state| state.slice_until(&new_state).to_string()))
                 }
             ),
         ))

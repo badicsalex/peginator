@@ -321,6 +321,18 @@ impl<'a, T> ParseOk<'a, T> {
             farthest_error: self.farthest_error,
         }
     }
+
+    #[inline]
+    pub fn map_with_state<T2, F>(self, f: F) -> ParseOk<'a, T2>
+    where
+        F: Fn(T, &ParseState) -> T2,
+    {
+        ParseOk::<T2> {
+            result: f(self.result, &self.state),
+            state: self.state,
+            farthest_error: self.farthest_error,
+        }
+    }
 }
 
 pub type ParseResult<'a, T> = Result<ParseOk<'a, T>, ParseError>;
