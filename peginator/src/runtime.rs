@@ -450,12 +450,9 @@ where
     state.print_trace(|| format!("{}?", name).yellow());
     state.print_trace(|| format!("{:?}", state.s().chars().take(50).collect::<String>()).normal());
     let result = f(state.clone().indent(), cache);
-    state.print_trace(|| {
-        if result.is_ok() {
-            "Ok".green()
-        } else {
-            "Err".red()
-        }
+    state.print_trace(|| match &result {
+        Ok(_) => "Ok".green(),
+        Err(err) => format!("Error: {}", err.specifics_as_string()).red(),
     });
     result.map(|(result, state)| (result, state.dedent()))
 }
