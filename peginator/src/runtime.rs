@@ -310,6 +310,7 @@ pub struct ParseOk<'a, T> {
 }
 
 impl<'a, T> ParseOk<'a, T> {
+    #[inline]
     pub fn map<T2, F>(self, f: F) -> ParseOk<'a, T2>
     where
         F: Fn(T) -> T2,
