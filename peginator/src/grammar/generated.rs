@@ -307,13 +307,17 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::Grammar as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub rules: Vec<Rule>,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::Grammar> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::Grammar { rules: r.rules }))
         }
     }
     #[inline]
@@ -501,13 +505,23 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::Rule as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub directives: Vec<DirectiveExpression>,
+            pub name: Identifier,
+            pub definition: Choice,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::Rule> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::Rule {
+                directives: r.directives,
+                name: r.name,
+                definition: r.definition,
+            }))
         }
     }
     #[inline]
@@ -697,13 +711,17 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::Choice as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub choices: Vec<Sequence>,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::Choice> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::Choice { choices: r.choices }))
         }
     }
     #[inline]
@@ -771,13 +789,17 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::Sequence as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub parts: Vec<DelimitedExpression>,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::Sequence> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::Sequence { parts: r.parts }))
         }
     }
     #[inline]
@@ -888,13 +910,17 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::Group as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub body: Choice,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::Group> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::Group { body: r.body }))
         }
     }
     #[inline]
@@ -1005,13 +1031,17 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::Optional as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub body: Choice,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::Optional> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::Optional { body: r.body }))
         }
     }
     #[inline]
@@ -1178,13 +1208,21 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::Closure as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub body: Choice,
+            pub at_least_one: Option<AtLeastOneMarker>,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::Closure> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::Closure {
+                body: r.body,
+                at_least_one: r.at_least_one,
+            }))
         }
     }
     #[inline]
@@ -1212,13 +1250,15 @@ mod peginator_generated {
             let ok_result = parse_character_literal(state, '+')?;
             Ok(ok_result.map(|_| Parsed))
         }
-        use super::AtLeastOneMarker as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::AtLeastOneMarker> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::AtLeastOneMarker {}))
         }
     }
     #[inline]
@@ -1311,13 +1351,17 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::NegativeLookahead as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub expr: Box<DelimitedExpression>,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::NegativeLookahead> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::NegativeLookahead { expr: r.expr }))
         }
     }
     #[inline]
@@ -1437,13 +1481,21 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::CharacterRange as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub from: CharacterLiteral,
+            pub to: CharacterLiteral,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::CharacterRange> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::CharacterRange {
+                from: r.from,
+                to: r.to,
+            }))
         }
     }
     #[inline]
@@ -1559,8 +1611,9 @@ mod peginator_generated {
                 farthest_error,
             })
         }
+        #[derive(Debug, Clone, PartialEq, Eq)]
         pub struct Parsed {
-            _override: super::CharacterLiteral,
+            pub _override: char,
         }
         use super::CharacterLiteral as Parsed__override;
         #[inline(always)]
@@ -1685,13 +1738,17 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::StringLiteral as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub body: StringLiteralBody,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::StringLiteral> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::StringLiteral { body: r.body }))
         }
     }
     #[inline]
@@ -2116,13 +2173,23 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::Field as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub name: Option<Identifier>,
+            pub boxed: Option<BoxMarker>,
+            pub typ: Identifier,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::Field> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::Field {
+                name: r.name,
+                boxed: r.boxed,
+                typ: r.typ,
+            }))
         }
     }
     #[inline]
@@ -2150,13 +2217,15 @@ mod peginator_generated {
             let ok_result = parse_character_literal(state, '*')?;
             Ok(ok_result.map(|_| Parsed))
         }
-        use super::BoxMarker as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::BoxMarker> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::BoxMarker {}))
         }
     }
     #[inline]
@@ -2267,13 +2336,17 @@ mod peginator_generated {
                 farthest_error,
             })
         }
-        use super::OverrideField as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub typ: Identifier,
+        }
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::OverrideField> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::OverrideField { typ: r.typ }))
         }
     }
     #[inline]
@@ -2566,8 +2639,9 @@ mod peginator_generated {
             }
             Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
         }
+        #[derive(Debug, Clone, PartialEq, Eq)]
         pub struct Parsed {
-            _override: super::DelimitedExpression,
+            pub _override: Parsed__override,
         }
         use super::DelimitedExpression as Parsed__override;
         #[inline(always)]
@@ -2832,8 +2906,9 @@ mod peginator_generated {
             }
             Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
         }
+        #[derive(Debug, Clone, PartialEq, Eq)]
         pub struct Parsed {
-            _override: super::DirectiveExpression,
+            pub _override: Parsed__override,
         }
         use super::DirectiveExpression as Parsed__override;
         #[inline(always)]
@@ -2877,13 +2952,15 @@ mod peginator_generated {
             let ok_result = parse_string_literal(state, "@string")?;
             Ok(ok_result.map(|_| Parsed))
         }
-        use super::StringDirective as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::StringDirective> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::StringDirective {}))
         }
     }
     #[inline]
@@ -2916,13 +2993,15 @@ mod peginator_generated {
             let ok_result = parse_string_literal(state, "@no_skip_ws")?;
             Ok(ok_result.map(|_| Parsed))
         }
-        use super::NoSkipWsDirective as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::NoSkipWsDirective> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::NoSkipWsDirective {}))
         }
     }
     #[inline]
@@ -2955,13 +3034,15 @@ mod peginator_generated {
             let ok_result = parse_string_literal(state, "@export")?;
             Ok(ok_result.map(|_| Parsed))
         }
-        use super::ExportDirective as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::ExportDirective> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::ExportDirective {}))
         }
     }
     #[inline]
@@ -2994,13 +3075,15 @@ mod peginator_generated {
             let ok_result = parse_character_literal(state, '$')?;
             Ok(ok_result.map(|_| Parsed))
         }
-        use super::EndOfInput as Parsed;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            parse(state, cache)
+        ) -> ParseResult<'a, super::EndOfInput> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::EndOfInput {}))
         }
     }
     #[inline]

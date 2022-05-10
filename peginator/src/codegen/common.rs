@@ -81,28 +81,6 @@ pub trait Codegen {
         Ok(generate_parsed_struct_type(type_name, &fields, settings))
     }
 
-    fn generate_use_super_as_parsed(
-        &self,
-        _settings: &CodegenSettings,
-        type_name: &str,
-    ) -> Result<TokenStream> {
-        let fields = self.get_fields()?;
-        let type_ident = format_ident!("{}", type_name);
-        let enum_types: TokenStream = fields
-            .iter()
-            .filter(|f| f.type_names.len() > 1)
-            .map(|f| {
-                let outer_name = format_ident!("{}_{}", type_name, f.name);
-                let inner_name = format_ident!("Parsed_{}", f.name);
-                quote!(use super::#outer_name as #inner_name;)
-            })
-            .collect();
-        Ok(quote!(
-            use super::#type_ident as Parsed;
-            #enum_types
-        ))
-    }
-
     fn get_filtered_rule_fields<'a>(
         &self,
         rule_fields: &[FieldDescriptor<'a>],

@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
 use crate::grammar::{DirectiveExpression, Rule};
@@ -44,14 +44,16 @@ impl CodegenRule for Rule {
         let rule_type = format_ident!("{}", self.name);
         let parser_name = format_ident!("parse_{}", self.name);
         let cache_entry_ident = format_ident!("c_{}", self.name);
-        let choice_body = self.definition.generate_code_spec(&fields, &settings)?;
+        let choice_body = self.definition.generate_code(&fields, &settings)?;
+
         let (types, inner_code) = if string_flag {
-            self.generate_string_rule(&fields, &settings)?
+            self.generate_string_rule(&settings)?
         } else if is_override {
             self.generate_override_rule(&fields, &settings)?
         } else {
             self.generate_normal_rule(&fields, &settings)?
         };
+
         Ok((
             export,
             types,
@@ -80,19 +82,17 @@ impl CodegenRule for Rule {
 impl Rule {
     fn generate_string_rule(
         &self,
-        fields: &[FieldDescriptor],
-        settings: &CodegenSettings,
+        _settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
         let rule_type = format_ident!("{}", self.name);
-        let parsed_types = self
-            .definition
-            .generate_struct_type(fields, settings, "Parsed")?;
         Ok((
             quote!(pub type #rule_type = String;),
             quote!(
-                #parsed_types
                 #[inline(always)]
-                pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, String> {
+                pub fn rule_parser<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, String> {
                     let ok_result = parse(state.clone(), cache)?;
                     let new_state = ok_result.state.clone();
                     Ok(ok_result.map(|_| state.slice_until(&new_state).to_string()))
@@ -125,9 +125,6 @@ impl Rule {
                 pub use #override_type as #rule_type;
             ),
             quote!(
-                pub struct Parsed {
-                    _override: super::#rule_type,
-                }
                 use super::#rule_type as Parsed__override;
                 #[inline(always)]
                 pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
@@ -152,9 +149,6 @@ impl Rule {
                 pub use #override_type as #rule_type;
             ),
             quote!(
-                pub struct Parsed {
-                    _override: super::#rule_type,
-                }
                 use super::#rule_type as Parsed__override;
                 #[inline(always)]
                 pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
@@ -170,6 +164,7 @@ impl Rule {
         fields: &[FieldDescriptor],
         settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
+        let rule_type = format_ident!("{}", self.name);
         let parsed_enum_types: TokenStream = fields
             .iter()
             .filter(|f| f.type_names.len() > 1)
@@ -178,19 +173,32 @@ impl Rule {
         let parsed_struct_type = self
             .definition
             .generate_struct_type(fields, settings, &self.name)?;
-        let used_types = self
-            .definition
-            .generate_use_super_as_parsed(settings, &self.name)?;
+        let inner_enum_uses: TokenStream = fields
+            .iter()
+            .filter(|f| f.type_names.len() > 1)
+            .map(|f| {
+                let outer_name = format_ident!("{}_{}", self.name, f.name);
+                let inner_name = format_ident!("Parsed_{}", f.name);
+                quote!(use super::#outer_name as #inner_name;)
+            })
+            .collect();
+        let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
+
         Ok((
             quote!(
                 #parsed_struct_type
                 #parsed_enum_types
             ),
             quote!(
-                #used_types
+                #inner_enum_uses
                 #[inline(always)]
-                pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
-                    parse(state, cache)
+                pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
+                    let ok_result = parse(state, cache)?;
+                    Ok(ok_result.map(
+                        |r| super::#rule_type{
+                            #( #field_names:r.#field_names,)*
+                        }
+                    ))
                 }
             ),
         ))
