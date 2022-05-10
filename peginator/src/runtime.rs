@@ -15,7 +15,6 @@ pub enum ParseErrorSpecifics {
     NegativeLookaheadFailed,
     // Special ones
     Other,
-    MisusedFarthestError,
 }
 
 #[derive(Debug, Clone)]
@@ -45,11 +44,17 @@ impl ParseError {
                 "negative lookahead condition failed".to_string()
             }
             ParseErrorSpecifics::Other => "Unknown error. Sorry :(".to_string(),
-            ParseErrorSpecifics::MisusedFarthestError => {
-                "misused 'farthest_error' on ParseState. Serious internal error in peginator"
-                    .to_string()
-            }
         }
+    }
+}
+
+#[inline]
+pub fn combine_errors(first: Option<ParseError>, second: Option<ParseError>) -> Option<ParseError> {
+    match (first, second) {
+        (None, None) => None,
+        (None, Some(x)) => Some(x),
+        (Some(x), None) => Some(x),
+        (Some(a), Some(b)) => Some(if b.farther_than(&a) { b } else { a }),
     }
 }
 
@@ -186,15 +191,6 @@ pub struct ParseState<'a> {
     start_index: usize,
     pub indentation_level: usize,
     tracing: bool,
-    // Note: Storing this in the state is incorrect if memoization is applied,
-    // since only the first parsing result will be stored, even if subsequent
-    // calls have an even further error.
-    //
-    // It should be part of the ParseResult instead, but that would require
-    // rewriting half the world, so this is a big TODO for now.
-    //
-    // Especially since this is just a diagnostic heuristic.
-    farthest_error: Option<ParseError>,
 }
 
 impl<'a> ParseState<'a> {
@@ -205,7 +201,6 @@ impl<'a> ParseState<'a> {
             start_index: 0,
             indentation_level: 0,
             tracing: settings.tracing,
-            farthest_error: None,
         }
     }
 
@@ -299,45 +294,35 @@ impl<'a> ParseState<'a> {
     }
 
     #[inline]
-    pub fn record_error(self, err: ParseError) -> Self {
-        if let Some(current_farthest_error) = &self.farthest_error {
-            // We are overwriting the current error with the more recent one, because the more
-            // recent error tends to be more specific, especially in case of sequences
-            if !current_farthest_error.farther_than(&err) {
-                Self {
-                    farthest_error: Some(err),
-                    ..self
-                }
-            } else {
-                self
-            }
-        } else {
-            Self {
-                farthest_error: Some(err),
-                ..self
-            }
-        }
-    }
-
-    #[inline]
     pub fn report_error(self, specifics: ParseErrorSpecifics) -> ParseError {
-        let new_error = ParseError {
+        ParseError {
             position: self.start_index,
             specifics,
-        };
-        self.record_error(new_error).report_farthest_error()
-    }
-
-    #[inline]
-    pub fn report_farthest_error(self) -> ParseError {
-        match self.farthest_error {
-            Some(err) => err,
-            None => self.report_error(ParseErrorSpecifics::MisusedFarthestError),
         }
     }
 }
 
-pub type ParseResult<'a, T> = Result<(T, ParseState<'a>), ParseError>;
+#[derive(Debug, Clone)]
+pub struct ParseOk<'a, T> {
+    pub result: T,
+    pub state: ParseState<'a>,
+    pub farthest_error: Option<ParseError>,
+}
+
+impl<'a, T> ParseOk<'a, T> {
+    pub fn map<T2, F>(self, f: F) -> ParseOk<'a, T2>
+    where
+        F: Fn(T) -> T2,
+    {
+        ParseOk::<T2> {
+            result: f(self.result),
+            state: self.state,
+            farthest_error: self.farthest_error,
+        }
+    }
+}
+
+pub type ParseResult<'a, T> = Result<ParseOk<'a, T>, ParseError>;
 
 pub type CacheEntries<'a, T> = HashMap<usize, ParseResult<'a, T>>;
 
@@ -356,7 +341,12 @@ pub fn parse_char<'a, _CT>(state: ParseState<'a>, _cache: &_CT) -> ParseResult<'
     //    Indexes must lie on UTF-8 sequence boundaries.
     //
     // We are skipping a full character, so we should be OK.
-    Ok((result, unsafe { state.advance(result.len_utf8()) }))
+    let state = unsafe { state.advance(result.len_utf8()) };
+    Ok(ParseOk {
+        result,
+        state,
+        farthest_error: None,
+    })
 }
 
 #[inline(always)]
@@ -369,7 +359,12 @@ pub fn parse_string_literal<'a>(state: ParseState<'a>, s: &'static str) -> Parse
         //    Indexes must lie on UTF-8 sequence boundaries.
         //
         // We are skipping a correct string's length, so we should be OK.
-        Ok(((), unsafe { state.advance(s.len()) }))
+        let state = unsafe { state.advance(s.len()) };
+        Ok(ParseOk {
+            result: (),
+            state,
+            farthest_error: None,
+        })
     }
 }
 
@@ -385,7 +380,12 @@ pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
             //    Indexes must lie on UTF-8 sequence boundaries.
             //
             // The byte we are skipping is ASCII, so we are OK.
-            Ok(((), unsafe { state.advance(1) }))
+            let state = unsafe { state.advance(1) };
+            Ok(ParseOk {
+                result: (),
+                state,
+                farthest_error: None,
+            })
         }
     } else if !state.s().starts_with(c) {
         // utf-8 path
@@ -396,7 +396,12 @@ pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
         //    Indexes must lie on UTF-8 sequence boundaries.
         //
         // We are skipping a full character, so we should be OK.
-        Ok(((), unsafe { state.advance(c.len_utf8()) }))
+        let state = unsafe { state.advance(c.len_utf8()) };
+        Ok(ParseOk {
+            result: (),
+            state,
+            farthest_error: None,
+        })
     }
 }
 
@@ -415,16 +420,21 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
             //    Indexes must lie on UTF-8 sequence boundaries.
             //
             // The byte we are skipping is ASCII, so we are OK.
-            Ok(((), unsafe { state.advance(1) }))
+            let state = unsafe { state.advance(1) };
+            Ok(ParseOk {
+                result: (),
+                state,
+                farthest_error: None,
+            })
         }
     } else {
         // utf-8 path
-        let result = state.s().chars().next().ok_or_else(|| {
+        let c = state.s().chars().next().ok_or_else(|| {
             state
                 .clone()
                 .report_error(ParseErrorSpecifics::ExpectedCharacterRange { from, to })
         })?;
-        if result < from || result > to {
+        if c < from || c > to {
             Err(state.report_error(ParseErrorSpecifics::ExpectedCharacterRange { from, to }))
         } else {
             // SAFETY:
@@ -432,7 +442,12 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
             //    Indexes must lie on UTF-8 sequence boundaries.
             //
             // We are skipping a full character, so we should be OK.
-            Ok(((), unsafe { state.advance(result.len_utf8()) }))
+            let state = unsafe { state.advance(c.len_utf8()) };
+            Ok(ParseOk {
+                result: (),
+                state,
+                farthest_error: None,
+            })
         }
     }
 }
@@ -454,5 +469,8 @@ where
         Ok(_) => "Ok".green(),
         Err(err) => format!("Error: {}", err.specifics_as_string()).red(),
     });
-    result.map(|(result, state)| (result, state.dedent()))
+    result.map(|result| ParseOk {
+        state: result.state.dedent(),
+        ..result
+    })
 }

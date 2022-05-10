@@ -70,7 +70,7 @@ impl CodegenGrammar for Grammar {
                             Ok(peginator_generated::#internal_parser_name(
                                 peginator_generated::ParseState::new(s, settings),
                                 &mut Default::default(),
-                            )?.0)
+                            )?.result)
                         }
                     }
                 ))
@@ -166,8 +166,9 @@ impl CodegenRule for Rule {
                         #parsed_types
                         #[inline(always)]
                         pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, String> {
-                            let (_, new_state) = parse(state.clone(), cache)?;
-                            Ok((state.slice_until(&new_state).to_string(), new_state))
+                            let ok_result = parse(state.clone(), cache)?;
+                            let new_state = ok_result.state.clone();
+                            Ok(ok_result.map(|_| state.slice_until(&new_state).to_string()))
                         }
                     }
                     #outer_parser
@@ -196,8 +197,8 @@ impl CodegenRule for Rule {
                             use super::#rule_type as Parsed__override;
                             #[inline(always)]
                             pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
-                                let (result, new_state) = parse(state, cache)?;
-                                Ok((result._override, new_state))
+                                let ok_result = parse(state, cache)?;
+                                Ok(ok_result.map(|result| result._override))
                             }
                         }
                         #outer_parser
@@ -223,8 +224,8 @@ impl CodegenRule for Rule {
                             use super::#rule_type as Parsed__override;
                             #[inline(always)]
                             pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
-                                let (result, new_state) = parse(state, cache)?;
-                                Ok((result._override, new_state))
+                                let ok_result = parse(state, cache)?;
+                                Ok(ok_result.map(|result| result._override))
                             }
                         }
                         #outer_parser
@@ -490,8 +491,8 @@ impl Choice {
                 if fields.is_empty() {
                     Ok(quote!(
                         match #choice_mod::parse(state.clone(), cache) {
-                            Ok((_, new_state)) => return Ok((Parsed, new_state)),
-                            Err(err) => state = state.record_error(err),
+                            Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                            Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                         }
                     ))
                 } else {
@@ -518,13 +519,14 @@ impl Choice {
                         .collect();
                     Ok(quote!(
                         match #choice_mod::parse(state.clone(), cache) {
-                            Ok((result, new_state)) => return Ok((
-                                Parsed{
-                                    #field_assignments
-                                },
-                                new_state
-                            )),
-                            Err(err) => state = state.record_error(err),
+                            Ok(ok_result) => return Ok(
+                                    ok_result.map(|result|
+                                        Parsed{
+                                            #field_assignments
+                                        }
+                                    )
+                                ),
+                            Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                         }
                     ))
                 }
@@ -534,8 +536,9 @@ impl Choice {
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
                 #calls
-                Err(state.report_farthest_error())
+                Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
             }
         ))
     }
@@ -568,7 +571,11 @@ impl Codegen for Sequence {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    Ok((Parsed, state))
+                    Ok(ParseOk {
+                        result: Parsed,
+                        state,
+                        farthest_error: None,
+                    })
                 }
             ));
         }
@@ -628,7 +635,17 @@ impl Sequence {
             let inner_fields = part.get_filtered_rule_fields(rule_fields)?;
             let call = if inner_fields.is_empty() {
                 quote!(
-                    let (_, state) =  #part_mod::parse(state, cache)?;
+                    match #part_mod::parse(state, cache) {
+                        Ok(ParseOk{
+                            result:_,
+                            state:new_state,
+                            farthest_error:new_farthest_error
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                        },
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    }
                 )
             } else {
                 let mut field_assignments = TokenStream::new();
@@ -647,7 +664,18 @@ impl Sequence {
                     field_assignments.extend(field_assignment);
                 }
                 quote!(
-                    let (result, state) =  #part_mod::parse(state, cache)?;
+                    let result = match #part_mod::parse(state, cache) {
+                        Ok(ParseOk{
+                            result,
+                            state:new_state,
+                            farthest_error:new_farthest_error
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                            result
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    };
                     #field_assignments
                 )
             };
@@ -658,8 +686,10 @@ impl Sequence {
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
                 #calls
-                Ok((#parse_result, state))
+                Ok(ParseOk{result:#parse_result, state, farthest_error})
             }
         ))
     }
@@ -746,14 +776,13 @@ impl Codegen for Optional {
             }
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
-                if let Ok((result, new_state)) = optional::parse(state.clone(), cache) {
-                    Ok((Parsed{
-                        #happy_case_fields
-                    }, new_state))
-                } else {
-                    Ok((Parsed{
-                        #unhappy_case_fields
-                    }, state))
+                match optional::parse(state.clone(), cache) {
+                Ok(ok_result) => Ok(ok_result.map(|result| Parsed{#happy_case_fields})),
+                Err(err) => Ok(ParseOk{
+                        result: Parsed{#unhappy_case_fields},
+                        state,
+                        farthest_error:Some(err),
+                    })
                 }
             }
         ))
@@ -802,12 +831,14 @@ impl Codegen for Closure {
         let parse_result = quote!(Parsed{ #( #field_names,)* });
         let at_least_one_body = if self.at_least_one.is_some() {
             quote!(
-                let (result, new_state) = closure::parse(state, cache)?;
+                let ParseOk{result, mut state, mut farthest_error} = closure::parse(state, cache)?;
                 #assignments
-                state = new_state;
             )
         } else {
-            quote!()
+            quote!(
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
+            )
         };
 
         Ok(quote!(
@@ -817,22 +848,22 @@ impl Codegen for Closure {
             }
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
-                let mut state = state;
                 #declarations
                 #at_least_one_body
                 loop {
                     match closure::parse(state.clone(), cache) {
-                        Ok((result, new_state)) => {
+                        Ok(ParseOk{result, state:new_state, farthest_error:new_farthest_error}) => {
                             #assignments
                             state = new_state;
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
                         },
                         Err(err) => {
-                            state = state.record_error(err);
+                            farthest_error = combine_errors(farthest_error, Some(err));
                             break;
                         }
                     }
                 }
-                Ok((#parse_result, state))
+                Ok(ParseOk{result:#parse_result, state, farthest_error})
             }
         ))
     }
@@ -866,7 +897,7 @@ impl Codegen for NegativeLookahead {
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 match negative_lookahead::parse (state.clone(), cache) {
                     Ok(_) => Err(state.report_error(ParseErrorSpecifics::NegativeLookaheadFailed)),
-                    Err(_) => Ok((Parsed, state)),
+                    Err(_) => Ok(ParseOk{result:Parsed, state, farthest_error:None}),
                 }
             }
         ))
@@ -896,8 +927,8 @@ impl Codegen for CharacterRange {
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                let (_, state) = parse_character_range(state, #from, #to)?;
-                Ok((Parsed, state))
+                let ok_result = parse_character_range(state, #from, #to)?;
+                Ok(ok_result.map(|_| Parsed))
             }
         ))
     }
@@ -923,8 +954,8 @@ impl Codegen for CharacterLiteral {
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                let (_, state) = parse_character_literal(state, #literal)?;
-                Ok((Parsed, state))
+                let ok_result = parse_character_literal(state, #literal)?;
+                Ok(ok_result.map(|_| Parsed))
             }
         ))
     }
@@ -950,8 +981,8 @@ impl Codegen for StringLiteral {
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                let (_, state) = parse_string_literal(state, #literal)?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, #literal)?;
+                Ok(ok_result.map(|_| Parsed))
             }
         ))
     }
@@ -977,7 +1008,7 @@ impl Codegen for EndOfInput {
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 if state.is_empty() {
-                    Ok((Parsed, state))
+                    Ok(ParseOk{result:Parsed, state, farthest_error:None})
                 } else {
                     Err(state.report_error(ParseErrorSpecifics::ExpectedEoi))
                 }
@@ -1008,8 +1039,8 @@ impl Codegen for OverrideField {
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                let (result, state) = #parser_name (state, cache)?;
-                Ok((Parsed{ _override: #field_conversion }, state))
+                let ok_result = #parser_name (state, cache)?;
+                Ok(ok_result.map(|result| Parsed{ _override: #field_conversion }))
             }
         ))
     }
@@ -1043,8 +1074,8 @@ impl Codegen for Field {
                 #[inline(always)]
                 pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                     #skip_ws
-                    let (result, state) = #parser_name (state, cache)?;
-                    Ok((Parsed{ #field_ident: #field_conversion }, state))
+                    let ok_result = #parser_name (state, cache)?;
+                    Ok(ok_result.map(|result| Parsed{ #field_ident: #field_conversion }))
                 }
             ))
         } else {
@@ -1052,8 +1083,8 @@ impl Codegen for Field {
                 #[inline(always)]
                 pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                     #skip_ws
-                    let (_, state) = #parser_name (state, cache)?;
-                    Ok((Parsed, state))
+                    let ok_result = #parser_name (state, cache)?;
+                    Ok(ok_result.map(|_| Parsed))
                 }
             ))
         }

@@ -99,7 +99,7 @@ impl peginator_generated::PegParser for Grammar {
             peginator_generated::ParseState::new(s, settings),
             &mut Default::default(),
         )?
-        .0)
+        .result)
     }
 }
 #[allow(non_snake_case, unused_variables, unused_imports, unused_mut)]
@@ -147,13 +147,10 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        let (result, state) = parse_Rule(state, cache)?;
-                        Ok((
-                            Parsed {
-                                rules: vec![result],
-                            },
-                            state,
-                        ))
+                        let ok_result = parse_Rule(state, cache)?;
+                        Ok(ok_result.map(|result| Parsed {
+                            rules: vec![result],
+                        }))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed {
@@ -168,8 +165,8 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        let (_, state) = parse_string_literal(state, ";")?;
-                        Ok((Parsed, state))
+                        let ok_result = parse_string_literal(state, ";")?;
+                        Ok(ok_result.map(|_| Parsed))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed;
@@ -179,10 +176,37 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let (result, state) = part_0::parse(state, cache)?;
+                    let mut state = state;
+                    let mut farthest_error: Option<ParseError> = None;
+                    let result = match part_0::parse(state, cache) {
+                        Ok(ParseOk {
+                            result,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                            result
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    };
                     let mut rules = result.rules;
-                    let (_, state) = part_1::parse(state, cache)?;
-                    Ok((Parsed { rules }, state))
+                    match part_1::parse(state, cache) {
+                        Ok(ParseOk {
+                            result: _,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    }
+                    Ok(ParseOk {
+                        result: Parsed { rules },
+                        state,
+                        farthest_error,
+                    })
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
@@ -194,21 +218,31 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
                 let mut rules: Vec<Rule> = Vec::new();
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
                 loop {
                     match closure::parse(state.clone(), cache) {
-                        Ok((result, new_state)) => {
+                        Ok(ParseOk {
+                            result,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
                             rules.extend(result.rules);
                             state = new_state;
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
                         }
                         Err(err) => {
-                            state = state.record_error(err);
+                            farthest_error = combine_errors(farthest_error, Some(err));
                             break;
                         }
                     }
                 }
-                Ok((Parsed { rules }, state))
+                Ok(ParseOk {
+                    result: Parsed { rules },
+                    state,
+                    farthest_error,
+                })
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -224,7 +258,11 @@ mod peginator_generated {
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
                 if state.is_empty() {
-                    Ok((Parsed, state))
+                    Ok(ParseOk {
+                        result: Parsed,
+                        state,
+                        farthest_error: None,
+                    })
                 } else {
                     Err(state.report_error(ParseErrorSpecifics::ExpectedEoi))
                 }
@@ -237,10 +275,37 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (result, state) = part_0::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            let result = match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut rules = result.rules;
-            let (_, state) = part_1::parse(state, cache)?;
-            Ok((Parsed { rules }, state))
+            match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            Ok(ParseOk {
+                result: Parsed { rules },
+                state,
+                farthest_error,
+            })
         }
         use super::Grammar as Parsed;
         #[inline(always)]
@@ -277,13 +342,10 @@ mod peginator_generated {
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
                     let state = state.skip_whitespace();
-                    let (result, state) = parse_DirectiveExpression(state, cache)?;
-                    Ok((
-                        Parsed {
-                            directives: vec![result],
-                        },
-                        state,
-                    ))
+                    let ok_result = parse_DirectiveExpression(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed {
+                        directives: vec![result],
+                    }))
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
@@ -295,21 +357,31 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
                 let mut directives: Vec<DirectiveExpression> = Vec::new();
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
                 loop {
                     match closure::parse(state.clone(), cache) {
-                        Ok((result, new_state)) => {
+                        Ok(ParseOk {
+                            result,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
                             directives.extend(result.directives);
                             state = new_state;
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
                         }
                         Err(err) => {
-                            state = state.record_error(err);
+                            farthest_error = combine_errors(farthest_error, Some(err));
                             break;
                         }
                     }
                 }
-                Ok((Parsed { directives }, state))
+                Ok(ParseOk {
+                    result: Parsed { directives },
+                    state,
+                    farthest_error,
+                })
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -324,8 +396,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Identifier(state, cache)?;
-                Ok((Parsed { name: result }, state))
+                let ok_result = parse_Identifier(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { name: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -340,8 +412,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "=")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "=")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -354,8 +426,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Choice(state, cache)?;
-                Ok((Parsed { definition: result }, state))
+                let ok_result = parse_Choice(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { definition: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -367,21 +439,67 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (result, state) = part_0::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            let result = match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut directives = result.directives;
-            let (result, state) = part_1::parse(state, cache)?;
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut name = result.name;
-            let (_, state) = part_2::parse(state, cache)?;
-            let (result, state) = part_3::parse(state, cache)?;
+            match part_2::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_3::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut definition = result.definition;
-            Ok((
-                Parsed {
+            Ok(ParseOk {
+                result: Parsed {
                     directives,
                     name,
                     definition,
                 },
                 state,
-            ))
+                farthest_error,
+            })
         }
         use super::Rule as Parsed;
         #[inline(always)]
@@ -416,13 +534,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Sequence(state, cache)?;
-                Ok((
-                    Parsed {
-                        choices: vec![result],
-                    },
-                    state,
-                ))
+                let ok_result = parse_Sequence(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    choices: vec![result],
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -441,8 +556,8 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        let (_, state) = parse_string_literal(state, "|")?;
-                        Ok((Parsed, state))
+                        let ok_result = parse_string_literal(state, "|")?;
+                        Ok(ok_result.map(|_| Parsed))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed;
@@ -455,13 +570,10 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        let (result, state) = parse_Sequence(state, cache)?;
-                        Ok((
-                            Parsed {
-                                choices: vec![result],
-                            },
-                            state,
-                        ))
+                        let ok_result = parse_Sequence(state, cache)?;
+                        Ok(ok_result.map(|result| Parsed {
+                            choices: vec![result],
+                        }))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed {
@@ -473,10 +585,37 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let (_, state) = part_0::parse(state, cache)?;
-                    let (result, state) = part_1::parse(state, cache)?;
+                    let mut state = state;
+                    let mut farthest_error: Option<ParseError> = None;
+                    match part_0::parse(state, cache) {
+                        Ok(ParseOk {
+                            result: _,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    }
+                    let result = match part_1::parse(state, cache) {
+                        Ok(ParseOk {
+                            result,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                            result
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    };
                     let mut choices = result.choices;
-                    Ok((Parsed { choices }, state))
+                    Ok(ParseOk {
+                        result: Parsed { choices },
+                        state,
+                        farthest_error,
+                    })
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
@@ -488,21 +627,31 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
                 let mut choices: Vec<Sequence> = Vec::new();
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
                 loop {
                     match closure::parse(state.clone(), cache) {
-                        Ok((result, new_state)) => {
+                        Ok(ParseOk {
+                            result,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
                             choices.extend(result.choices);
                             state = new_state;
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
                         }
                         Err(err) => {
-                            state = state.record_error(err);
+                            farthest_error = combine_errors(farthest_error, Some(err));
                             break;
                         }
                     }
                 }
-                Ok((Parsed { choices }, state))
+                Ok(ParseOk {
+                    result: Parsed { choices },
+                    state,
+                    farthest_error,
+                })
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -514,11 +663,39 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (result, state) = part_0::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            let result = match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut choices = result.choices;
-            let (result, state) = part_1::parse(state, cache)?;
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             choices.extend(result.choices);
-            Ok((Parsed { choices }, state))
+            Ok(ParseOk {
+                result: Parsed { choices },
+                state,
+                farthest_error,
+            })
         }
         use super::Choice as Parsed;
         #[inline(always)]
@@ -553,13 +730,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_DelimitedExpression(state, cache)?;
-                Ok((
-                    Parsed {
-                        parts: vec![result],
-                    },
-                    state,
-                ))
+                let ok_result = parse_DelimitedExpression(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    parts: vec![result],
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -571,21 +745,31 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
             let mut parts: Vec<DelimitedExpression> = Vec::new();
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
             loop {
                 match closure::parse(state.clone(), cache) {
-                    Ok((result, new_state)) => {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
                         parts.extend(result.parts);
                         state = new_state;
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
                     }
                     Err(err) => {
-                        state = state.record_error(err);
+                        farthest_error = combine_errors(farthest_error, Some(err));
                         break;
                     }
                 }
             }
-            Ok((Parsed { parts }, state))
+            Ok(ParseOk {
+                result: Parsed { parts },
+                state,
+                farthest_error,
+            })
         }
         use super::Sequence as Parsed;
         #[inline(always)]
@@ -620,8 +804,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "(")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "(")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -634,8 +818,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Choice(state, cache)?;
-                Ok((Parsed { body: result }, state))
+                let ok_result = parse_Choice(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { body: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -650,8 +834,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, ")")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, ")")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -661,11 +845,48 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (_, state) = part_0::parse(state, cache)?;
-            let (result, state) = part_1::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut body = result.body;
-            let (_, state) = part_2::parse(state, cache)?;
-            Ok((Parsed { body }, state))
+            match part_2::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            Ok(ParseOk {
+                result: Parsed { body },
+                state,
+                farthest_error,
+            })
         }
         use super::Group as Parsed;
         #[inline(always)]
@@ -700,8 +921,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "[")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "[")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -714,8 +935,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Choice(state, cache)?;
-                Ok((Parsed { body: result }, state))
+                let ok_result = parse_Choice(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { body: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -730,8 +951,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "]")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "]")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -741,11 +962,48 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (_, state) = part_0::parse(state, cache)?;
-            let (result, state) = part_1::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut body = result.body;
-            let (_, state) = part_2::parse(state, cache)?;
-            Ok((Parsed { body }, state))
+            match part_2::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            Ok(ParseOk {
+                result: Parsed { body },
+                state,
+                farthest_error,
+            })
         }
         use super::Optional as Parsed;
         #[inline(always)]
@@ -780,8 +1038,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "{")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "{")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -794,8 +1052,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Choice(state, cache)?;
-                Ok((Parsed { body: result }, state))
+                let ok_result = parse_Choice(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { body: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -810,8 +1068,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "}")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "}")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -826,13 +1084,10 @@ mod peginator_generated {
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
                     let state = state.skip_whitespace();
-                    let (result, state) = parse_AtLeastOneMarker(state, cache)?;
-                    Ok((
-                        Parsed {
-                            at_least_one: Some(result),
-                        },
-                        state,
-                    ))
+                    let ok_result = parse_AtLeastOneMarker(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed {
+                        at_least_one: Some(result),
+                    }))
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
@@ -844,20 +1099,17 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                if let Ok((result, new_state)) = optional::parse(state.clone(), cache) {
-                    Ok((
-                        Parsed {
-                            at_least_one: result.at_least_one,
-                        },
-                        new_state,
-                    ))
-                } else {
-                    Ok((
-                        Parsed {
+                match optional::parse(state.clone(), cache) {
+                    Ok(ok_result) => Ok(ok_result.map(|result| Parsed {
+                        at_least_one: result.at_least_one,
+                    })),
+                    Err(err) => Ok(ParseOk {
+                        result: Parsed {
                             at_least_one: Default::default(),
                         },
                         state,
-                    ))
+                        farthest_error: Some(err),
+                    }),
                 }
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -870,13 +1122,61 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (_, state) = part_0::parse(state, cache)?;
-            let (result, state) = part_1::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut body = result.body;
-            let (_, state) = part_2::parse(state, cache)?;
-            let (result, state) = part_3::parse(state, cache)?;
+            match part_2::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_3::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut at_least_one = result.at_least_one;
-            Ok((Parsed { body, at_least_one }, state))
+            Ok(ParseOk {
+                result: Parsed { body, at_least_one },
+                state,
+                farthest_error,
+            })
         }
         use super::Closure as Parsed;
         #[inline(always)]
@@ -909,8 +1209,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            let (_, state) = parse_character_literal(state, '+')?;
-            Ok((Parsed, state))
+            let ok_result = parse_character_literal(state, '+')?;
+            Ok(ok_result.map(|_| Parsed))
         }
         use super::AtLeastOneMarker as Parsed;
         #[inline(always)]
@@ -950,8 +1250,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "!")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "!")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -964,13 +1264,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_DelimitedExpression(state, cache)?;
-                Ok((
-                    Parsed {
-                        expr: Box::new(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_DelimitedExpression(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    expr: Box::new(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -982,10 +1279,37 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (_, state) = part_0::parse(state, cache)?;
-            let (result, state) = part_1::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut expr = result.expr;
-            Ok((Parsed { expr }, state))
+            Ok(ParseOk {
+                result: Parsed { expr },
+                state,
+                farthest_error,
+            })
         }
         use super::NegativeLookahead as Parsed;
         #[inline(always)]
@@ -1025,8 +1349,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_CharacterLiteral(state, cache)?;
-                Ok((Parsed { from: result }, state))
+                let ok_result = parse_CharacterLiteral(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { from: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1041,8 +1365,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "..")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "..")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -1055,8 +1379,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_CharacterLiteral(state, cache)?;
-                Ok((Parsed { to: result }, state))
+                let ok_result = parse_CharacterLiteral(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { to: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1068,12 +1392,50 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (result, state) = part_0::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            let result = match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut from = result.from;
-            let (_, state) = part_1::parse(state, cache)?;
-            let (result, state) = part_2::parse(state, cache)?;
+            match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_2::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut to = result.to;
-            Ok((Parsed { from, to }, state))
+            Ok(ParseOk {
+                result: Parsed { from, to },
+                state,
+                farthest_error,
+            })
         }
         use super::CharacterRange as Parsed;
         #[inline(always)]
@@ -1113,8 +1475,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "'")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "'")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -1127,8 +1489,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_char(state, cache)?;
-                Ok((Parsed { _override: result }, state))
+                let ok_result = parse_char(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { _override: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1143,8 +1505,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "'")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "'")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -1154,11 +1516,48 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (_, state) = part_0::parse(state, cache)?;
-            let (result, state) = part_1::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut _override = result._override;
-            let (_, state) = part_2::parse(state, cache)?;
-            Ok((Parsed { _override }, state))
+            match part_2::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            Ok(ParseOk {
+                result: Parsed { _override },
+                state,
+                farthest_error,
+            })
         }
         pub struct Parsed {
             _override: super::CharacterLiteral,
@@ -1169,8 +1568,8 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, super::CharacterLiteral> {
-            let (result, new_state) = parse(state, cache)?;
-            Ok((result._override, new_state))
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|result| result._override))
         }
     }
     #[inline]
@@ -1202,8 +1601,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_character_literal(state, '"')?;
-                Ok((Parsed, state))
+                let ok_result = parse_character_literal(state, '"')?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -1216,8 +1615,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_StringLiteralBody(state, cache)?;
-                Ok((Parsed { body: result }, state))
+                let ok_result = parse_StringLiteralBody(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { body: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1232,8 +1631,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_character_literal(state, '"')?;
-                Ok((Parsed, state))
+                let ok_result = parse_character_literal(state, '"')?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -1243,11 +1642,48 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (_, state) = part_0::parse(state, cache)?;
-            let (result, state) = part_1::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut body = result.body;
-            let (_, state) = part_2::parse(state, cache)?;
-            Ok((Parsed { body }, state))
+            match part_2::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            Ok(ParseOk {
+                result: Parsed { body },
+                state,
+                farthest_error,
+            })
         }
         use super::StringLiteral as Parsed;
         #[inline(always)]
@@ -1288,8 +1724,8 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let (_, state) = parse_string_literal(state, "\\\\\\\"")?;
-                    Ok((Parsed, state))
+                    let ok_result = parse_string_literal(state, "\\\\\\\"")?;
+                    Ok(ok_result.map(|_| Parsed))
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed;
@@ -1305,8 +1741,8 @@ mod peginator_generated {
                             state: ParseState<'a>,
                             cache: &mut ParseCache<'a>,
                         ) -> ParseResult<'a, Parsed> {
-                            let (_, state) = parse_character_literal(state, '"')?;
-                            Ok((Parsed, state))
+                            let ok_result = parse_character_literal(state, '"')?;
+                            Ok(ok_result.map(|_| Parsed))
                         }
                         #[derive(Debug, Clone, PartialEq, Eq)]
                         pub struct Parsed;
@@ -1321,7 +1757,11 @@ mod peginator_generated {
                                 Err(state
                                     .report_error(ParseErrorSpecifics::NegativeLookaheadFailed))
                             }
-                            Err(_) => Ok((Parsed, state)),
+                            Err(_) => Ok(ParseOk {
+                                result: Parsed,
+                                state,
+                                farthest_error: None,
+                            }),
                         }
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1334,8 +1774,8 @@ mod peginator_generated {
                         state: ParseState<'a>,
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
-                        let (_, state) = parse_char(state, cache)?;
-                        Ok((Parsed, state))
+                        let ok_result = parse_char(state, cache)?;
+                        Ok(ok_result.map(|_| Parsed))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed;
@@ -1345,9 +1785,35 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let (_, state) = part_0::parse(state, cache)?;
-                    let (_, state) = part_1::parse(state, cache)?;
-                    Ok((Parsed {}, state))
+                    let mut state = state;
+                    let mut farthest_error: Option<ParseError> = None;
+                    match part_0::parse(state, cache) {
+                        Ok(ParseOk {
+                            result: _,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    }
+                    match part_1::parse(state, cache) {
+                        Ok(ParseOk {
+                            result: _,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    }
+                    Ok(ParseOk {
+                        result: Parsed {},
+                        state,
+                        farthest_error,
+                    })
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed;
@@ -1358,15 +1824,17 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
                 match choice_0::parse(state.clone(), cache) {
-                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
-                    Err(err) => state = state.record_error(err),
+                    Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                    Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                 }
                 match choice_1::parse(state.clone(), cache) {
-                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
-                    Err(err) => state = state.record_error(err),
+                    Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                    Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                 }
-                Err(state.report_farthest_error())
+                Err(farthest_error
+                    .unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -1377,18 +1845,28 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
             loop {
                 match closure::parse(state.clone(), cache) {
-                    Ok((result, new_state)) => {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
                         state = new_state;
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
                     }
                     Err(err) => {
-                        state = state.record_error(err);
+                        farthest_error = combine_errors(farthest_error, Some(err));
                         break;
                     }
                 }
             }
-            Ok((Parsed {}, state))
+            Ok(ParseOk {
+                result: Parsed {},
+                state,
+                farthest_error,
+            })
         }
         #[derive(Debug, Clone, PartialEq, Eq)]
         pub struct Parsed;
@@ -1397,8 +1875,9 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, String> {
-            let (_, new_state) = parse(state.clone(), cache)?;
-            Ok((state.slice_until(&new_state).to_string(), new_state))
+            let ok_result = parse(state.clone(), cache)?;
+            let new_state = ok_result.state.clone();
+            Ok(ok_result.map(|_| state.slice_until(&new_state).to_string()))
         }
     }
     #[inline]
@@ -1434,8 +1913,8 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        let (result, state) = parse_Identifier(state, cache)?;
-                        Ok((Parsed { name: Some(result) }, state))
+                        let ok_result = parse_Identifier(state, cache)?;
+                        Ok(ok_result.map(|result| Parsed { name: Some(result) }))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed {
@@ -1450,8 +1929,8 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        let (_, state) = parse_string_literal(state, ":")?;
-                        Ok((Parsed, state))
+                        let ok_result = parse_string_literal(state, ":")?;
+                        Ok(ok_result.map(|_| Parsed))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
                     pub struct Parsed;
@@ -1466,13 +1945,10 @@ mod peginator_generated {
                             cache: &mut ParseCache<'a>,
                         ) -> ParseResult<'a, Parsed> {
                             let state = state.skip_whitespace();
-                            let (result, state) = parse_BoxMarker(state, cache)?;
-                            Ok((
-                                Parsed {
-                                    boxed: Some(result),
-                                },
-                                state,
-                            ))
+                            let ok_result = parse_BoxMarker(state, cache)?;
+                            Ok(ok_result.map(|result| Parsed {
+                                boxed: Some(result),
+                            }))
                         }
                         #[derive(Debug, Clone, PartialEq, Eq)]
                         pub struct Parsed {
@@ -1484,20 +1960,17 @@ mod peginator_generated {
                         state: ParseState<'a>,
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
-                        if let Ok((result, new_state)) = optional::parse(state.clone(), cache) {
-                            Ok((
-                                Parsed {
-                                    boxed: result.boxed,
-                                },
-                                new_state,
-                            ))
-                        } else {
-                            Ok((
-                                Parsed {
+                        match optional::parse(state.clone(), cache) {
+                            Ok(ok_result) => Ok(ok_result.map(|result| Parsed {
+                                boxed: result.boxed,
+                            })),
+                            Err(err) => Ok(ParseOk {
+                                result: Parsed {
                                     boxed: Default::default(),
                                 },
                                 state,
-                            ))
+                                farthest_error: Some(err),
+                            }),
                         }
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1510,12 +1983,50 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let (result, state) = part_0::parse(state, cache)?;
+                    let mut state = state;
+                    let mut farthest_error: Option<ParseError> = None;
+                    let result = match part_0::parse(state, cache) {
+                        Ok(ParseOk {
+                            result,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                            result
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    };
                     let mut name = result.name;
-                    let (_, state) = part_1::parse(state, cache)?;
-                    let (result, state) = part_2::parse(state, cache)?;
+                    match part_1::parse(state, cache) {
+                        Ok(ParseOk {
+                            result: _,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    }
+                    let result = match part_2::parse(state, cache) {
+                        Ok(ParseOk {
+                            result,
+                            state: new_state,
+                            farthest_error: new_farthest_error,
+                        }) => {
+                            farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            state = new_state;
+                            result
+                        }
+                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                    };
                     let mut boxed = result.boxed;
-                    Ok((Parsed { name, boxed }, state))
+                    Ok(ParseOk {
+                        result: Parsed { name, boxed },
+                        state,
+                        farthest_error,
+                    })
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed {
@@ -1528,22 +2039,19 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                if let Ok((result, new_state)) = optional::parse(state.clone(), cache) {
-                    Ok((
-                        Parsed {
-                            name: result.name,
-                            boxed: result.boxed,
-                        },
-                        new_state,
-                    ))
-                } else {
-                    Ok((
-                        Parsed {
+                match optional::parse(state.clone(), cache) {
+                    Ok(ok_result) => Ok(ok_result.map(|result| Parsed {
+                        name: result.name,
+                        boxed: result.boxed,
+                    })),
+                    Err(err) => Ok(ParseOk {
+                        result: Parsed {
                             name: Default::default(),
                             boxed: Default::default(),
                         },
                         state,
-                    ))
+                        farthest_error: Some(err),
+                    }),
                 }
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1560,8 +2068,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Identifier(state, cache)?;
-                Ok((Parsed { typ: result }, state))
+                let ok_result = parse_Identifier(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { typ: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1573,12 +2081,40 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (result, state) = part_0::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            let result = match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut name = result.name;
             let mut boxed = result.boxed;
-            let (result, state) = part_1::parse(state, cache)?;
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut typ = result.typ;
-            Ok((Parsed { name, boxed, typ }, state))
+            Ok(ParseOk {
+                result: Parsed { name, boxed, typ },
+                state,
+                farthest_error,
+            })
         }
         use super::Field as Parsed;
         #[inline(always)]
@@ -1611,8 +2147,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            let (_, state) = parse_character_literal(state, '*')?;
-            Ok((Parsed, state))
+            let ok_result = parse_character_literal(state, '*')?;
+            Ok(ok_result.map(|_| Parsed))
         }
         use super::BoxMarker as Parsed;
         #[inline(always)]
@@ -1647,8 +2183,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, "@")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, "@")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -1661,8 +2197,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (_, state) = parse_string_literal(state, ":")?;
-                Ok((Parsed, state))
+                let ok_result = parse_string_literal(state, ":")?;
+                Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -1675,8 +2211,8 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Identifier(state, cache)?;
-                Ok((Parsed { typ: result }, state))
+                let ok_result = parse_Identifier(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { typ: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1688,11 +2224,48 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let (_, state) = part_0::parse(state, cache)?;
-            let (_, state) = part_1::parse(state, cache)?;
-            let (result, state) = part_2::parse(state, cache)?;
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_2::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
             let mut typ = result.typ;
-            Ok((Parsed { typ }, state))
+            Ok(ParseOk {
+                result: Parsed { typ },
+                state,
+                farthest_error,
+            })
         }
         use super::OverrideField as Parsed;
         #[inline(always)]
@@ -1732,13 +2305,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Group(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::Group(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_Group(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::Group(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1753,13 +2323,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Optional(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::Optional(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_Optional(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::Optional(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1774,13 +2341,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Closure(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::Closure(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_Closure(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::Closure(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1795,13 +2359,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_NegativeLookahead(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::NegativeLookahead(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_NegativeLookahead(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::NegativeLookahead(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1816,13 +2377,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_CharacterRange(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::CharacterRange(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_CharacterRange(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::CharacterRange(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1837,13 +2395,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_CharacterLiteral(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::CharacterLiteral(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_CharacterLiteral(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::CharacterLiteral(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1858,13 +2413,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_StringLiteral(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::StringLiteral(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_StringLiteral(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::StringLiteral(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1879,13 +2431,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_EndOfInput(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::EndOfInput(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_EndOfInput(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::EndOfInput(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1900,13 +2449,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_OverrideField(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::OverrideField(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_OverrideField(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::OverrideField(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1921,13 +2467,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_Field(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::Field(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_Field(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::Field(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -1940,117 +2483,88 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
             match choice_0::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_1::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_2::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_3::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_4::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_5::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_6::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_7::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_8::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_9::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
-            Err(state.report_farthest_error())
+            Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
         }
         pub struct Parsed {
             _override: super::DelimitedExpression,
@@ -2061,8 +2575,8 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, super::DelimitedExpression> {
-            let (result, new_state) = parse(state, cache)?;
-            Ok((result._override, new_state))
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|result| result._override))
         }
     }
     #[inline]
@@ -2097,8 +2611,8 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let (_, state) = parse_character_range(state, 'a', 'z')?;
-                    Ok((Parsed, state))
+                    let ok_result = parse_character_range(state, 'a', 'z')?;
+                    Ok(ok_result.map(|_| Parsed))
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed;
@@ -2110,8 +2624,8 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let (_, state) = parse_character_range(state, 'A', 'Z')?;
-                    Ok((Parsed, state))
+                    let ok_result = parse_character_range(state, 'A', 'Z')?;
+                    Ok(ok_result.map(|_| Parsed))
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed;
@@ -2123,8 +2637,8 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let (_, state) = parse_character_range(state, '0', '9')?;
-                    Ok((Parsed, state))
+                    let ok_result = parse_character_range(state, '0', '9')?;
+                    Ok(ok_result.map(|_| Parsed))
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed;
@@ -2136,8 +2650,8 @@ mod peginator_generated {
                     state: ParseState<'a>,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let (_, state) = parse_character_literal(state, '_')?;
-                    Ok((Parsed, state))
+                    let ok_result = parse_character_literal(state, '_')?;
+                    Ok(ok_result.map(|_| Parsed))
                 }
                 #[derive(Debug, Clone, PartialEq, Eq)]
                 pub struct Parsed;
@@ -2148,23 +2662,25 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
                 match choice_0::parse(state.clone(), cache) {
-                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
-                    Err(err) => state = state.record_error(err),
+                    Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                    Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                 }
                 match choice_1::parse(state.clone(), cache) {
-                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
-                    Err(err) => state = state.record_error(err),
+                    Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                    Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                 }
                 match choice_2::parse(state.clone(), cache) {
-                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
-                    Err(err) => state = state.record_error(err),
+                    Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                    Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                 }
                 match choice_3::parse(state.clone(), cache) {
-                    Ok((_, new_state)) => return Ok((Parsed, new_state)),
-                    Err(err) => state = state.record_error(err),
+                    Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                    Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                 }
-                Err(state.report_farthest_error())
+                Err(farthest_error
+                    .unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed;
@@ -2174,21 +2690,32 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let (result, new_state) = closure::parse(state, cache)?;
-            state = new_state;
+            let ParseOk {
+                result,
+                mut state,
+                mut farthest_error,
+            } = closure::parse(state, cache)?;
             loop {
                 match closure::parse(state.clone(), cache) {
-                    Ok((result, new_state)) => {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
                         state = new_state;
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
                     }
                     Err(err) => {
-                        state = state.record_error(err);
+                        farthest_error = combine_errors(farthest_error, Some(err));
                         break;
                     }
                 }
             }
-            Ok((Parsed {}, state))
+            Ok(ParseOk {
+                result: Parsed {},
+                state,
+                farthest_error,
+            })
         }
         #[derive(Debug, Clone, PartialEq, Eq)]
         pub struct Parsed;
@@ -2197,8 +2724,9 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, String> {
-            let (_, new_state) = parse(state.clone(), cache)?;
-            Ok((state.slice_until(&new_state).to_string(), new_state))
+            let ok_result = parse(state.clone(), cache)?;
+            let new_state = ok_result.state.clone();
+            Ok(ok_result.map(|_| state.slice_until(&new_state).to_string()))
         }
     }
     #[inline]
@@ -2225,13 +2753,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_StringDirective(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::StringDirective(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_StringDirective(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::StringDirective(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -2246,13 +2771,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_NoSkipWsDirective(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::NoSkipWsDirective(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_NoSkipWsDirective(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::NoSkipWsDirective(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -2267,13 +2789,10 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let (result, state) = parse_ExportDirective(state, cache)?;
-                Ok((
-                    Parsed {
-                        _override: Parsed__override::ExportDirective(result),
-                    },
-                    state,
-                ))
+                let ok_result = parse_ExportDirective(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::ExportDirective(result),
+                }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
@@ -2286,40 +2805,32 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
             match choice_0::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_1::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_2::parse(state.clone(), cache) {
-                Ok((result, new_state)) => {
-                    return Ok((
-                        Parsed {
-                            _override: result._override,
-                        },
-                        new_state,
-                    ))
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
                 }
-                Err(err) => state = state.record_error(err),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
-            Err(state.report_farthest_error())
+            Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
         }
         pub struct Parsed {
             _override: super::DirectiveExpression,
@@ -2330,8 +2841,8 @@ mod peginator_generated {
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, super::DirectiveExpression> {
-            let (result, new_state) = parse(state, cache)?;
-            Ok((result._override, new_state))
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|result| result._override))
         }
     }
     #[inline]
@@ -2363,8 +2874,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            let (_, state) = parse_string_literal(state, "@string")?;
-            Ok((Parsed, state))
+            let ok_result = parse_string_literal(state, "@string")?;
+            Ok(ok_result.map(|_| Parsed))
         }
         use super::StringDirective as Parsed;
         #[inline(always)]
@@ -2402,8 +2913,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            let (_, state) = parse_string_literal(state, "@no_skip_ws")?;
-            Ok((Parsed, state))
+            let ok_result = parse_string_literal(state, "@no_skip_ws")?;
+            Ok(ok_result.map(|_| Parsed))
         }
         use super::NoSkipWsDirective as Parsed;
         #[inline(always)]
@@ -2441,8 +2952,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            let (_, state) = parse_string_literal(state, "@export")?;
-            Ok((Parsed, state))
+            let ok_result = parse_string_literal(state, "@export")?;
+            Ok(ok_result.map(|_| Parsed))
         }
         use super::ExportDirective as Parsed;
         #[inline(always)]
@@ -2480,8 +2991,8 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
             let state = state.skip_whitespace();
-            let (_, state) = parse_character_literal(state, '$')?;
-            Ok((Parsed, state))
+            let ok_result = parse_character_literal(state, '$')?;
+            Ok(ok_result.map(|_| Parsed))
         }
         use super::EndOfInput as Parsed;
         #[inline(always)]
