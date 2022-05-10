@@ -12,12 +12,3 @@ pub mod runtime;
 pub use codegen::{CodegenGrammar, CodegenSettings};
 pub use grammar::Grammar;
 pub use runtime::{ParseError, ParseSettings, PegParser, PrettyParseError};
-
-use proc_macro2::TokenStream;
-
-use anyhow::Result;
-
-pub fn peginator_compile(peg_grammar: &str) -> Result<TokenStream> {
-    let parsed_grammar = Grammar::parse_advanced(peg_grammar, &ParseSettings::default())?;
-    parsed_grammar.generate_code(&CodegenSettings::default())
-}
