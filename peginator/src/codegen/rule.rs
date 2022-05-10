@@ -36,7 +36,7 @@ impl CodegenRule for Rule {
         } else if is_override {
             self.generate_override_rule(&fields, &settings)?
         } else {
-            self.generate_normal_rule(&fields, &settings)?
+            self.generate_normal_rule(&fields, &settings, flags.position)?
         };
 
         Ok((
@@ -69,6 +69,7 @@ struct RuleFlags {
     pub no_skip_ws: bool,
     pub export: bool,
     pub string: bool,
+    pub position: bool,
 }
 
 impl Rule {
@@ -79,6 +80,7 @@ impl Rule {
                 DirectiveExpression::StringDirective(_) => result.string = true,
                 DirectiveExpression::NoSkipWsDirective(_) => result.no_skip_ws = true,
                 DirectiveExpression::ExportDirective(_) => result.export = true,
+                DirectiveExpression::PositionDirective(_) => result.position = true,
             }
         }
         result
@@ -90,6 +92,12 @@ impl Rule {
         }
         if flags.export && flags.string {
             bail!("@string rules cannot be @export-ed");
+        }
+        if flags.position && is_override {
+            bail!("Overridden (containing '@:') rules cannot contain @position");
+        }
+        if flags.position && flags.string {
+            bail!("@string rules cannot contain @position");
         }
         Ok(())
     }
@@ -177,6 +185,7 @@ impl Rule {
         &self,
         fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        record_position: bool,
     ) -> Result<(TokenStream, TokenStream)> {
         let rule_type = format_ident!("{}", self.name);
         let parsed_enum_types: TokenStream = fields
@@ -184,9 +193,9 @@ impl Rule {
             .filter(|f| f.type_names.len() > 1)
             .map(|f| generate_enum_type(&self.name, f, settings))
             .collect();
-        let parsed_struct_type = self
-            .definition
-            .generate_struct_type(fields, settings, &self.name)?;
+        let parsed_struct_type =
+            self.definition
+                .generate_struct_type(fields, settings, &self.name, record_position)?;
         let inner_enum_uses: TokenStream = fields
             .iter()
             .filter(|f| f.type_names.len() > 1)
@@ -198,6 +207,26 @@ impl Rule {
             .collect();
         let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
 
+        let rule_parser_body = if record_position {
+            quote!(
+                let ok_result = parse(state.clone(), cache)?;
+                Ok(ok_result.map_with_state(
+                    |r, new_state| super::#rule_type{
+                        #( #field_names:r.#field_names,)*
+                        position: state.range_until(new_state),
+                    }
+                ))
+            )
+        } else {
+            quote!(
+                let ok_result = parse(state, cache)?;
+                Ok(ok_result.map(
+                    |r| super::#rule_type{
+                        #( #field_names:r.#field_names,)*
+                    }
+                ))
+            )
+        };
         Ok((
             quote!(
                 #parsed_struct_type
@@ -207,12 +236,7 @@ impl Rule {
                 #inner_enum_uses
                 #[inline(always)]
                 pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
-                    let ok_result = parse(state, cache)?;
-                    Ok(ok_result.map(
-                        |r| super::#rule_type{
-                            #( #field_names:r.#field_names,)*
-                        }
-                    ))
+                    #rule_parser_body
                 }
             ),
         ))

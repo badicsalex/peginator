@@ -64,7 +64,7 @@ pub trait Codegen {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let spec_body = self.generate_code_spec(rule_fields, settings)?;
-        let parsed_type = self.generate_struct_type(rule_fields, settings, "Parsed")?;
+        let parsed_type = self.generate_struct_type(rule_fields, settings, "Parsed", false)?;
         Ok(quote!(
             #spec_body
             #parsed_type
@@ -76,9 +76,15 @@ pub trait Codegen {
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
         type_name: &str,
+        record_position: bool,
     ) -> Result<TokenStream> {
         let fields = self.get_filtered_rule_fields(rule_fields)?;
-        Ok(generate_parsed_struct_type(type_name, &fields, settings))
+        Ok(generate_parsed_struct_type(
+            type_name,
+            &fields,
+            settings,
+            record_position,
+        ))
     }
 
     fn get_filtered_rule_fields<'a>(
@@ -98,9 +104,10 @@ fn generate_parsed_struct_type(
     type_name: &str,
     fields: &[FieldDescriptor],
     settings: &CodegenSettings,
+    record_position: bool,
 ) -> TokenStream {
     let type_ident = format_ident!("{}", type_name);
-    if fields.is_empty() {
+    if fields.is_empty() && !record_position {
         quote!(
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct #type_ident;
@@ -114,10 +121,16 @@ fn generate_parsed_struct_type(
             .iter()
             .map(|f| generate_field_type(type_name, f, settings))
             .collect();
+        let position_field = if record_position {
+            quote!(pub position: std::ops::Range<usize>,)
+        } else {
+            quote!()
+        };
         quote!(
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct #type_ident {
                 #( pub #field_names: #field_types, )*
+                #position_field
             }
         )
     }

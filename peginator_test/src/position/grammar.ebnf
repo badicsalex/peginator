@@ -1,0 +1,12 @@
+@export
+@position
+Root = "nice" field:Field field2:OverriddenField "rulerino";
+
+@position
+Field = "f" ":" s:Ident;
+
+OverriddenField = "f" ":" @:Ident;
+
+@position
+@no_skip_ws
+Ident = {'a'..'z'}+;

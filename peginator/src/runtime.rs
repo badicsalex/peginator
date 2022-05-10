@@ -255,6 +255,11 @@ impl<'a> ParseState<'a> {
     }
 
     #[inline]
+    pub fn range_until(&self, other: &ParseState) -> std::ops::Range<usize> {
+        self.start_index..other.start_index
+    }
+
+    #[inline]
     pub fn skip_whitespace(self) -> Self {
         let mut result = self;
         while !result.is_empty() {

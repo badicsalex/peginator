@@ -79,6 +79,7 @@ pub type Identifier = String;
 pub enum DirectiveExpression__override {
     ExportDirective(ExportDirective),
     NoSkipWsDirective(NoSkipWsDirective),
+    PositionDirective(PositionDirective),
     StringDirective(StringDirective),
 }
 pub use DirectiveExpression__override as DirectiveExpression;
@@ -88,6 +89,8 @@ pub struct StringDirective;
 pub struct NoSkipWsDirective;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExportDirective;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PositionDirective;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EndOfInput;
 impl peginator_generated::PegParser for Grammar {
@@ -131,6 +134,7 @@ mod peginator_generated {
         pub c_StringDirective: CacheEntries<'a, StringDirective>,
         pub c_NoSkipWsDirective: CacheEntries<'a, NoSkipWsDirective>,
         pub c_ExportDirective: CacheEntries<'a, ExportDirective>,
+        pub c_PositionDirective: CacheEntries<'a, PositionDirective>,
         pub c_EndOfInput: CacheEntries<'a, EndOfInput>,
     }
     mod Grammar_impl {
@@ -2873,6 +2877,24 @@ mod peginator_generated {
                 pub _override: Parsed__override,
             }
         }
+        mod choice_3 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let state = state.skip_whitespace();
+                let ok_result = parse_PositionDirective(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::PositionDirective(result),
+                }))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub _override: Parsed__override,
+            }
+        }
         #[inline(always)]
         pub fn parse<'a>(
             state: ParseState<'a>,
@@ -2897,6 +2919,14 @@ mod peginator_generated {
                 Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_2::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_3::parse(state.clone(), cache) {
                 Ok(ok_result) => {
                     return Ok(ok_result.map(|result| Parsed {
                         _override: result._override,
@@ -3061,6 +3091,47 @@ mod peginator_generated {
                 cache,
             );
             cache.c_ExportDirective.insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod PositionDirective_impl {
+        use super::*;
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let state = state.skip_whitespace();
+            let ok_result = parse_string_literal(state, "@position")?;
+            Ok(ok_result.map(|_| Parsed))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::PositionDirective> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::PositionDirective {}))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_PositionDirective<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, PositionDirective> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_PositionDirective.get(&cache_key) {
+            cached.clone()
+        } else {
+            let result = run_rule_parser(
+                PositionDirective_impl::rule_parser,
+                "PositionDirective",
+                state,
+                cache,
+            );
+            cache.c_PositionDirective.insert(cache_key, result.clone());
             result
         }
     }
