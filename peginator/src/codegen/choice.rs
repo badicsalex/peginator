@@ -51,17 +51,22 @@ impl Codegen for Choice {
                     }
                 }
             }
-            first_iteration = false;
 
             for new_field in new_fields {
                 if let Some(original) = all_fields.iter_mut().find(|f| f.name == new_field.name) {
                     original.arity = combine_arities_for_choice(&original.arity, &new_field.arity);
-                    // TODO: remove duplicates
                     original.type_names.extend(&new_field.type_names);
-                } else {
+                } else if first_iteration || new_field.arity != Arity::One {
                     all_fields.push(new_field);
+                } else {
+                    all_fields.push(FieldDescriptor {
+                        arity: Arity::Optional,
+                        ..new_field
+                    });
                 }
             }
+
+            first_iteration = false;
         }
         Ok(all_fields)
     }
@@ -101,7 +106,7 @@ impl Choice {
                             } else {
                                 match field.arity {
                                     Arity::One => {
-                                        panic!("Outer field cannot be One if inner does not exist")
+                                        panic!("Outer field ({:?}) cannot be One if inner does not exist", field)
                                     }
                                     Arity::Optional => quote!(None),
                                     Arity::Multiple => quote!(Vec::new()),
