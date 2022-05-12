@@ -1,0 +1,14 @@
+@export
+Simple = Hmm $;
+
+@export
+Choice = Hmm $ | "thonk";
+
+@export
+Optional = "well" [f:Hmm $];
+
+@export
+@no_skip_ws
+NoSkipWs = Hmm $;
+
+Hmm = "hmm";

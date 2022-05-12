@@ -9,6 +9,7 @@ mod additional_traits;
 mod choice;
 mod closure;
 mod enums;
+mod eoi;
 mod memoization;
 mod palindrome;
 mod position;
