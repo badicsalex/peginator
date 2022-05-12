@@ -45,7 +45,8 @@ impl Codegen for Choice {
 
             if !first_iteration {
                 for field in &mut all_fields {
-                    if !new_fields.iter().any(|f| f.name == field.name) {
+                    if field.arity == Arity::One && !new_fields.iter().any(|f| f.name == field.name)
+                    {
                         field.arity = Arity::Optional;
                     }
                 }
