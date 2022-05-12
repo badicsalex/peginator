@@ -7,6 +7,7 @@ pub(crate) mod test_utils;
 
 mod additional_traits;
 mod choice;
+mod closure;
 mod enums;
 mod memoization;
 mod palindrome;

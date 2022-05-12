@@ -1,0 +1,30 @@
+@export
+Simple = {f:FieldA};
+@export
+SimplePlus = {f:FieldA}+;
+
+@export
+Arity1 = {'.' f:FieldA};
+@export
+ArityO = {'.' [f:FieldA]};
+@export
+ArityM = {'.' {f:FieldA}};
+@export
+ArityX = {'.'};
+
+@export
+Arity1P = {'.' f:FieldA}+;
+@export
+ArityOP = {'.' [f:FieldA]}+;
+@export
+ArityMP = {'.' {f:FieldA}}+;
+@export
+ArityXP = {'.'}+;
+
+@export
+MultiField = {f1:FieldA f2:FieldB [f3:FieldC] {f4:FieldD}};
+
+FieldA = 'a';
+FieldB = 'b';
+FieldC = 'c';
+FieldD = 'd';
