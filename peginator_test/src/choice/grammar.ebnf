@@ -1,0 +1,57 @@
+@export
+Simple = f:FieldA | f:FieldB;
+
+@export
+ContainsOverridden = f:Overridden;
+
+Overridden = @:FieldA | @:FieldB;
+
+@export
+Arity11 = '1' f:FieldA | '2' f:FieldA;
+@export
+Arity1O = '1' f:FieldA | '2' [f:FieldA];
+@export
+Arity1M = '1' f:FieldA | '2' {f:FieldA};
+@export
+Arity1X = '1' f:FieldA | '2';
+
+@export
+ArityO1 = '1' [f:FieldA] | '2' f:FieldA;
+@export
+ArityOO = '1' [f:FieldA] | '2' [f:FieldA];
+@export
+ArityOM = '1' [f:FieldA] | '2' {f:FieldA};
+@export
+ArityOX = '1' [f:FieldA] | '2' ;
+
+@export
+ArityM1 = '1' {f:FieldA} | '2' f:FieldA;
+@export
+ArityMO = '1' {f:FieldA} | '2' [f:FieldA];
+@export
+ArityMM = '1' {f:FieldA} | '2' {f:FieldA};
+@export
+ArityMX = '1' {f:FieldA} | '2';
+
+@export
+ArityX1 = '1' | '2' f:FieldA;
+@export
+ArityXO = '1' | '2' [f:FieldA];
+@export
+ArityXM = '1' | '2' {f:FieldA};
+@export
+ArityXX = '1' | '2';
+
+@export
+DefaultO = '1' [f:FieldA] | '2';
+@export
+DefaultM = '1' {f:FieldA} | '2';
+
+@export
+Empty = '1' | '2';
+
+@export
+MultipleFields = f1:FieldA '1' f2:FieldB | f2:FieldA '2' f3:FieldB;
+
+FieldA = 'a';
+FieldB = 'b';
