@@ -331,9 +331,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, Grammar> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_Grammar.get(&cache_key) {
+            state.print_trace_cached("Grammar");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(Grammar_impl::rule_parser, "Grammar", state, cache);
+            state.print_trace_start("Grammar");
+            let result = Grammar_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_Grammar.insert(cache_key, result.clone());
             result
         }
@@ -535,9 +543,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, Rule> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_Rule.get(&cache_key) {
+            state.print_trace_cached("Rule");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(Rule_impl::rule_parser, "Rule", state, cache);
+            state.print_trace_start("Rule");
+            let result = Rule_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_Rule.insert(cache_key, result.clone());
             result
         }
@@ -735,9 +751,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, Choice> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_Choice.get(&cache_key) {
+            state.print_trace_cached("Choice");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(Choice_impl::rule_parser, "Choice", state, cache);
+            state.print_trace_start("Choice");
+            let result = Choice_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_Choice.insert(cache_key, result.clone());
             result
         }
@@ -813,9 +837,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, Sequence> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_Sequence.get(&cache_key) {
+            state.print_trace_cached("Sequence");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(Sequence_impl::rule_parser, "Sequence", state, cache);
+            state.print_trace_start("Sequence");
+            let result = Sequence_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_Sequence.insert(cache_key, result.clone());
             result
         }
@@ -934,9 +966,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, Group> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_Group.get(&cache_key) {
+            state.print_trace_cached("Group");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(Group_impl::rule_parser, "Group", state, cache);
+            state.print_trace_start("Group");
+            let result = Group_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_Group.insert(cache_key, result.clone());
             result
         }
@@ -1055,9 +1095,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, Optional> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_Optional.get(&cache_key) {
+            state.print_trace_cached("Optional");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(Optional_impl::rule_parser, "Optional", state, cache);
+            state.print_trace_start("Optional");
+            let result = Optional_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_Optional.insert(cache_key, result.clone());
             result
         }
@@ -1236,9 +1284,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, Closure> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_Closure.get(&cache_key) {
+            state.print_trace_cached("Closure");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(Closure_impl::rule_parser, "Closure", state, cache);
+            state.print_trace_start("Closure");
+            let result = Closure_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_Closure.insert(cache_key, result.clone());
             result
         }
@@ -1272,14 +1328,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, AtLeastOneMarker> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_AtLeastOneMarker.get(&cache_key) {
+            state.print_trace_cached("AtLeastOneMarker");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                AtLeastOneMarker_impl::rule_parser,
-                "AtLeastOneMarker",
-                state,
-                cache,
-            );
+            state.print_trace_start("AtLeastOneMarker");
+            let result = AtLeastOneMarker_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_AtLeastOneMarker.insert(cache_key, result.clone());
             result
         }
@@ -1375,14 +1434,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, NegativeLookahead> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_NegativeLookahead.get(&cache_key) {
+            state.print_trace_cached("NegativeLookahead");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                NegativeLookahead_impl::rule_parser,
-                "NegativeLookahead",
-                state,
-                cache,
-            );
+            state.print_trace_start("NegativeLookahead");
+            let result = NegativeLookahead_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_NegativeLookahead.insert(cache_key, result.clone());
             result
         }
@@ -1509,14 +1571,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, CharacterRange> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_CharacterRange.get(&cache_key) {
+            state.print_trace_cached("CharacterRange");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                CharacterRange_impl::rule_parser,
-                "CharacterRange",
-                state,
-                cache,
-            );
+            state.print_trace_start("CharacterRange");
+            let result = CharacterRange_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_CharacterRange.insert(cache_key, result.clone());
             result
         }
@@ -1636,14 +1701,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, CharacterLiteral> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_CharacterLiteral.get(&cache_key) {
+            state.print_trace_cached("CharacterLiteral");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                CharacterLiteral_impl::rule_parser,
-                "CharacterLiteral",
-                state,
-                cache,
-            );
+            state.print_trace_start("CharacterLiteral");
+            let result = CharacterLiteral_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_CharacterLiteral.insert(cache_key, result.clone());
             result
         }
@@ -1762,14 +1830,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, StringLiteral> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_StringLiteral.get(&cache_key) {
+            state.print_trace_cached("StringLiteral");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                StringLiteral_impl::rule_parser,
-                "StringLiteral",
-                state,
-                cache,
-            );
+            state.print_trace_start("StringLiteral");
+            let result = StringLiteral_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_StringLiteral.insert(cache_key, result.clone());
             result
         }
@@ -1937,8 +2008,7 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, String> {
             let ok_result = parse(state.clone(), cache)?;
-            let new_state = ok_result.state.clone();
-            Ok(ok_result.map(|_| state.slice_until(&new_state).to_string()))
+            Ok(ok_result.map_with_state(|_, new_state| state.slice_until(&new_state).to_string()))
         }
     }
     #[inline]
@@ -1948,14 +2018,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, StringLiteralBody> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_StringLiteralBody.get(&cache_key) {
+            state.print_trace_cached("StringLiteralBody");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                StringLiteralBody_impl::rule_parser,
-                "StringLiteralBody",
-                state,
-                cache,
-            );
+            state.print_trace_start("StringLiteralBody");
+            let result = StringLiteralBody_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_StringLiteralBody.insert(cache_key, result.clone());
             result
         }
@@ -2203,9 +2276,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, Field> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_Field.get(&cache_key) {
+            state.print_trace_cached("Field");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(Field_impl::rule_parser, "Field", state, cache);
+            state.print_trace_start("Field");
+            let result = Field_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_Field.insert(cache_key, result.clone());
             result
         }
@@ -2239,9 +2320,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, BoxMarker> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_BoxMarker.get(&cache_key) {
+            state.print_trace_cached("BoxMarker");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(BoxMarker_impl::rule_parser, "BoxMarker", state, cache);
+            state.print_trace_start("BoxMarker");
+            let result = BoxMarker_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_BoxMarker.insert(cache_key, result.clone());
             result
         }
@@ -2360,14 +2449,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, OverrideField> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_OverrideField.get(&cache_key) {
+            state.print_trace_cached("OverrideField");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                OverrideField_impl::rule_parser,
-                "OverrideField",
-                state,
-                cache,
-            );
+            state.print_trace_start("OverrideField");
+            let result = OverrideField_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_OverrideField.insert(cache_key, result.clone());
             result
         }
@@ -2664,14 +2756,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, DelimitedExpression> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_DelimitedExpression.get(&cache_key) {
+            state.print_trace_cached("DelimitedExpression");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                DelimitedExpression_impl::rule_parser,
-                "DelimitedExpression",
-                state,
-                cache,
-            );
+            state.print_trace_start("DelimitedExpression");
+            let result = DelimitedExpression_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache
                 .c_DelimitedExpression
                 .insert(cache_key, result.clone());
@@ -2803,8 +2898,7 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, String> {
             let ok_result = parse(state.clone(), cache)?;
-            let new_state = ok_result.state.clone();
-            Ok(ok_result.map(|_| state.slice_until(&new_state).to_string()))
+            Ok(ok_result.map_with_state(|_, new_state| state.slice_until(&new_state).to_string()))
         }
     }
     #[inline]
@@ -2814,9 +2908,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, Identifier> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_Identifier.get(&cache_key) {
+            state.print_trace_cached("Identifier");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(Identifier_impl::rule_parser, "Identifier", state, cache);
+            state.print_trace_start("Identifier");
+            let result = Identifier_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_Identifier.insert(cache_key, result.clone());
             result
         }
@@ -2957,14 +3059,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, DirectiveExpression> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_DirectiveExpression.get(&cache_key) {
+            state.print_trace_cached("DirectiveExpression");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                DirectiveExpression_impl::rule_parser,
-                "DirectiveExpression",
-                state,
-                cache,
-            );
+            state.print_trace_start("DirectiveExpression");
+            let result = DirectiveExpression_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache
                 .c_DirectiveExpression
                 .insert(cache_key, result.clone());
@@ -3000,14 +3105,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, StringDirective> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_StringDirective.get(&cache_key) {
+            state.print_trace_cached("StringDirective");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                StringDirective_impl::rule_parser,
-                "StringDirective",
-                state,
-                cache,
-            );
+            state.print_trace_start("StringDirective");
+            let result = StringDirective_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_StringDirective.insert(cache_key, result.clone());
             result
         }
@@ -3041,14 +3149,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, NoSkipWsDirective> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_NoSkipWsDirective.get(&cache_key) {
+            state.print_trace_cached("NoSkipWsDirective");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                NoSkipWsDirective_impl::rule_parser,
-                "NoSkipWsDirective",
-                state,
-                cache,
-            );
+            state.print_trace_start("NoSkipWsDirective");
+            let result = NoSkipWsDirective_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_NoSkipWsDirective.insert(cache_key, result.clone());
             result
         }
@@ -3082,14 +3193,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, ExportDirective> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_ExportDirective.get(&cache_key) {
+            state.print_trace_cached("ExportDirective");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                ExportDirective_impl::rule_parser,
-                "ExportDirective",
-                state,
-                cache,
-            );
+            state.print_trace_start("ExportDirective");
+            let result = ExportDirective_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_ExportDirective.insert(cache_key, result.clone());
             result
         }
@@ -3123,14 +3237,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, PositionDirective> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_PositionDirective.get(&cache_key) {
+            state.print_trace_cached("PositionDirective");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(
-                PositionDirective_impl::rule_parser,
-                "PositionDirective",
-                state,
-                cache,
-            );
+            state.print_trace_start("PositionDirective");
+            let result = PositionDirective_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_PositionDirective.insert(cache_key, result.clone());
             result
         }
@@ -3164,9 +3281,17 @@ mod peginator_generated {
     ) -> ParseResult<'a, EndOfInput> {
         let cache_key = state.cache_key();
         if let Some(cached) = cache.c_EndOfInput.get(&cache_key) {
+            state.print_trace_cached("EndOfInput");
+            state.print_trace_result(&cached);
             cached.clone()
         } else {
-            let result = run_rule_parser(EndOfInput_impl::rule_parser, "EndOfInput", state, cache);
+            state.print_trace_start("EndOfInput");
+            let result = EndOfInput_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
             cache.c_EndOfInput.insert(cache_key, result.clone());
             result
         }

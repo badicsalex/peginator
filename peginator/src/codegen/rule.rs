@@ -52,9 +52,17 @@ impl CodegenRule for Rule {
                 pub(super) fn #parser_name <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, #rule_type> {
                     let cache_key = state.cache_key();
                     if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
+                        state.print_trace_cached(#name);
+                        state.print_trace_result(&cached);
                         cached.clone()
                     } else {
-                        let result = run_rule_parser(#rule_mod::rule_parser, #name, state, cache);
+                        state.print_trace_start(#name);
+                        let result = #rule_mod::rule_parser(state.clone().indent(), cache);
+                        state.print_trace_result(&result);
+                        let result = result.map(|result| ParseOk {
+                            state: result.state.dedent(),
+                            ..result
+                        });
                         cache.#cache_entry_ident.insert(cache_key, result.clone());
                         result
                     }

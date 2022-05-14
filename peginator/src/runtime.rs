@@ -208,10 +208,49 @@ impl<'a> ParseState<'a> {
     }
 
     #[inline]
-    pub fn print_trace<F: Fn() -> ColoredString>(&self, f: F) {
+    pub fn print_trace_start(&self, name: &str) {
         if self.tracing {
             let indentation = "    ".repeat(self.indentation_level);
-            println!("{}{}", indentation, f())
+            println!(
+                "{}{:?}",
+                indentation,
+                self.s().chars().take(50).collect::<String>()
+            );
+            println!("{}{}?", indentation, name.yellow());
+        }
+    }
+
+    #[inline]
+    pub fn print_trace_cached(&self, name: &str) {
+        if self.tracing {
+            let indentation = "    ".repeat(self.indentation_level);
+            println!(
+                "{}{:?}",
+                indentation,
+                self.s().chars().take(50).collect::<String>()
+            );
+            println!(
+                "{}{} {}",
+                indentation,
+                "Cached:".bright_yellow(),
+                name.yellow()
+            );
+        }
+    }
+
+    #[inline]
+    pub fn print_trace_result<T>(&self, result: &ParseResult<T>) {
+        if self.tracing {
+            let indentation = "    ".repeat(self.indentation_level);
+            match &result {
+                Ok(_) => println!("{}{}", indentation, "Ok".green()),
+                Err(err) => println!(
+                    "{}{} {}",
+                    indentation,
+                    "Error:".red(),
+                    err.specifics_as_string()
+                ),
+            };
         }
     }
 
@@ -471,27 +510,4 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
             })
         }
     }
-}
-
-#[inline(always)]
-pub fn run_rule_parser<'a, T, F, CT>(
-    f: F,
-    name: &'static str,
-    state: ParseState<'a>,
-    cache: &mut CT,
-) -> ParseResult<'a, T>
-where
-    F: for<'b> Fn(ParseState<'a>, &'b mut CT) -> ParseResult<'a, T>,
-{
-    state.print_trace(|| format!("{}?", name).yellow());
-    state.print_trace(|| format!("{:?}", state.s().chars().take(50).collect::<String>()).normal());
-    let result = f(state.clone().indent(), cache);
-    state.print_trace(|| match &result {
-        Ok(_) => "Ok".green(),
-        Err(err) => format!("Error: {}", err.specifics_as_string()).red(),
-    });
-    result.map(|result| ParseOk {
-        state: result.state.dedent(),
-        ..result
-    })
 }
