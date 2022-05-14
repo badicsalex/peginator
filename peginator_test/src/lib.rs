@@ -15,3 +15,4 @@ mod memoization;
 mod palindrome;
 mod position;
 mod simple;
+mod lookahead;
