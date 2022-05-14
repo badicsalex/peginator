@@ -10,6 +10,7 @@ mod choice;
 mod closure;
 mod enums;
 mod eoi;
+mod field;
 mod memoization;
 mod palindrome;
 mod position;

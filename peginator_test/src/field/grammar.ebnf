@@ -1,0 +1,32 @@
+@export
+EnumTest = 'a' a:Point | 'b' a:NoFieldName;
+
+@export
+EnumTestComplex = 'a' a:Point | ('b' a:NoFieldName | 'c' a:OverrideTest);
+
+@export
+OverrideTest = s:SimpleOverride e:EnumOverride;
+
+SimpleOverride = @:Point;
+
+EnumOverride = @:Point | @:NoFieldName;
+
+@export
+NoFieldName = "dontcare:" Coordinate f:Coordinate;
+
+@export
+BoxedSimple = p:*Point;
+
+@export
+BoxedOptional = [p:*Point];
+
+@export
+BoxedVec = {p:*Point};
+
+@export
+Point = '(' x:Coordinate ';' y:Coordinate ')';
+
+@string
+@no_skip_ws
+Coordinate = {'0'..'9'}+;
+
