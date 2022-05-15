@@ -37,15 +37,14 @@ pub struct NegativeLookahead {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CharacterRange {
-    pub from: CharacterLiteral,
-    pub to: CharacterLiteral,
+    pub from: CharRangePart,
+    pub to: CharRangePart,
 }
-pub use char as CharacterLiteral;
+pub use StringItem as CharRangePart;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StringLiteral {
-    pub body: StringLiteralBody,
+    pub body: Vec<StringItem>,
 }
-pub type StringLiteralBody = String;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Field {
     pub name: Option<Identifier>,
@@ -61,7 +60,6 @@ pub struct OverrideField {
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DelimitedExpression__override {
-    CharacterLiteral(CharacterLiteral),
     CharacterRange(CharacterRange),
     Closure(Closure),
     EndOfInput(EndOfInput),
@@ -74,6 +72,53 @@ pub enum DelimitedExpression__override {
 }
 pub use DelimitedExpression__override as DelimitedExpression;
 pub type Identifier = String;
+#[allow(non_camel_case_types)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StringItem__override {
+    HexaEscape(HexaEscape),
+    SimpleEscape(SimpleEscape),
+    Utf8Escape(Utf8Escape),
+    char(char),
+}
+pub use StringItem__override as StringItem;
+#[allow(non_camel_case_types)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SimpleEscape__override {
+    SimpleEscapeBackslash(SimpleEscapeBackslash),
+    SimpleEscapeCarriageReturn(SimpleEscapeCarriageReturn),
+    SimpleEscapeDQuote(SimpleEscapeDQuote),
+    SimpleEscapeNewline(SimpleEscapeNewline),
+    SimpleEscapeQuote(SimpleEscapeQuote),
+    SimpleEscapeTab(SimpleEscapeTab),
+}
+pub use SimpleEscape__override as SimpleEscape;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SimpleEscapeNewline;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SimpleEscapeCarriageReturn;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SimpleEscapeTab;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SimpleEscapeBackslash;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SimpleEscapeQuote;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SimpleEscapeDQuote;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HexaEscape {
+    pub c1: HexChar,
+    pub c2: HexChar,
+}
+pub type HexChar = String;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Utf8Escape {
+    pub c1: HexChar,
+    pub c2: Option<HexChar>,
+    pub c3: Option<HexChar>,
+    pub c4: Option<HexChar>,
+    pub c5: Option<HexChar>,
+    pub c6: Option<HexChar>,
+}
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DirectiveExpression__override {
@@ -122,14 +167,24 @@ mod peginator_generated {
         pub c_AtLeastOneMarker: CacheEntries<'a, AtLeastOneMarker>,
         pub c_NegativeLookahead: CacheEntries<'a, NegativeLookahead>,
         pub c_CharacterRange: CacheEntries<'a, CharacterRange>,
-        pub c_CharacterLiteral: CacheEntries<'a, CharacterLiteral>,
+        pub c_CharRangePart: CacheEntries<'a, CharRangePart>,
         pub c_StringLiteral: CacheEntries<'a, StringLiteral>,
-        pub c_StringLiteralBody: CacheEntries<'a, StringLiteralBody>,
         pub c_Field: CacheEntries<'a, Field>,
         pub c_BoxMarker: CacheEntries<'a, BoxMarker>,
         pub c_OverrideField: CacheEntries<'a, OverrideField>,
         pub c_DelimitedExpression: CacheEntries<'a, DelimitedExpression>,
         pub c_Identifier: CacheEntries<'a, Identifier>,
+        pub c_StringItem: CacheEntries<'a, StringItem>,
+        pub c_SimpleEscape: CacheEntries<'a, SimpleEscape>,
+        pub c_SimpleEscapeNewline: CacheEntries<'a, SimpleEscapeNewline>,
+        pub c_SimpleEscapeCarriageReturn: CacheEntries<'a, SimpleEscapeCarriageReturn>,
+        pub c_SimpleEscapeTab: CacheEntries<'a, SimpleEscapeTab>,
+        pub c_SimpleEscapeBackslash: CacheEntries<'a, SimpleEscapeBackslash>,
+        pub c_SimpleEscapeQuote: CacheEntries<'a, SimpleEscapeQuote>,
+        pub c_SimpleEscapeDQuote: CacheEntries<'a, SimpleEscapeDQuote>,
+        pub c_HexaEscape: CacheEntries<'a, HexaEscape>,
+        pub c_HexChar: CacheEntries<'a, HexChar>,
+        pub c_Utf8Escape: CacheEntries<'a, Utf8Escape>,
         pub c_DirectiveExpression: CacheEntries<'a, DirectiveExpression>,
         pub c_StringDirective: CacheEntries<'a, StringDirective>,
         pub c_NoSkipWsDirective: CacheEntries<'a, NoSkipWsDirective>,
@@ -169,7 +224,7 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        let ok_result = parse_string_literal(state, ";")?;
+                        let ok_result = parse_character_literal(state, ';')?;
                         Ok(ok_result.map(|_| Parsed))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -428,7 +483,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "=")?;
+                let ok_result = parse_character_literal(state, '=')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -590,7 +645,7 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        let ok_result = parse_string_literal(state, "|")?;
+                        let ok_result = parse_character_literal(state, '|')?;
                         Ok(ok_result.map(|_| Parsed))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -862,7 +917,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "(")?;
+                let ok_result = parse_character_literal(state, '(')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -892,7 +947,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, ")")?;
+                let ok_result = parse_character_literal(state, ')')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -991,7 +1046,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "[")?;
+                let ok_result = parse_character_literal(state, '[')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1021,7 +1076,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "]")?;
+                let ok_result = parse_character_literal(state, ']')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1120,7 +1175,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "{")?;
+                let ok_result = parse_character_literal(state, '{')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1150,7 +1205,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "}")?;
+                let ok_result = parse_character_literal(state, '}')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1353,7 +1408,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "!")?;
+                let ok_result = parse_character_literal(state, '!')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1459,12 +1514,12 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_CharacterLiteral(state, cache)?;
+                let ok_result = parse_CharRangePart(state, cache)?;
                 Ok(ok_result.map(|result| Parsed { from: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
-                pub from: CharacterLiteral,
+                pub from: CharRangePart,
             }
         }
         mod part_1 {
@@ -1489,12 +1544,12 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_CharacterLiteral(state, cache)?;
+                let ok_result = parse_CharRangePart(state, cache)?;
                 Ok(ok_result.map(|result| Parsed { to: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
-                pub to: CharacterLiteral,
+                pub to: CharRangePart,
             }
         }
         #[inline(always)]
@@ -1549,8 +1604,8 @@ mod peginator_generated {
         }
         #[derive(Debug, Clone, PartialEq, Eq)]
         pub struct Parsed {
-            pub from: CharacterLiteral,
-            pub to: CharacterLiteral,
+            pub from: CharRangePart,
+            pub to: CharRangePart,
         }
         #[inline(always)]
         pub fn rule_parser<'a>(
@@ -1586,7 +1641,7 @@ mod peginator_generated {
             result
         }
     }
-    mod CharacterLiteral_impl {
+    mod CharRangePart_impl {
         use super::*;
         mod part_0 {
             use super::*;
@@ -1595,8 +1650,7 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "'")?;
+                let ok_result = parse_character_literal(state, '\'')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1609,13 +1663,12 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let state = state.skip_whitespace();
-                let ok_result = parse_char(state, cache)?;
+                let ok_result = parse_StringItem(state, cache)?;
                 Ok(ok_result.map(|result| Parsed { _override: result }))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
-                pub _override: char,
+                pub _override: StringItem,
             }
         }
         mod part_2 {
@@ -1625,8 +1678,7 @@ mod peginator_generated {
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "'")?;
+                let ok_result = parse_character_literal(state, '\'')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1682,85 +1734,471 @@ mod peginator_generated {
         }
         #[derive(Debug, Clone, PartialEq, Eq)]
         pub struct Parsed {
-            pub _override: char,
+            pub _override: StringItem,
         }
-        use super::CharacterLiteral as Parsed__override;
+        use super::CharRangePart as Parsed__override;
         #[inline(always)]
         pub fn rule_parser<'a>(
             state: ParseState<'a>,
             cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, super::CharacterLiteral> {
+        ) -> ParseResult<'a, super::CharRangePart> {
             let ok_result = parse(state, cache)?;
             Ok(ok_result.map(|result| result._override))
         }
     }
     #[inline]
-    pub(super) fn parse_CharacterLiteral<'a>(
+    pub(super) fn parse_CharRangePart<'a>(
         state: ParseState<'a>,
         cache: &mut ParseCache<'a>,
-    ) -> ParseResult<'a, CharacterLiteral> {
+    ) -> ParseResult<'a, CharRangePart> {
         let cache_key = state.cache_key();
-        if let Some(cached) = cache.c_CharacterLiteral.get(&cache_key) {
-            state.print_trace_cached("CharacterLiteral");
+        if let Some(cached) = cache.c_CharRangePart.get(&cache_key) {
+            state.print_trace_cached("CharRangePart");
             state.print_trace_result(&cached);
             cached.clone()
         } else {
-            state.print_trace_start("CharacterLiteral");
-            let result = CharacterLiteral_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_start("CharRangePart");
+            let result = CharRangePart_impl::rule_parser(state.clone().indent(), cache);
             state.print_trace_result(&result);
             let result = result.map(|result| ParseOk {
                 state: result.state.dedent(),
                 ..result
             });
-            cache.c_CharacterLiteral.insert(cache_key, result.clone());
+            cache.c_CharRangePart.insert(cache_key, result.clone());
             result
         }
     }
     mod StringLiteral_impl {
         use super::*;
-        mod part_0 {
+        mod choice_0 {
             use super::*;
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                cache: &mut ParseCache<'a>,
-            ) -> ParseResult<'a, Parsed> {
-                let state = state.skip_whitespace();
-                let ok_result = parse_character_literal(state, '"')?;
-                Ok(ok_result.map(|_| Parsed))
+            mod part_0 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, '"')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
             }
-            #[derive(Debug, Clone, PartialEq, Eq)]
-            pub struct Parsed;
-        }
-        mod part_1 {
-            use super::*;
+            mod part_1 {
+                use super::*;
+                mod closure {
+                    use super::*;
+                    mod part_0 {
+                        use super::*;
+                        mod negative_lookahead {
+                            use super::*;
+                            #[inline(always)]
+                            pub fn parse<'a>(
+                                state: ParseState<'a>,
+                                cache: &mut ParseCache<'a>,
+                            ) -> ParseResult<'a, Parsed> {
+                                let ok_result = parse_character_literal(state, '"')?;
+                                Ok(ok_result.map(|_| Parsed))
+                            }
+                            #[derive(Debug, Clone, PartialEq, Eq)]
+                            pub struct Parsed;
+                        }
+                        #[inline(always)]
+                        pub fn parse<'a>(
+                            state: ParseState<'a>,
+                            cache: &mut ParseCache<'a>,
+                        ) -> ParseResult<'a, Parsed> {
+                            match negative_lookahead::parse(state.clone(), cache) {
+                                Ok(_) => Err(state
+                                    .report_error(ParseErrorSpecifics::NegativeLookaheadFailed)),
+                                Err(_) => Ok(ParseOk {
+                                    result: Parsed,
+                                    state,
+                                    farthest_error: None,
+                                }),
+                            }
+                        }
+                        #[derive(Debug, Clone, PartialEq, Eq)]
+                        pub struct Parsed;
+                    }
+                    mod part_1 {
+                        use super::*;
+                        #[inline(always)]
+                        pub fn parse<'a>(
+                            state: ParseState<'a>,
+                            cache: &mut ParseCache<'a>,
+                        ) -> ParseResult<'a, Parsed> {
+                            let ok_result = parse_StringItem(state, cache)?;
+                            Ok(ok_result.map(|result| Parsed { body: vec![result] }))
+                        }
+                        #[derive(Debug, Clone, PartialEq, Eq)]
+                        pub struct Parsed {
+                            pub body: Vec<StringItem>,
+                        }
+                    }
+                    #[inline(always)]
+                    pub fn parse<'a>(
+                        state: ParseState<'a>,
+                        cache: &mut ParseCache<'a>,
+                    ) -> ParseResult<'a, Parsed> {
+                        let mut state = state;
+                        let mut farthest_error: Option<ParseError> = None;
+                        match part_0::parse(state, cache) {
+                            Ok(ParseOk {
+                                result: _,
+                                state: new_state,
+                                farthest_error: new_farthest_error,
+                            }) => {
+                                farthest_error = combine_errors(farthest_error, new_farthest_error);
+                                state = new_state;
+                            }
+                            Err(err) => {
+                                return Err(combine_errors(farthest_error, Some(err)).unwrap())
+                            }
+                        }
+                        let result = match part_1::parse(state, cache) {
+                            Ok(ParseOk {
+                                result,
+                                state: new_state,
+                                farthest_error: new_farthest_error,
+                            }) => {
+                                farthest_error = combine_errors(farthest_error, new_farthest_error);
+                                state = new_state;
+                                result
+                            }
+                            Err(err) => {
+                                return Err(combine_errors(farthest_error, Some(err)).unwrap())
+                            }
+                        };
+                        let mut body = result.body;
+                        Ok(ParseOk {
+                            result: Parsed { body },
+                            state,
+                            farthest_error,
+                        })
+                    }
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed {
+                        pub body: Vec<StringItem>,
+                    }
+                }
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let mut body: Vec<StringItem> = Vec::new();
+                    let mut state = state;
+                    let mut farthest_error: Option<ParseError> = None;
+                    loop {
+                        match closure::parse(state.clone(), cache) {
+                            Ok(ParseOk {
+                                result,
+                                state: new_state,
+                                farthest_error: new_farthest_error,
+                            }) => {
+                                body.extend(result.body);
+                                state = new_state;
+                                farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            }
+                            Err(err) => {
+                                farthest_error = combine_errors(farthest_error, Some(err));
+                                break;
+                            }
+                        }
+                    }
+                    Ok(ParseOk {
+                        result: Parsed { body },
+                        state,
+                        farthest_error,
+                    })
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub body: Vec<StringItem>,
+                }
+            }
+            mod part_2 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, '"')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
             #[inline(always)]
             pub fn parse<'a>(
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let state = state.skip_whitespace();
-                let ok_result = parse_StringLiteralBody(state, cache)?;
-                Ok(ok_result.map(|result| Parsed { body: result }))
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
+                match part_0::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                let result = match part_1::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut body = result.body;
+                match part_2::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                Ok(ParseOk {
+                    result: Parsed { body },
+                    state,
+                    farthest_error,
+                })
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
             pub struct Parsed {
-                pub body: StringLiteralBody,
+                pub body: Vec<StringItem>,
             }
         }
-        mod part_2 {
+        mod choice_1 {
             use super::*;
+            mod part_0 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, '\'')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            mod part_1 {
+                use super::*;
+                mod closure {
+                    use super::*;
+                    mod part_0 {
+                        use super::*;
+                        mod negative_lookahead {
+                            use super::*;
+                            #[inline(always)]
+                            pub fn parse<'a>(
+                                state: ParseState<'a>,
+                                cache: &mut ParseCache<'a>,
+                            ) -> ParseResult<'a, Parsed> {
+                                let ok_result = parse_character_literal(state, '\'')?;
+                                Ok(ok_result.map(|_| Parsed))
+                            }
+                            #[derive(Debug, Clone, PartialEq, Eq)]
+                            pub struct Parsed;
+                        }
+                        #[inline(always)]
+                        pub fn parse<'a>(
+                            state: ParseState<'a>,
+                            cache: &mut ParseCache<'a>,
+                        ) -> ParseResult<'a, Parsed> {
+                            match negative_lookahead::parse(state.clone(), cache) {
+                                Ok(_) => Err(state
+                                    .report_error(ParseErrorSpecifics::NegativeLookaheadFailed)),
+                                Err(_) => Ok(ParseOk {
+                                    result: Parsed,
+                                    state,
+                                    farthest_error: None,
+                                }),
+                            }
+                        }
+                        #[derive(Debug, Clone, PartialEq, Eq)]
+                        pub struct Parsed;
+                    }
+                    mod part_1 {
+                        use super::*;
+                        #[inline(always)]
+                        pub fn parse<'a>(
+                            state: ParseState<'a>,
+                            cache: &mut ParseCache<'a>,
+                        ) -> ParseResult<'a, Parsed> {
+                            let ok_result = parse_StringItem(state, cache)?;
+                            Ok(ok_result.map(|result| Parsed { body: vec![result] }))
+                        }
+                        #[derive(Debug, Clone, PartialEq, Eq)]
+                        pub struct Parsed {
+                            pub body: Vec<StringItem>,
+                        }
+                    }
+                    #[inline(always)]
+                    pub fn parse<'a>(
+                        state: ParseState<'a>,
+                        cache: &mut ParseCache<'a>,
+                    ) -> ParseResult<'a, Parsed> {
+                        let mut state = state;
+                        let mut farthest_error: Option<ParseError> = None;
+                        match part_0::parse(state, cache) {
+                            Ok(ParseOk {
+                                result: _,
+                                state: new_state,
+                                farthest_error: new_farthest_error,
+                            }) => {
+                                farthest_error = combine_errors(farthest_error, new_farthest_error);
+                                state = new_state;
+                            }
+                            Err(err) => {
+                                return Err(combine_errors(farthest_error, Some(err)).unwrap())
+                            }
+                        }
+                        let result = match part_1::parse(state, cache) {
+                            Ok(ParseOk {
+                                result,
+                                state: new_state,
+                                farthest_error: new_farthest_error,
+                            }) => {
+                                farthest_error = combine_errors(farthest_error, new_farthest_error);
+                                state = new_state;
+                                result
+                            }
+                            Err(err) => {
+                                return Err(combine_errors(farthest_error, Some(err)).unwrap())
+                            }
+                        };
+                        let mut body = result.body;
+                        Ok(ParseOk {
+                            result: Parsed { body },
+                            state,
+                            farthest_error,
+                        })
+                    }
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed {
+                        pub body: Vec<StringItem>,
+                    }
+                }
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let mut body: Vec<StringItem> = Vec::new();
+                    let mut state = state;
+                    let mut farthest_error: Option<ParseError> = None;
+                    loop {
+                        match closure::parse(state.clone(), cache) {
+                            Ok(ParseOk {
+                                result,
+                                state: new_state,
+                                farthest_error: new_farthest_error,
+                            }) => {
+                                body.extend(result.body);
+                                state = new_state;
+                                farthest_error = combine_errors(farthest_error, new_farthest_error);
+                            }
+                            Err(err) => {
+                                farthest_error = combine_errors(farthest_error, Some(err));
+                                break;
+                            }
+                        }
+                    }
+                    Ok(ParseOk {
+                        result: Parsed { body },
+                        state,
+                        farthest_error,
+                    })
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub body: Vec<StringItem>,
+                }
+            }
+            mod part_2 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, '\'')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
             #[inline(always)]
             pub fn parse<'a>(
                 state: ParseState<'a>,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let state = state.skip_whitespace();
-                let ok_result = parse_character_literal(state, '"')?;
-                Ok(ok_result.map(|_| Parsed))
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
+                match part_0::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                let result = match part_1::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut body = result.body;
+                match part_2::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                Ok(ParseOk {
+                    result: Parsed { body },
+                    state,
+                    farthest_error,
+                })
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
-            pub struct Parsed;
+            pub struct Parsed {
+                pub body: Vec<StringItem>,
+            }
         }
         #[inline(always)]
         pub fn parse<'a>(
@@ -1769,50 +2207,19 @@ mod peginator_generated {
         ) -> ParseResult<'a, Parsed> {
             let mut state = state;
             let mut farthest_error: Option<ParseError> = None;
-            match part_0::parse(state, cache) {
-                Ok(ParseOk {
-                    result: _,
-                    state: new_state,
-                    farthest_error: new_farthest_error,
-                }) => {
-                    farthest_error = combine_errors(farthest_error, new_farthest_error);
-                    state = new_state;
-                }
-                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            match choice_0::parse(state.clone(), cache) {
+                Ok(ok_result) => return Ok(ok_result.map(|result| Parsed { body: result.body })),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
-            let result = match part_1::parse(state, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    farthest_error: new_farthest_error,
-                }) => {
-                    farthest_error = combine_errors(farthest_error, new_farthest_error);
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
-            };
-            let mut body = result.body;
-            match part_2::parse(state, cache) {
-                Ok(ParseOk {
-                    result: _,
-                    state: new_state,
-                    farthest_error: new_farthest_error,
-                }) => {
-                    farthest_error = combine_errors(farthest_error, new_farthest_error);
-                    state = new_state;
-                }
-                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            match choice_1::parse(state.clone(), cache) {
+                Ok(ok_result) => return Ok(ok_result.map(|result| Parsed { body: result.body })),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
-            Ok(ParseOk {
-                result: Parsed { body },
-                state,
-                farthest_error,
-            })
+            Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
         }
         #[derive(Debug, Clone, PartialEq, Eq)]
         pub struct Parsed {
-            pub body: StringLiteralBody,
+            pub body: Vec<StringItem>,
         }
         #[inline(always)]
         pub fn rule_parser<'a>(
@@ -1842,194 +2249,6 @@ mod peginator_generated {
                 ..result
             });
             cache.c_StringLiteral.insert(cache_key, result.clone());
-            result
-        }
-    }
-    mod StringLiteralBody_impl {
-        use super::*;
-        mod closure {
-            use super::*;
-            mod choice_0 {
-                use super::*;
-                #[inline(always)]
-                pub fn parse<'a>(
-                    state: ParseState<'a>,
-                    cache: &mut ParseCache<'a>,
-                ) -> ParseResult<'a, Parsed> {
-                    let ok_result = parse_string_literal(state, "\\\\\\\"")?;
-                    Ok(ok_result.map(|_| Parsed))
-                }
-                #[derive(Debug, Clone, PartialEq, Eq)]
-                pub struct Parsed;
-            }
-            mod choice_1 {
-                use super::*;
-                mod part_0 {
-                    use super::*;
-                    mod negative_lookahead {
-                        use super::*;
-                        #[inline(always)]
-                        pub fn parse<'a>(
-                            state: ParseState<'a>,
-                            cache: &mut ParseCache<'a>,
-                        ) -> ParseResult<'a, Parsed> {
-                            let ok_result = parse_character_literal(state, '"')?;
-                            Ok(ok_result.map(|_| Parsed))
-                        }
-                        #[derive(Debug, Clone, PartialEq, Eq)]
-                        pub struct Parsed;
-                    }
-                    #[inline(always)]
-                    pub fn parse<'a>(
-                        state: ParseState<'a>,
-                        cache: &mut ParseCache<'a>,
-                    ) -> ParseResult<'a, Parsed> {
-                        match negative_lookahead::parse(state.clone(), cache) {
-                            Ok(_) => {
-                                Err(state
-                                    .report_error(ParseErrorSpecifics::NegativeLookaheadFailed))
-                            }
-                            Err(_) => Ok(ParseOk {
-                                result: Parsed,
-                                state,
-                                farthest_error: None,
-                            }),
-                        }
-                    }
-                    #[derive(Debug, Clone, PartialEq, Eq)]
-                    pub struct Parsed;
-                }
-                mod part_1 {
-                    use super::*;
-                    #[inline(always)]
-                    pub fn parse<'a>(
-                        state: ParseState<'a>,
-                        cache: &mut ParseCache<'a>,
-                    ) -> ParseResult<'a, Parsed> {
-                        let ok_result = parse_char(state, cache)?;
-                        Ok(ok_result.map(|_| Parsed))
-                    }
-                    #[derive(Debug, Clone, PartialEq, Eq)]
-                    pub struct Parsed;
-                }
-                #[inline(always)]
-                pub fn parse<'a>(
-                    state: ParseState<'a>,
-                    cache: &mut ParseCache<'a>,
-                ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    let mut farthest_error: Option<ParseError> = None;
-                    match part_0::parse(state, cache) {
-                        Ok(ParseOk {
-                            result: _,
-                            state: new_state,
-                            farthest_error: new_farthest_error,
-                        }) => {
-                            farthest_error = combine_errors(farthest_error, new_farthest_error);
-                            state = new_state;
-                        }
-                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
-                    }
-                    match part_1::parse(state, cache) {
-                        Ok(ParseOk {
-                            result: _,
-                            state: new_state,
-                            farthest_error: new_farthest_error,
-                        }) => {
-                            farthest_error = combine_errors(farthest_error, new_farthest_error);
-                            state = new_state;
-                        }
-                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
-                    }
-                    Ok(ParseOk {
-                        result: Parsed {},
-                        state,
-                        farthest_error,
-                    })
-                }
-                #[derive(Debug, Clone, PartialEq, Eq)]
-                pub struct Parsed;
-            }
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                cache: &mut ParseCache<'a>,
-            ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
-                let mut farthest_error: Option<ParseError> = None;
-                match choice_0::parse(state.clone(), cache) {
-                    Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
-                    Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
-                }
-                match choice_1::parse(state.clone(), cache) {
-                    Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
-                    Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
-                }
-                Err(farthest_error
-                    .unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
-            }
-            #[derive(Debug, Clone, PartialEq, Eq)]
-            pub struct Parsed;
-        }
-        #[inline(always)]
-        pub fn parse<'a>(
-            state: ParseState<'a>,
-            cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let mut farthest_error: Option<ParseError> = None;
-            loop {
-                match closure::parse(state.clone(), cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        farthest_error: new_farthest_error,
-                    }) => {
-                        state = new_state;
-                        farthest_error = combine_errors(farthest_error, new_farthest_error);
-                    }
-                    Err(err) => {
-                        farthest_error = combine_errors(farthest_error, Some(err));
-                        break;
-                    }
-                }
-            }
-            Ok(ParseOk {
-                result: Parsed {},
-                state,
-                farthest_error,
-            })
-        }
-        #[derive(Debug, Clone, PartialEq, Eq)]
-        pub struct Parsed;
-        #[inline(always)]
-        pub fn rule_parser<'a>(
-            state: ParseState<'a>,
-            cache: &mut ParseCache<'a>,
-        ) -> ParseResult<'a, String> {
-            let ok_result = parse(state.clone(), cache)?;
-            Ok(ok_result.map_with_state(|_, new_state| state.slice_until(&new_state).to_string()))
-        }
-    }
-    #[inline]
-    pub(super) fn parse_StringLiteralBody<'a>(
-        state: ParseState<'a>,
-        cache: &mut ParseCache<'a>,
-    ) -> ParseResult<'a, StringLiteralBody> {
-        let cache_key = state.cache_key();
-        if let Some(cached) = cache.c_StringLiteralBody.get(&cache_key) {
-            state.print_trace_cached("StringLiteralBody");
-            state.print_trace_result(&cached);
-            cached.clone()
-        } else {
-            state.print_trace_start("StringLiteralBody");
-            let result = StringLiteralBody_impl::rule_parser(state.clone().indent(), cache);
-            state.print_trace_result(&result);
-            let result = result.map(|result| ParseOk {
-                state: result.state.dedent(),
-                ..result
-            });
-            cache.c_StringLiteralBody.insert(cache_key, result.clone());
             result
         }
     }
@@ -2063,7 +2282,7 @@ mod peginator_generated {
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
                         let state = state.skip_whitespace();
-                        let ok_result = parse_string_literal(state, ":")?;
+                        let ok_result = parse_character_literal(state, ':')?;
                         Ok(ok_result.map(|_| Parsed))
                     }
                     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2345,7 +2564,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, "@")?;
+                let ok_result = parse_character_literal(state, '@')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2359,7 +2578,7 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_string_literal(state, ":")?;
+                let ok_result = parse_character_literal(state, ':')?;
                 Ok(ok_result.map(|_| Parsed))
             }
             #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2564,24 +2783,6 @@ mod peginator_generated {
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
                 let state = state.skip_whitespace();
-                let ok_result = parse_CharacterLiteral(state, cache)?;
-                Ok(ok_result.map(|result| Parsed {
-                    _override: Parsed__override::CharacterLiteral(result),
-                }))
-            }
-            #[derive(Debug, Clone, PartialEq, Eq)]
-            pub struct Parsed {
-                pub _override: Parsed__override,
-            }
-        }
-        mod choice_6 {
-            use super::*;
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                cache: &mut ParseCache<'a>,
-            ) -> ParseResult<'a, Parsed> {
-                let state = state.skip_whitespace();
                 let ok_result = parse_StringLiteral(state, cache)?;
                 Ok(ok_result.map(|result| Parsed {
                     _override: Parsed__override::StringLiteral(result),
@@ -2592,7 +2793,7 @@ mod peginator_generated {
                 pub _override: Parsed__override,
             }
         }
-        mod choice_7 {
+        mod choice_6 {
             use super::*;
             #[inline(always)]
             pub fn parse<'a>(
@@ -2610,7 +2811,7 @@ mod peginator_generated {
                 pub _override: Parsed__override,
             }
         }
-        mod choice_8 {
+        mod choice_7 {
             use super::*;
             #[inline(always)]
             pub fn parse<'a>(
@@ -2628,7 +2829,7 @@ mod peginator_generated {
                 pub _override: Parsed__override,
             }
         }
-        mod choice_9 {
+        mod choice_8 {
             use super::*;
             #[inline(always)]
             pub fn parse<'a>(
@@ -2718,14 +2919,6 @@ mod peginator_generated {
                 Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
             }
             match choice_8::parse(state.clone(), cache) {
-                Ok(ok_result) => {
-                    return Ok(ok_result.map(|result| Parsed {
-                        _override: result._override,
-                    }))
-                }
-                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
-            }
-            match choice_9::parse(state.clone(), cache) {
                 Ok(ok_result) => {
                     return Ok(ok_result.map(|result| Parsed {
                         _override: result._override,
@@ -2920,6 +3113,2173 @@ mod peginator_generated {
                 ..result
             });
             cache.c_Identifier.insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod StringItem_impl {
+        use super::*;
+        mod choice_0 {
+            use super::*;
+            mod part_0 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, '\\')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            mod part_1 {
+                use super::*;
+                mod choice_0 {
+                    use super::*;
+                    #[inline(always)]
+                    pub fn parse<'a>(
+                        state: ParseState<'a>,
+                        cache: &mut ParseCache<'a>,
+                    ) -> ParseResult<'a, Parsed> {
+                        let ok_result = parse_SimpleEscape(state, cache)?;
+                        Ok(ok_result.map(|result| Parsed {
+                            _override: Parsed__override::SimpleEscape(result),
+                        }))
+                    }
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed {
+                        pub _override: Parsed__override,
+                    }
+                }
+                mod choice_1 {
+                    use super::*;
+                    #[inline(always)]
+                    pub fn parse<'a>(
+                        state: ParseState<'a>,
+                        cache: &mut ParseCache<'a>,
+                    ) -> ParseResult<'a, Parsed> {
+                        let ok_result = parse_HexaEscape(state, cache)?;
+                        Ok(ok_result.map(|result| Parsed {
+                            _override: Parsed__override::HexaEscape(result),
+                        }))
+                    }
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed {
+                        pub _override: Parsed__override,
+                    }
+                }
+                mod choice_2 {
+                    use super::*;
+                    #[inline(always)]
+                    pub fn parse<'a>(
+                        state: ParseState<'a>,
+                        cache: &mut ParseCache<'a>,
+                    ) -> ParseResult<'a, Parsed> {
+                        let ok_result = parse_Utf8Escape(state, cache)?;
+                        Ok(ok_result.map(|result| Parsed {
+                            _override: Parsed__override::Utf8Escape(result),
+                        }))
+                    }
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed {
+                        pub _override: Parsed__override,
+                    }
+                }
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let mut state = state;
+                    let mut farthest_error: Option<ParseError> = None;
+                    match choice_0::parse(state.clone(), cache) {
+                        Ok(ok_result) => {
+                            return Ok(ok_result.map(|result| Parsed {
+                                _override: result._override,
+                            }))
+                        }
+                        Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+                    }
+                    match choice_1::parse(state.clone(), cache) {
+                        Ok(ok_result) => {
+                            return Ok(ok_result.map(|result| Parsed {
+                                _override: result._override,
+                            }))
+                        }
+                        Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+                    }
+                    match choice_2::parse(state.clone(), cache) {
+                        Ok(ok_result) => {
+                            return Ok(ok_result.map(|result| Parsed {
+                                _override: result._override,
+                            }))
+                        }
+                        Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+                    }
+                    Err(farthest_error
+                        .unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub _override: Parsed__override,
+                }
+            }
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
+                match part_0::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                let result = match part_1::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut _override = result._override;
+                Ok(ParseOk {
+                    result: Parsed { _override },
+                    state,
+                    farthest_error,
+                })
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub _override: Parsed__override,
+            }
+        }
+        mod choice_1 {
+            use super::*;
+            mod part_0 {
+                use super::*;
+                mod negative_lookahead {
+                    use super::*;
+                    #[inline(always)]
+                    pub fn parse<'a>(
+                        state: ParseState<'a>,
+                        cache: &mut ParseCache<'a>,
+                    ) -> ParseResult<'a, Parsed> {
+                        let ok_result = parse_character_literal(state, '\\')?;
+                        Ok(ok_result.map(|_| Parsed))
+                    }
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed;
+                }
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    match negative_lookahead::parse(state.clone(), cache) {
+                        Ok(_) => {
+                            Err(state.report_error(ParseErrorSpecifics::NegativeLookaheadFailed))
+                        }
+                        Err(_) => Ok(ParseOk {
+                            result: Parsed,
+                            state,
+                            farthest_error: None,
+                        }),
+                    }
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            mod part_1 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_char(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed {
+                        _override: Parsed__override::char(result),
+                    }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub _override: Parsed__override,
+                }
+            }
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
+                match part_0::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                let result = match part_1::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut _override = result._override;
+                Ok(ParseOk {
+                    result: Parsed { _override },
+                    state,
+                    farthest_error,
+                })
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub _override: Parsed__override,
+            }
+        }
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match choice_0::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_1::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub _override: Parsed__override,
+        }
+        use super::StringItem as Parsed__override;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::StringItem> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|result| result._override))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_StringItem<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, StringItem> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_StringItem.get(&cache_key) {
+            state.print_trace_cached("StringItem");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("StringItem");
+            let result = StringItem_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache.c_StringItem.insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod SimpleEscape_impl {
+        use super::*;
+        mod choice_0 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_SimpleEscapeNewline(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::SimpleEscapeNewline(result),
+                }))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub _override: Parsed__override,
+            }
+        }
+        mod choice_1 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_SimpleEscapeCarriageReturn(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::SimpleEscapeCarriageReturn(result),
+                }))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub _override: Parsed__override,
+            }
+        }
+        mod choice_2 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_SimpleEscapeTab(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::SimpleEscapeTab(result),
+                }))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub _override: Parsed__override,
+            }
+        }
+        mod choice_3 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_SimpleEscapeBackslash(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::SimpleEscapeBackslash(result),
+                }))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub _override: Parsed__override,
+            }
+        }
+        mod choice_4 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_SimpleEscapeQuote(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::SimpleEscapeQuote(result),
+                }))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub _override: Parsed__override,
+            }
+        }
+        mod choice_5 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_SimpleEscapeDQuote(state, cache)?;
+                Ok(ok_result.map(|result| Parsed {
+                    _override: Parsed__override::SimpleEscapeDQuote(result),
+                }))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub _override: Parsed__override,
+            }
+        }
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match choice_0::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_1::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_2::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_3::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_4::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_5::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        _override: result._override,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub _override: Parsed__override,
+        }
+        use super::SimpleEscape as Parsed__override;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::SimpleEscape> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|result| result._override))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_SimpleEscape<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, SimpleEscape> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_SimpleEscape.get(&cache_key) {
+            state.print_trace_cached("SimpleEscape");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("SimpleEscape");
+            let result = SimpleEscape_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache.c_SimpleEscape.insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod SimpleEscapeNewline_impl {
+        use super::*;
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let ok_result = parse_character_literal(state, 'n')?;
+            Ok(ok_result.map(|_| Parsed))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::SimpleEscapeNewline> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::SimpleEscapeNewline {}))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_SimpleEscapeNewline<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, SimpleEscapeNewline> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_SimpleEscapeNewline.get(&cache_key) {
+            state.print_trace_cached("SimpleEscapeNewline");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("SimpleEscapeNewline");
+            let result = SimpleEscapeNewline_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache
+                .c_SimpleEscapeNewline
+                .insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod SimpleEscapeCarriageReturn_impl {
+        use super::*;
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let ok_result = parse_character_literal(state, 'r')?;
+            Ok(ok_result.map(|_| Parsed))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::SimpleEscapeCarriageReturn> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::SimpleEscapeCarriageReturn {}))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_SimpleEscapeCarriageReturn<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, SimpleEscapeCarriageReturn> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_SimpleEscapeCarriageReturn.get(&cache_key) {
+            state.print_trace_cached("SimpleEscapeCarriageReturn");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("SimpleEscapeCarriageReturn");
+            let result =
+                SimpleEscapeCarriageReturn_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache
+                .c_SimpleEscapeCarriageReturn
+                .insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod SimpleEscapeTab_impl {
+        use super::*;
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let ok_result = parse_character_literal(state, 't')?;
+            Ok(ok_result.map(|_| Parsed))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::SimpleEscapeTab> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::SimpleEscapeTab {}))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_SimpleEscapeTab<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, SimpleEscapeTab> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_SimpleEscapeTab.get(&cache_key) {
+            state.print_trace_cached("SimpleEscapeTab");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("SimpleEscapeTab");
+            let result = SimpleEscapeTab_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache.c_SimpleEscapeTab.insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod SimpleEscapeBackslash_impl {
+        use super::*;
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let ok_result = parse_character_literal(state, '\\')?;
+            Ok(ok_result.map(|_| Parsed))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::SimpleEscapeBackslash> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::SimpleEscapeBackslash {}))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_SimpleEscapeBackslash<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, SimpleEscapeBackslash> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_SimpleEscapeBackslash.get(&cache_key) {
+            state.print_trace_cached("SimpleEscapeBackslash");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("SimpleEscapeBackslash");
+            let result = SimpleEscapeBackslash_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache
+                .c_SimpleEscapeBackslash
+                .insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod SimpleEscapeQuote_impl {
+        use super::*;
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let ok_result = parse_character_literal(state, '\'')?;
+            Ok(ok_result.map(|_| Parsed))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::SimpleEscapeQuote> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::SimpleEscapeQuote {}))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_SimpleEscapeQuote<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, SimpleEscapeQuote> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_SimpleEscapeQuote.get(&cache_key) {
+            state.print_trace_cached("SimpleEscapeQuote");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("SimpleEscapeQuote");
+            let result = SimpleEscapeQuote_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache.c_SimpleEscapeQuote.insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod SimpleEscapeDQuote_impl {
+        use super::*;
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let ok_result = parse_character_literal(state, '"')?;
+            Ok(ok_result.map(|_| Parsed))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::SimpleEscapeDQuote> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::SimpleEscapeDQuote {}))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_SimpleEscapeDQuote<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, SimpleEscapeDQuote> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_SimpleEscapeDQuote.get(&cache_key) {
+            state.print_trace_cached("SimpleEscapeDQuote");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("SimpleEscapeDQuote");
+            let result = SimpleEscapeDQuote_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache.c_SimpleEscapeDQuote.insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod HexaEscape_impl {
+        use super::*;
+        mod part_0 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_character_literal(state, 'x')?;
+                Ok(ok_result.map(|_| Parsed))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
+        }
+        mod part_1 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_HexChar(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { c1: result }))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub c1: HexChar,
+            }
+        }
+        mod part_2 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_HexChar(state, cache)?;
+                Ok(ok_result.map(|result| Parsed { c2: result }))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub c2: HexChar,
+            }
+        }
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match part_0::parse(state, cache) {
+                Ok(ParseOk {
+                    result: _,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            }
+            let result = match part_1::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
+            let mut c1 = result.c1;
+            let result = match part_2::parse(state, cache) {
+                Ok(ParseOk {
+                    result,
+                    state: new_state,
+                    farthest_error: new_farthest_error,
+                }) => {
+                    farthest_error = combine_errors(farthest_error, new_farthest_error);
+                    state = new_state;
+                    result
+                }
+                Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+            };
+            let mut c2 = result.c2;
+            Ok(ParseOk {
+                result: Parsed { c1, c2 },
+                state,
+                farthest_error,
+            })
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub c1: HexChar,
+            pub c2: HexChar,
+        }
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::HexaEscape> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::HexaEscape { c1: r.c1, c2: r.c2 }))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_HexaEscape<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, HexaEscape> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_HexaEscape.get(&cache_key) {
+            state.print_trace_cached("HexaEscape");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("HexaEscape");
+            let result = HexaEscape_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache.c_HexaEscape.insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod HexChar_impl {
+        use super::*;
+        mod choice_0 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_character_range(state, '0', '9')?;
+                Ok(ok_result.map(|_| Parsed))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
+        }
+        mod choice_1 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_character_range(state, 'a', 'f')?;
+                Ok(ok_result.map(|_| Parsed))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
+        }
+        mod choice_2 {
+            use super::*;
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let ok_result = parse_character_range(state, 'A', 'F')?;
+                Ok(ok_result.map(|_| Parsed))
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed;
+        }
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match choice_0::parse(state.clone(), cache) {
+                Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_1::parse(state.clone(), cache) {
+                Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_2::parse(state.clone(), cache) {
+                Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed;
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, String> {
+            let ok_result = parse(state.clone(), cache)?;
+            Ok(ok_result.map_with_state(|_, new_state| state.slice_until(&new_state).to_string()))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_HexChar<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, HexChar> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_HexChar.get(&cache_key) {
+            state.print_trace_cached("HexChar");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("HexChar");
+            let result = HexChar_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache.c_HexChar.insert(cache_key, result.clone());
+            result
+        }
+    }
+    mod Utf8Escape_impl {
+        use super::*;
+        mod choice_0 {
+            use super::*;
+            mod part_0 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, 'u')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            mod part_1 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, '{')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            mod part_2 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c1: result }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c1: HexChar,
+                }
+            }
+            mod part_3 {
+                use super::*;
+                mod optional {
+                    use super::*;
+                    mod part_0 {
+                        use super::*;
+                        #[inline(always)]
+                        pub fn parse<'a>(
+                            state: ParseState<'a>,
+                            cache: &mut ParseCache<'a>,
+                        ) -> ParseResult<'a, Parsed> {
+                            let ok_result = parse_HexChar(state, cache)?;
+                            Ok(ok_result.map(|result| Parsed { c2: Some(result) }))
+                        }
+                        #[derive(Debug, Clone, PartialEq, Eq)]
+                        pub struct Parsed {
+                            pub c2: Option<HexChar>,
+                        }
+                    }
+                    mod part_1 {
+                        use super::*;
+                        mod optional {
+                            use super::*;
+                            mod part_0 {
+                                use super::*;
+                                #[inline(always)]
+                                pub fn parse<'a>(
+                                    state: ParseState<'a>,
+                                    cache: &mut ParseCache<'a>,
+                                ) -> ParseResult<'a, Parsed> {
+                                    let ok_result = parse_HexChar(state, cache)?;
+                                    Ok(ok_result.map(|result| Parsed { c3: Some(result) }))
+                                }
+                                #[derive(Debug, Clone, PartialEq, Eq)]
+                                pub struct Parsed {
+                                    pub c3: Option<HexChar>,
+                                }
+                            }
+                            mod part_1 {
+                                use super::*;
+                                mod optional {
+                                    use super::*;
+                                    mod part_0 {
+                                        use super::*;
+                                        #[inline(always)]
+                                        pub fn parse<'a>(
+                                            state: ParseState<'a>,
+                                            cache: &mut ParseCache<'a>,
+                                        ) -> ParseResult<'a, Parsed>
+                                        {
+                                            let ok_result = parse_HexChar(state, cache)?;
+                                            Ok(ok_result.map(|result| Parsed { c4: Some(result) }))
+                                        }
+                                        #[derive(Debug, Clone, PartialEq, Eq)]
+                                        pub struct Parsed {
+                                            pub c4: Option<HexChar>,
+                                        }
+                                    }
+                                    mod part_1 {
+                                        use super::*;
+                                        mod optional {
+                                            use super::*;
+                                            mod part_0 {
+                                                use super::*;
+                                                #[inline(always)]
+                                                pub fn parse<'a>(
+                                                    state: ParseState<'a>,
+                                                    cache: &mut ParseCache<'a>,
+                                                ) -> ParseResult<'a, Parsed>
+                                                {
+                                                    let ok_result = parse_HexChar(state, cache)?;
+                                                    Ok(ok_result
+                                                        .map(|result| Parsed { c5: Some(result) }))
+                                                }
+                                                #[derive(Debug, Clone, PartialEq, Eq)]
+                                                pub struct Parsed {
+                                                    pub c5: Option<HexChar>,
+                                                }
+                                            }
+                                            mod part_1 {
+                                                use super::*;
+                                                mod optional {
+                                                    use super::*;
+                                                    #[inline(always)]
+                                                    pub fn parse<'a>(
+                                                        state: ParseState<'a>,
+                                                        cache: &mut ParseCache<'a>,
+                                                    ) -> ParseResult<'a, Parsed>
+                                                    {
+                                                        let ok_result =
+                                                            parse_HexChar(state, cache)?;
+                                                        Ok(ok_result.map(|result| Parsed {
+                                                            c6: Some(result),
+                                                        }))
+                                                    }
+                                                    #[derive(Debug, Clone, PartialEq, Eq)]
+                                                    pub struct Parsed {
+                                                        pub c6: Option<HexChar>,
+                                                    }
+                                                }
+                                                #[inline(always)]
+                                                pub fn parse<'a>(
+                                                    state: ParseState<'a>,
+                                                    cache: &mut ParseCache<'a>,
+                                                ) -> ParseResult<'a, Parsed>
+                                                {
+                                                    match optional::parse(state.clone(), cache) {
+                                                        Ok(ok_result) => {
+                                                            Ok(ok_result.map(|result| Parsed {
+                                                                c6: result.c6,
+                                                            }))
+                                                        }
+                                                        Err(err) => Ok(ParseOk {
+                                                            result: Parsed {
+                                                                c6: Default::default(),
+                                                            },
+                                                            state,
+                                                            farthest_error: Some(err),
+                                                        }),
+                                                    }
+                                                }
+                                                #[derive(Debug, Clone, PartialEq, Eq)]
+                                                pub struct Parsed {
+                                                    pub c6: Option<HexChar>,
+                                                }
+                                            }
+                                            #[inline(always)]
+                                            pub fn parse<'a>(
+                                                state: ParseState<'a>,
+                                                cache: &mut ParseCache<'a>,
+                                            ) -> ParseResult<'a, Parsed>
+                                            {
+                                                let mut state = state;
+                                                let mut farthest_error: Option<ParseError> = None;
+                                                let result = match part_0::parse(state, cache) {
+                                                    Ok(ParseOk {
+                                                        result,
+                                                        state: new_state,
+                                                        farthest_error: new_farthest_error,
+                                                    }) => {
+                                                        farthest_error = combine_errors(
+                                                            farthest_error,
+                                                            new_farthest_error,
+                                                        );
+                                                        state = new_state;
+                                                        result
+                                                    }
+                                                    Err(err) => {
+                                                        return Err(combine_errors(
+                                                            farthest_error,
+                                                            Some(err),
+                                                        )
+                                                        .unwrap())
+                                                    }
+                                                };
+                                                let mut c5 = result.c5;
+                                                let result = match part_1::parse(state, cache) {
+                                                    Ok(ParseOk {
+                                                        result,
+                                                        state: new_state,
+                                                        farthest_error: new_farthest_error,
+                                                    }) => {
+                                                        farthest_error = combine_errors(
+                                                            farthest_error,
+                                                            new_farthest_error,
+                                                        );
+                                                        state = new_state;
+                                                        result
+                                                    }
+                                                    Err(err) => {
+                                                        return Err(combine_errors(
+                                                            farthest_error,
+                                                            Some(err),
+                                                        )
+                                                        .unwrap())
+                                                    }
+                                                };
+                                                let mut c6 = result.c6;
+                                                Ok(ParseOk {
+                                                    result: Parsed { c5, c6 },
+                                                    state,
+                                                    farthest_error,
+                                                })
+                                            }
+                                            #[derive(Debug, Clone, PartialEq, Eq)]
+                                            pub struct Parsed {
+                                                pub c5: Option<HexChar>,
+                                                pub c6: Option<HexChar>,
+                                            }
+                                        }
+                                        #[inline(always)]
+                                        pub fn parse<'a>(
+                                            state: ParseState<'a>,
+                                            cache: &mut ParseCache<'a>,
+                                        ) -> ParseResult<'a, Parsed>
+                                        {
+                                            match optional::parse(state.clone(), cache) {
+                                                Ok(ok_result) => {
+                                                    Ok(ok_result.map(|result| Parsed {
+                                                        c5: result.c5,
+                                                        c6: result.c6,
+                                                    }))
+                                                }
+                                                Err(err) => Ok(ParseOk {
+                                                    result: Parsed {
+                                                        c5: Default::default(),
+                                                        c6: Default::default(),
+                                                    },
+                                                    state,
+                                                    farthest_error: Some(err),
+                                                }),
+                                            }
+                                        }
+                                        #[derive(Debug, Clone, PartialEq, Eq)]
+                                        pub struct Parsed {
+                                            pub c5: Option<HexChar>,
+                                            pub c6: Option<HexChar>,
+                                        }
+                                    }
+                                    #[inline(always)]
+                                    pub fn parse<'a>(
+                                        state: ParseState<'a>,
+                                        cache: &mut ParseCache<'a>,
+                                    ) -> ParseResult<'a, Parsed>
+                                    {
+                                        let mut state = state;
+                                        let mut farthest_error: Option<ParseError> = None;
+                                        let result = match part_0::parse(state, cache) {
+                                            Ok(ParseOk {
+                                                result,
+                                                state: new_state,
+                                                farthest_error: new_farthest_error,
+                                            }) => {
+                                                farthest_error = combine_errors(
+                                                    farthest_error,
+                                                    new_farthest_error,
+                                                );
+                                                state = new_state;
+                                                result
+                                            }
+                                            Err(err) => {
+                                                return Err(combine_errors(
+                                                    farthest_error,
+                                                    Some(err),
+                                                )
+                                                .unwrap())
+                                            }
+                                        };
+                                        let mut c4 = result.c4;
+                                        let result = match part_1::parse(state, cache) {
+                                            Ok(ParseOk {
+                                                result,
+                                                state: new_state,
+                                                farthest_error: new_farthest_error,
+                                            }) => {
+                                                farthest_error = combine_errors(
+                                                    farthest_error,
+                                                    new_farthest_error,
+                                                );
+                                                state = new_state;
+                                                result
+                                            }
+                                            Err(err) => {
+                                                return Err(combine_errors(
+                                                    farthest_error,
+                                                    Some(err),
+                                                )
+                                                .unwrap())
+                                            }
+                                        };
+                                        let mut c5 = result.c5;
+                                        let mut c6 = result.c6;
+                                        Ok(ParseOk {
+                                            result: Parsed { c4, c5, c6 },
+                                            state,
+                                            farthest_error,
+                                        })
+                                    }
+                                    #[derive(Debug, Clone, PartialEq, Eq)]
+                                    pub struct Parsed {
+                                        pub c4: Option<HexChar>,
+                                        pub c5: Option<HexChar>,
+                                        pub c6: Option<HexChar>,
+                                    }
+                                }
+                                #[inline(always)]
+                                pub fn parse<'a>(
+                                    state: ParseState<'a>,
+                                    cache: &mut ParseCache<'a>,
+                                ) -> ParseResult<'a, Parsed> {
+                                    match optional::parse(state.clone(), cache) {
+                                        Ok(ok_result) => Ok(ok_result.map(|result| Parsed {
+                                            c4: result.c4,
+                                            c5: result.c5,
+                                            c6: result.c6,
+                                        })),
+                                        Err(err) => Ok(ParseOk {
+                                            result: Parsed {
+                                                c4: Default::default(),
+                                                c5: Default::default(),
+                                                c6: Default::default(),
+                                            },
+                                            state,
+                                            farthest_error: Some(err),
+                                        }),
+                                    }
+                                }
+                                #[derive(Debug, Clone, PartialEq, Eq)]
+                                pub struct Parsed {
+                                    pub c4: Option<HexChar>,
+                                    pub c5: Option<HexChar>,
+                                    pub c6: Option<HexChar>,
+                                }
+                            }
+                            #[inline(always)]
+                            pub fn parse<'a>(
+                                state: ParseState<'a>,
+                                cache: &mut ParseCache<'a>,
+                            ) -> ParseResult<'a, Parsed> {
+                                let mut state = state;
+                                let mut farthest_error: Option<ParseError> = None;
+                                let result = match part_0::parse(state, cache) {
+                                    Ok(ParseOk {
+                                        result,
+                                        state: new_state,
+                                        farthest_error: new_farthest_error,
+                                    }) => {
+                                        farthest_error =
+                                            combine_errors(farthest_error, new_farthest_error);
+                                        state = new_state;
+                                        result
+                                    }
+                                    Err(err) => {
+                                        return Err(
+                                            combine_errors(farthest_error, Some(err)).unwrap()
+                                        )
+                                    }
+                                };
+                                let mut c3 = result.c3;
+                                let result = match part_1::parse(state, cache) {
+                                    Ok(ParseOk {
+                                        result,
+                                        state: new_state,
+                                        farthest_error: new_farthest_error,
+                                    }) => {
+                                        farthest_error =
+                                            combine_errors(farthest_error, new_farthest_error);
+                                        state = new_state;
+                                        result
+                                    }
+                                    Err(err) => {
+                                        return Err(
+                                            combine_errors(farthest_error, Some(err)).unwrap()
+                                        )
+                                    }
+                                };
+                                let mut c4 = result.c4;
+                                let mut c5 = result.c5;
+                                let mut c6 = result.c6;
+                                Ok(ParseOk {
+                                    result: Parsed { c3, c4, c5, c6 },
+                                    state,
+                                    farthest_error,
+                                })
+                            }
+                            #[derive(Debug, Clone, PartialEq, Eq)]
+                            pub struct Parsed {
+                                pub c3: Option<HexChar>,
+                                pub c4: Option<HexChar>,
+                                pub c5: Option<HexChar>,
+                                pub c6: Option<HexChar>,
+                            }
+                        }
+                        #[inline(always)]
+                        pub fn parse<'a>(
+                            state: ParseState<'a>,
+                            cache: &mut ParseCache<'a>,
+                        ) -> ParseResult<'a, Parsed> {
+                            match optional::parse(state.clone(), cache) {
+                                Ok(ok_result) => Ok(ok_result.map(|result| Parsed {
+                                    c3: result.c3,
+                                    c4: result.c4,
+                                    c5: result.c5,
+                                    c6: result.c6,
+                                })),
+                                Err(err) => Ok(ParseOk {
+                                    result: Parsed {
+                                        c3: Default::default(),
+                                        c4: Default::default(),
+                                        c5: Default::default(),
+                                        c6: Default::default(),
+                                    },
+                                    state,
+                                    farthest_error: Some(err),
+                                }),
+                            }
+                        }
+                        #[derive(Debug, Clone, PartialEq, Eq)]
+                        pub struct Parsed {
+                            pub c3: Option<HexChar>,
+                            pub c4: Option<HexChar>,
+                            pub c5: Option<HexChar>,
+                            pub c6: Option<HexChar>,
+                        }
+                    }
+                    #[inline(always)]
+                    pub fn parse<'a>(
+                        state: ParseState<'a>,
+                        cache: &mut ParseCache<'a>,
+                    ) -> ParseResult<'a, Parsed> {
+                        let mut state = state;
+                        let mut farthest_error: Option<ParseError> = None;
+                        let result = match part_0::parse(state, cache) {
+                            Ok(ParseOk {
+                                result,
+                                state: new_state,
+                                farthest_error: new_farthest_error,
+                            }) => {
+                                farthest_error = combine_errors(farthest_error, new_farthest_error);
+                                state = new_state;
+                                result
+                            }
+                            Err(err) => {
+                                return Err(combine_errors(farthest_error, Some(err)).unwrap())
+                            }
+                        };
+                        let mut c2 = result.c2;
+                        let result = match part_1::parse(state, cache) {
+                            Ok(ParseOk {
+                                result,
+                                state: new_state,
+                                farthest_error: new_farthest_error,
+                            }) => {
+                                farthest_error = combine_errors(farthest_error, new_farthest_error);
+                                state = new_state;
+                                result
+                            }
+                            Err(err) => {
+                                return Err(combine_errors(farthest_error, Some(err)).unwrap())
+                            }
+                        };
+                        let mut c3 = result.c3;
+                        let mut c4 = result.c4;
+                        let mut c5 = result.c5;
+                        let mut c6 = result.c6;
+                        Ok(ParseOk {
+                            result: Parsed { c2, c3, c4, c5, c6 },
+                            state,
+                            farthest_error,
+                        })
+                    }
+                    #[derive(Debug, Clone, PartialEq, Eq)]
+                    pub struct Parsed {
+                        pub c2: Option<HexChar>,
+                        pub c3: Option<HexChar>,
+                        pub c4: Option<HexChar>,
+                        pub c5: Option<HexChar>,
+                        pub c6: Option<HexChar>,
+                    }
+                }
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    match optional::parse(state.clone(), cache) {
+                        Ok(ok_result) => Ok(ok_result.map(|result| Parsed {
+                            c2: result.c2,
+                            c3: result.c3,
+                            c4: result.c4,
+                            c5: result.c5,
+                            c6: result.c6,
+                        })),
+                        Err(err) => Ok(ParseOk {
+                            result: Parsed {
+                                c2: Default::default(),
+                                c3: Default::default(),
+                                c4: Default::default(),
+                                c5: Default::default(),
+                                c6: Default::default(),
+                            },
+                            state,
+                            farthest_error: Some(err),
+                        }),
+                    }
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c2: Option<HexChar>,
+                    pub c3: Option<HexChar>,
+                    pub c4: Option<HexChar>,
+                    pub c5: Option<HexChar>,
+                    pub c6: Option<HexChar>,
+                }
+            }
+            mod part_4 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, '}')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
+                match part_0::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                match part_1::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                let result = match part_2::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c1 = result.c1;
+                let result = match part_3::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c2 = result.c2;
+                let mut c3 = result.c3;
+                let mut c4 = result.c4;
+                let mut c5 = result.c5;
+                let mut c6 = result.c6;
+                match part_4::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                Ok(ParseOk {
+                    result: Parsed {
+                        c1,
+                        c2,
+                        c3,
+                        c4,
+                        c5,
+                        c6,
+                    },
+                    state,
+                    farthest_error,
+                })
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub c1: HexChar,
+                pub c2: Option<HexChar>,
+                pub c3: Option<HexChar>,
+                pub c4: Option<HexChar>,
+                pub c5: Option<HexChar>,
+                pub c6: Option<HexChar>,
+            }
+        }
+        mod choice_1 {
+            use super::*;
+            mod part_0 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, 'u')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            mod part_1 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c1: result }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c1: HexChar,
+                }
+            }
+            mod part_2 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c2: Some(result) }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c2: Option<HexChar>,
+                }
+            }
+            mod part_3 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c3: Some(result) }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c3: Option<HexChar>,
+                }
+            }
+            mod part_4 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c4: Some(result) }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c4: Option<HexChar>,
+                }
+            }
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
+                match part_0::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                let result = match part_1::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c1 = result.c1;
+                let result = match part_2::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c2 = result.c2;
+                let result = match part_3::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c3 = result.c3;
+                let result = match part_4::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c4 = result.c4;
+                Ok(ParseOk {
+                    result: Parsed { c1, c2, c3, c4 },
+                    state,
+                    farthest_error,
+                })
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub c1: HexChar,
+                pub c2: Option<HexChar>,
+                pub c3: Option<HexChar>,
+                pub c4: Option<HexChar>,
+            }
+        }
+        mod choice_2 {
+            use super::*;
+            mod part_0 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, 'U')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            mod part_1 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, '0')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            mod part_2 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_character_literal(state, '0')?;
+                    Ok(ok_result.map(|_| Parsed))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed;
+            }
+            mod part_3 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c1: result }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c1: HexChar,
+                }
+            }
+            mod part_4 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c2: Some(result) }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c2: Option<HexChar>,
+                }
+            }
+            mod part_5 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c3: Some(result) }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c3: Option<HexChar>,
+                }
+            }
+            mod part_6 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c4: Some(result) }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c4: Option<HexChar>,
+                }
+            }
+            mod part_7 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c5: Some(result) }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c5: Option<HexChar>,
+                }
+            }
+            mod part_8 {
+                use super::*;
+                #[inline(always)]
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    cache: &mut ParseCache<'a>,
+                ) -> ParseResult<'a, Parsed> {
+                    let ok_result = parse_HexChar(state, cache)?;
+                    Ok(ok_result.map(|result| Parsed { c6: Some(result) }))
+                }
+                #[derive(Debug, Clone, PartialEq, Eq)]
+                pub struct Parsed {
+                    pub c6: Option<HexChar>,
+                }
+            }
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                cache: &mut ParseCache<'a>,
+            ) -> ParseResult<'a, Parsed> {
+                let mut state = state;
+                let mut farthest_error: Option<ParseError> = None;
+                match part_0::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                match part_1::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                match part_2::parse(state, cache) {
+                    Ok(ParseOk {
+                        result: _,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                }
+                let result = match part_3::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c1 = result.c1;
+                let result = match part_4::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c2 = result.c2;
+                let result = match part_5::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c3 = result.c3;
+                let result = match part_6::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c4 = result.c4;
+                let result = match part_7::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c5 = result.c5;
+                let result = match part_8::parse(state, cache) {
+                    Ok(ParseOk {
+                        result,
+                        state: new_state,
+                        farthest_error: new_farthest_error,
+                    }) => {
+                        farthest_error = combine_errors(farthest_error, new_farthest_error);
+                        state = new_state;
+                        result
+                    }
+                    Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                };
+                let mut c6 = result.c6;
+                Ok(ParseOk {
+                    result: Parsed {
+                        c1,
+                        c2,
+                        c3,
+                        c4,
+                        c5,
+                        c6,
+                    },
+                    state,
+                    farthest_error,
+                })
+            }
+            #[derive(Debug, Clone, PartialEq, Eq)]
+            pub struct Parsed {
+                pub c1: HexChar,
+                pub c2: Option<HexChar>,
+                pub c3: Option<HexChar>,
+                pub c4: Option<HexChar>,
+                pub c5: Option<HexChar>,
+                pub c6: Option<HexChar>,
+            }
+        }
+        #[inline(always)]
+        pub fn parse<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, Parsed> {
+            let mut state = state;
+            let mut farthest_error: Option<ParseError> = None;
+            match choice_0::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        c1: result.c1,
+                        c2: result.c2,
+                        c3: result.c3,
+                        c4: result.c4,
+                        c5: result.c5,
+                        c6: result.c6,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_1::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        c1: result.c1,
+                        c2: result.c2,
+                        c3: result.c3,
+                        c4: result.c4,
+                        c5: None,
+                        c6: None,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            match choice_2::parse(state.clone(), cache) {
+                Ok(ok_result) => {
+                    return Ok(ok_result.map(|result| Parsed {
+                        c1: result.c1,
+                        c2: result.c2,
+                        c3: result.c3,
+                        c4: result.c4,
+                        c5: result.c5,
+                        c6: result.c6,
+                    }))
+                }
+                Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+            }
+            Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct Parsed {
+            pub c1: HexChar,
+            pub c2: Option<HexChar>,
+            pub c3: Option<HexChar>,
+            pub c4: Option<HexChar>,
+            pub c5: Option<HexChar>,
+            pub c6: Option<HexChar>,
+        }
+        #[inline(always)]
+        pub fn rule_parser<'a>(
+            state: ParseState<'a>,
+            cache: &mut ParseCache<'a>,
+        ) -> ParseResult<'a, super::Utf8Escape> {
+            let ok_result = parse(state, cache)?;
+            Ok(ok_result.map(|r| super::Utf8Escape {
+                c1: r.c1,
+                c2: r.c2,
+                c3: r.c3,
+                c4: r.c4,
+                c5: r.c5,
+                c6: r.c6,
+            }))
+        }
+    }
+    #[inline]
+    pub(super) fn parse_Utf8Escape<'a>(
+        state: ParseState<'a>,
+        cache: &mut ParseCache<'a>,
+    ) -> ParseResult<'a, Utf8Escape> {
+        let cache_key = state.cache_key();
+        if let Some(cached) = cache.c_Utf8Escape.get(&cache_key) {
+            state.print_trace_cached("Utf8Escape");
+            state.print_trace_result(&cached);
+            cached.clone()
+        } else {
+            state.print_trace_start("Utf8Escape");
+            let result = Utf8Escape_impl::rule_parser(state.clone().indent(), cache);
+            state.print_trace_result(&result);
+            let result = result.map(|result| ParseOk {
+                state: result.state.dedent(),
+                ..result
+            });
+            cache.c_Utf8Escape.insert(cache_key, result.clone());
             result
         }
     }

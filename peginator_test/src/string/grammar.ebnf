@@ -1,0 +1,46 @@
+@export
+String1 = "almafa";
+@export
+String2 = 'almafa';
+
+@export
+Char1 = "a";
+@export
+Char2 = 'a';
+@export
+UtfChar = "☃";
+
+@export
+CharRange = 'b'..'g';
+@export
+UtfRange = '\u{2191}'..'\u{2193}';
+@export
+HalfRange = 'x'..'\u074a';
+
+@export
+Spaces = "ab cd ef";
+
+@export
+SimpleEscapes1 = ".\n\t\r\\'\"";
+@export
+SimpleEscapes2 = '.\n\t\r\\\'"';
+
+@export
+HexEscape = "a\x55b";
+
+@export
+UnicodeEscapeSimple = "\xC10" "\uFE560" "\U00010abcd";
+
+@export
+UnicodeEscapeRust = "("
+"\u{7}"      "\u{000007}"
+"\u{C1}"     "\u{0000C1}"
+"\u{171}"    "\u{000171}"
+"\u{2031}"   "\u{002031}"
+"\u{1d410}"  "\u{01d410}"
+"\u{101337}"
+")";
+
+@export
+Unescaped = "a
+ 🫃🏿_";

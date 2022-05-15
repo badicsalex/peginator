@@ -16,15 +16,16 @@ AtLeastOneMarker = '+';
 
 NegativeLookahead = "!" expr:*DelimitedExpression;
 
-CharacterRange = from:CharacterLiteral ".." to:CharacterLiteral;
+CharacterRange = from:CharRangePart ".." to:CharRangePart;
 
-CharacterLiteral = "'" @:char "'";
-
-StringLiteral = '"' body:StringLiteralBody '"';
-
-@string
 @no_skip_ws
-StringLiteralBody = { "\\\"" | !'"' char };
+CharRangePart = "'" @:StringItem "'";
+
+@no_skip_ws
+StringLiteral =
+    '"' {!'"' body:StringItem } '"' |
+    "'" {!"'" body:StringItem } "'"
+;
 
 Field = [name:Identifier ":" [boxed:BoxMarker]] typ:Identifier;
 
@@ -38,7 +39,6 @@ DelimitedExpression =
     @:Closure |
     @:NegativeLookahead |
     @:CharacterRange |
-    @:CharacterLiteral |
     @:StringLiteral |
     @:EndOfInput |
     @:OverrideField |
@@ -49,6 +49,46 @@ DelimitedExpression =
 @string
 @no_skip_ws
 Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9' | '_'}+;
+
+@no_skip_ws
+StringItem = '\\' (@:SimpleEscape | @:HexaEscape | @:Utf8Escape) | !'\\' @:char ;
+
+@no_skip_ws
+SimpleEscape =
+    @:SimpleEscapeNewline |
+    @:SimpleEscapeCarriageReturn |
+    @:SimpleEscapeTab |
+    @:SimpleEscapeBackslash |
+    @:SimpleEscapeQuote |
+    @:SimpleEscapeDQuote
+;
+
+@no_skip_ws
+SimpleEscapeNewline = 'n';
+@no_skip_ws
+SimpleEscapeCarriageReturn = 'r';
+@no_skip_ws
+SimpleEscapeTab = 't';
+@no_skip_ws
+SimpleEscapeBackslash = '\\';
+@no_skip_ws
+SimpleEscapeQuote = "'";
+@no_skip_ws
+SimpleEscapeDQuote = '"';
+
+@no_skip_ws
+HexaEscape = 'x' c1:HexChar c2:HexChar;
+
+@string
+@no_skip_ws
+HexChar = '0'..'9' | 'a'..'f' | 'A'..'F';
+
+@no_skip_ws
+Utf8Escape =
+    'u' '{' c1:HexChar [c2:HexChar [c3:HexChar [c4:HexChar [c5:HexChar [c6:HexChar ]]]]] '}' |
+    'u' c1:HexChar c2:HexChar c3:HexChar c4:HexChar |
+    'U' '0' '0' c1:HexChar c2:HexChar c3:HexChar c4:HexChar c5:HexChar c6:HexChar
+;
 
 DirectiveExpression = @:StringDirective | @:NoSkipWsDirective | @:ExportDirective | @:PositionDirective;
 StringDirective = "@string";

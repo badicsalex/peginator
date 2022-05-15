@@ -1,10 +1,70 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::grammar::{CharacterLiteral, CharacterRange, StringLiteral};
+use crate::grammar::{
+    CharacterRange, HexaEscape, SimpleEscape, StringItem, StringLiteral, Utf8Escape,
+};
 
 use super::common::{Codegen, CodegenSettings, FieldDescriptor};
+
+impl TryFrom<&StringItem> for char {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &StringItem) -> Result<Self, Self::Error> {
+        match value {
+            StringItem::HexaEscape(x) => Ok(x.into()),
+            StringItem::SimpleEscape(x) => Ok(x.into()),
+            StringItem::Utf8Escape(x) => x.try_into(),
+            StringItem::char(x) => Ok(*x),
+        }
+    }
+}
+
+impl From<&HexaEscape> for char {
+    fn from(value: &HexaEscape) -> Self {
+        let c1i = u8::from_str_radix(&value.c1, 16).unwrap();
+        let c2i = u8::from_str_radix(&value.c2, 16).unwrap();
+        (c1i * 16 + c2i).into()
+    }
+}
+
+impl From<&SimpleEscape> for char {
+    fn from(value: &SimpleEscape) -> Self {
+        match value {
+            SimpleEscape::SimpleEscapeBackslash(_) => '\\',
+            SimpleEscape::SimpleEscapeCarriageReturn(_) => '\r',
+            SimpleEscape::SimpleEscapeDQuote(_) => '"',
+            SimpleEscape::SimpleEscapeNewline(_) => '\n',
+            SimpleEscape::SimpleEscapeQuote(_) => '\'',
+            SimpleEscape::SimpleEscapeTab(_) => '\t',
+        }
+    }
+}
+
+impl TryFrom<&Utf8Escape> for char {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &Utf8Escape) -> Result<Self, Self::Error> {
+        let mut result: u32 = u32::from_str_radix(&value.c1, 16).unwrap();
+        if let Some(v) = &value.c2 {
+            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+        };
+        if let Some(v) = &value.c3 {
+            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+        };
+        if let Some(v) = &value.c4 {
+            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+        };
+        if let Some(v) = &value.c5 {
+            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+        };
+        if let Some(v) = &value.c6 {
+            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+        };
+        char::from_u32(result).ok_or_else(|| anyhow!("Invalid utf-8 codepoint {:#x}", result))
+    }
+}
 
 impl Codegen for CharacterRange {
     fn generate_code_spec(
@@ -12,8 +72,8 @@ impl Codegen for CharacterRange {
         _rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let from = &self.from;
-        let to = &self.to;
+        let from: char = (&self.from).try_into()?;
+        let to: char = (&self.to).try_into()?;
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
         } else {
@@ -34,50 +94,33 @@ impl Codegen for CharacterRange {
     }
 }
 
-impl Codegen for CharacterLiteral {
-    fn generate_code_spec(
-        &self,
-        _rule_fields: &[FieldDescriptor],
-        settings: &CodegenSettings,
-    ) -> Result<TokenStream> {
-        let literal = &self;
-        let skip_ws = if settings.skip_whitespace {
-            quote!(let state = state.skip_whitespace();)
-        } else {
-            quote!()
-        };
-        Ok(quote!(
-            #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
-                #skip_ws
-                let ok_result = parse_character_literal(state, #literal)?;
-                Ok(ok_result.map(|_| Parsed))
-            }
-        ))
-    }
-
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
-        Ok(Vec::new())
-    }
-}
-
 impl Codegen for StringLiteral {
     fn generate_code_spec(
         &self,
         _rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let literal = &self.body;
+        let literal = &self
+            .body
+            .iter()
+            .map(|item| -> Result<char> { item.try_into() })
+            .collect::<Result<String>>()?;
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
         } else {
             quote!()
         };
+        let parse_function = if literal.chars().count() == 1 {
+            let char_literal = literal.chars().next().unwrap();
+            quote!(parse_character_literal(state, #char_literal))
+        } else {
+            quote!(parse_string_literal(state, #literal))
+        };
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                let ok_result = parse_string_literal(state, #literal)?;
+                let ok_result = #parse_function?;
                 Ok(ok_result.map(|_| Parsed))
             }
         ))
