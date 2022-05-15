@@ -4,6 +4,8 @@
 
 use std::collections::HashMap;
 
+use nohash_hasher::BuildNoHashHasher;
+
 mod builtin_parsers;
 mod error;
 mod parse_result;
@@ -21,4 +23,4 @@ pub use builtin_parsers::{
     parse_char, parse_character_literal, parse_character_range, parse_string_literal,
 };
 
-pub type CacheEntries<'a, T> = HashMap<usize, ParseResult<'a, T>>;
+pub type CacheEntries<'a, T> = HashMap<usize, ParseResult<'a, T>, BuildNoHashHasher<usize>>;

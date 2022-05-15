@@ -69,6 +69,7 @@ impl ParseTracer for IndentedTracer {
         result
     }
 
+    #[inline]
     fn new() -> Self {
         Self {
             indentation_level: 0,
@@ -93,6 +94,7 @@ impl ParseTracer for NoopTracer {
         f(state, self)
     }
 
+    #[inline]
     fn new() -> Self {
         Self {}
     }
