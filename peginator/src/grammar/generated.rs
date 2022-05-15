@@ -21,12 +21,11 @@ pub struct CharRule {
 }
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CharRulePart__override {
+pub enum CharRulePart {
     CharRangePart(CharRangePart),
     CharacterRange(CharacterRange),
     Identifier(Identifier),
 }
-pub use CharRulePart__override as CharRulePart;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Choice {
     pub choices: Vec<Sequence>,
@@ -59,7 +58,7 @@ pub struct CharacterRange {
     pub from: CharRangePart,
     pub to: CharRangePart,
 }
-pub use StringItem as CharRangePart;
+pub type CharRangePart = StringItem;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StringLiteral {
     pub body: Vec<StringItem>,
@@ -78,7 +77,7 @@ pub struct OverrideField {
 }
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum DelimitedExpression__override {
+pub enum DelimitedExpression {
     CharacterRange(CharacterRange),
     Closure(Closure),
     EndOfInput(EndOfInput),
@@ -89,21 +88,19 @@ pub enum DelimitedExpression__override {
     OverrideField(OverrideField),
     StringLiteral(StringLiteral),
 }
-pub use DelimitedExpression__override as DelimitedExpression;
 pub type Identifier = String;
 pub type IdentifierChar = char;
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum StringItem__override {
+pub enum StringItem {
     HexaEscape(HexaEscape),
     SimpleEscape(SimpleEscape),
     Utf8Escape(Utf8Escape),
     char(char),
 }
-pub use StringItem__override as StringItem;
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum SimpleEscape__override {
+pub enum SimpleEscape {
     SimpleEscapeBackslash(SimpleEscapeBackslash),
     SimpleEscapeCarriageReturn(SimpleEscapeCarriageReturn),
     SimpleEscapeDQuote(SimpleEscapeDQuote),
@@ -111,7 +108,6 @@ pub enum SimpleEscape__override {
     SimpleEscapeQuote(SimpleEscapeQuote),
     SimpleEscapeTab(SimpleEscapeTab),
 }
-pub use SimpleEscape__override as SimpleEscape;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SimpleEscapeNewline;
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -141,13 +137,12 @@ pub struct Utf8Escape {
 }
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum DirectiveExpression__override {
+pub enum DirectiveExpression {
     ExportDirective(ExportDirective),
     NoSkipWsDirective(NoSkipWsDirective),
     PositionDirective(PositionDirective),
     StringDirective(StringDirective),
 }
-pub use DirectiveExpression__override as DirectiveExpression;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StringDirective;
 #[derive(Debug, Clone, PartialEq, Eq)]

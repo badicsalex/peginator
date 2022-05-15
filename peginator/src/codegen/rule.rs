@@ -5,7 +5,8 @@ use quote::{format_ident, quote};
 use crate::grammar::{DirectiveExpression, Rule};
 
 use super::common::{
-    generate_enum_type, generate_field_type, Codegen, CodegenRule, CodegenSettings, FieldDescriptor,
+    generate_enum_type, generate_field_type, Arity, Codegen, CodegenRule, CodegenSettings,
+    FieldDescriptor,
 };
 
 impl CodegenRule for Rule {
@@ -20,9 +21,8 @@ impl CodegenRule for Rule {
         };
 
         let fields = self.definition.get_fields()?;
-        let is_override = fields.len() == 1 && fields[0].name == "_override";
 
-        Self::check_flags(&flags, is_override)?;
+        Self::check_flags(&flags)?;
 
         let name = &self.name;
         let rule_mod = format_ident!("{}_impl", self.name);
@@ -33,7 +33,7 @@ impl CodegenRule for Rule {
 
         let (types, inner_code) = if flags.string {
             self.generate_string_rule(&settings)?
-        } else if is_override {
+        } else if fields.len() == 1 && fields[0].name == "_override" {
             self.generate_override_rule(&fields, &settings)?
         } else {
             self.generate_normal_rule(&fields, &settings, flags.position)?
@@ -94,15 +94,9 @@ impl Rule {
         result
     }
 
-    fn check_flags(flags: &RuleFlags, is_override: bool) -> Result<()> {
-        if flags.export && is_override {
-            bail!("Overridden (containing '@:') rules cannot be @export-ed");
-        }
+    fn check_flags(flags: &RuleFlags) -> Result<()> {
         if flags.export && flags.string {
             bail!("@string rules cannot be @export-ed");
-        }
-        if flags.position && is_override {
-            bail!("Overridden (containing '@:') rules cannot contain @position");
         }
         if flags.position && flags.string {
             bail!("@string rules cannot contain @position");
@@ -136,6 +130,16 @@ impl Rule {
         settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
         let field = &fields[0];
+        let flags = self.flags();
+        if flags.export {
+            bail!("Overridden (containing '@:') rules cannot be @export-ed");
+        }
+        if flags.position {
+            bail!("Overridden (containing '@:') rules cannot contain @position");
+        }
+        if field.arity != Arity::One {
+            bail!("'@:' fields have to be used exactly once in all choice branches, and must not be used in closures or optional parts.");
+        }
         if field.type_names.len() <= 1 {
             self.generate_override_rule_simple(field, settings)
         } else {
@@ -152,7 +156,7 @@ impl Rule {
         let override_type = generate_field_type(&self.name, field, settings);
         Ok((
             quote!(
-                pub use #override_type as #rule_type;
+                pub type #rule_type = #override_type;
             ),
             quote!(
                 use super::#rule_type as Parsed__override;
@@ -171,12 +175,10 @@ impl Rule {
         settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
         let rule_type = format_ident!("{}", self.name);
-        let override_type = generate_field_type(&self.name, field, settings);
         let enum_type = generate_enum_type(&self.name, field, settings);
         Ok((
             quote!(
                 #enum_type
-                pub use #override_type as #rule_type;
             ),
             quote!(
                 use super::#rule_type as Parsed__override;
@@ -199,7 +201,7 @@ impl Rule {
         let parsed_enum_types: TokenStream = fields
             .iter()
             .filter(|f| f.type_names.len() > 1)
-            .map(|f| generate_enum_type(&self.name, f, settings))
+            .map(|f| generate_enum_type(&format!("{}_{}", self.name, f.name), f, settings))
             .collect();
         let parsed_struct_type =
             self.definition

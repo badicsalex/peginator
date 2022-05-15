@@ -173,11 +173,11 @@ pub fn generate_field_type(
 }
 
 pub fn generate_enum_type(
-    parent_type: &str,
+    name: &str,
     field: &FieldDescriptor,
     _settings: &CodegenSettings,
 ) -> TokenStream {
-    let ident = format_ident!("{}_{}", parent_type, field.name);
+    let ident = format_ident!("{}", name);
     let type_idents: Vec<Ident> = field
         .type_names
         .iter()
