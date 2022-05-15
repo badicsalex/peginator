@@ -88,7 +88,7 @@ impl Choice {
                 let choice_mod = format_ident!("choice_{}", num);
                 if fields.is_empty() {
                     Ok(quote!(
-                        match #choice_mod::parse(state.clone(), cache) {
+                        match #choice_mod::parse(state.clone(), tracer.clone(), cache) {
                             Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
                             Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                         }
@@ -116,7 +116,7 @@ impl Choice {
                         })
                         .collect();
                     Ok(quote!(
-                        match #choice_mod::parse(state.clone(), cache) {
+                        match #choice_mod::parse(state.clone(), tracer.clone(), cache) {
                             Ok(ok_result) => return Ok(
                                     ok_result.map(|result|
                                         Parsed{
@@ -132,7 +132,11 @@ impl Choice {
             .collect::<Result<TokenStream>>()?;
         Ok(quote!(
             #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
                 let mut farthest_error: Option<ParseError> = None;
                 #calls

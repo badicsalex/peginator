@@ -23,18 +23,26 @@ impl Codegen for Field {
             let field_conversion = generate_field_converter(field_name, &self.typ, rule_fields);
             Ok(quote!(
                 #[inline(always)]
-                pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    tracer: impl ParseTracer,
+                    cache: &mut ParseCache<'a>
+                ) -> ParseResult<'a, Parsed> {
                     #skip_ws
-                    let ok_result = #parser_name (state, cache)?;
+                    let ok_result = #parser_name (state, tracer, cache)?;
                     Ok(ok_result.map(|result| Parsed{ #field_ident: #field_conversion }))
                 }
             ))
         } else {
             Ok(quote!(
                 #[inline(always)]
-                pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+                pub fn parse<'a>(
+                    state: ParseState<'a>,
+                    tracer: impl ParseTracer,
+                    cache: &mut ParseCache<'a>
+                ) -> ParseResult<'a, Parsed> {
                     #skip_ws
-                    let ok_result = #parser_name (state, cache)?;
+                    let ok_result = #parser_name (state, tracer, cache)?;
                     Ok(ok_result.map(|_| Parsed))
                 }
             ))
@@ -71,9 +79,13 @@ impl Codegen for OverrideField {
         let field_conversion = generate_field_converter("_override", &self.typ, rule_fields);
         Ok(quote!(
             #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                let ok_result = #parser_name (state, cache)?;
+                let ok_result = #parser_name (state, tracer, cache)?;
                 Ok(ok_result.map(|result| Parsed{ _override: #field_conversion }))
             }
         ))

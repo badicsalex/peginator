@@ -9,11 +9,13 @@ mod error;
 mod parse_result;
 mod peg_parser;
 mod state;
+mod trace;
 
 pub use error::{combine_errors, ParseError, ParseErrorSpecifics, PrettyParseError};
 pub use parse_result::{ParseOk, ParseResult};
 pub use peg_parser::{ParseSettings, PegParser};
 pub use state::ParseState;
+pub use trace::{IndentedTracer, NoopTracer, ParseTracer};
 
 pub use builtin_parsers::{
     parse_char, parse_character_literal, parse_character_range, parse_string_literal,

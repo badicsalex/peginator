@@ -81,7 +81,11 @@ impl Codegen for CharacterRange {
         };
         Ok(quote!(
             #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 let ok_result = parse_character_range(state, #from, #to)?;
                 Ok(ok_result.map(|_| Parsed))
@@ -118,7 +122,11 @@ impl Codegen for StringLiteral {
         };
         Ok(quote!(
             #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 let ok_result = #parse_function?;
                 Ok(ok_result.map(|_| Parsed))

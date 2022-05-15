@@ -2,13 +2,17 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use super::{ParseErrorSpecifics, ParseOk, ParseResult, ParseState};
+use super::{ParseErrorSpecifics, ParseOk, ParseResult, ParseState, ParseTracer};
 
 /// Hand-written 'rule parser' for parsing a single cahracter.
 ///
 /// Should always look just like all the other generated parse functions.
 #[inline(always)]
-pub fn parse_char<'a, _CT>(state: ParseState<'a>, _cache: &_CT) -> ParseResult<'a, char> {
+pub fn parse_char<'a, _CT>(
+    state: ParseState<'a>,
+    _tracer: impl ParseTracer,
+    _cache: &_CT,
+) -> ParseResult<'a, char> {
     let result = state.s().chars().next().ok_or_else(|| {
         state
             .clone()

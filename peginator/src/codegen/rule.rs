@@ -49,23 +49,24 @@ impl CodegenRule for Rule {
                     #inner_code
                 }
                 #[inline]
-                pub(super) fn #parser_name <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, #rule_type> {
-                    let cache_key = state.cache_key();
-                    if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
-                        state.print_trace_cached(#name);
-                        state.print_trace_result(&cached);
-                        cached.clone()
-                    } else {
-                        state.print_trace_start(#name);
-                        let result = #rule_mod::rule_parser(state.clone().indent(), cache);
-                        state.print_trace_result(&result);
-                        let result = result.map(|result| ParseOk {
-                            state: result.state.dedent(),
-                            ..result
-                        });
-                        cache.#cache_entry_ident.insert(cache_key, result.clone());
-                        result
-                    }
+                pub(super) fn #parser_name <'a>(
+                    state: ParseState<'a>,
+                    tracer: impl ParseTracer,
+                    cache: &mut ParseCache<'a>
+                ) -> ParseResult<'a, #rule_type> {
+                    tracer.run_traced(
+                        #name, state,
+                        |state, tracer| {
+                            let cache_key = state.cache_key();
+                            if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
+                                cached.clone()
+                            } else {
+                                let result = #rule_mod::rule_parser(state, tracer, cache);
+                                cache.#cache_entry_ident.insert(cache_key, result.clone());
+                                result
+                            }
+                        },
+                    )
                 }
             ),
         ))
@@ -115,9 +116,10 @@ impl Rule {
                 #[inline(always)]
                 pub fn rule_parser<'a>(
                     state: ParseState<'a>,
+                    tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, String> {
-                    let ok_result = parse(state.clone(), cache)?;
+                    let ok_result = parse(state.clone(), tracer, cache)?;
                     Ok(ok_result
                         .map_with_state(|_, new_state| state.slice_until(&new_state).to_string()))
                 }
@@ -161,8 +163,12 @@ impl Rule {
             quote!(
                 use super::#rule_type as Parsed__override;
                 #[inline(always)]
-                pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
-                    let ok_result = parse(state, cache)?;
+                pub fn rule_parser <'a>(
+                    state: ParseState<'a>,
+                    tracer: impl ParseTracer,
+                    cache: &mut ParseCache<'a>
+                ) -> ParseResult<'a, super::#rule_type> {
+                    let ok_result = parse(state, tracer, cache)?;
                     Ok(ok_result.map(|result| result._override))
                 }
             ),
@@ -183,8 +189,12 @@ impl Rule {
             quote!(
                 use super::#rule_type as Parsed__override;
                 #[inline(always)]
-                pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
-                    let ok_result = parse(state, cache)?;
+                pub fn rule_parser <'a>(
+                    state: ParseState<'a>,
+                    tracer: impl ParseTracer,
+                    cache: &mut ParseCache<'a>
+                ) -> ParseResult<'a, super::#rule_type> {
+                    let ok_result = parse(state, tracer, cache)?;
                     Ok(ok_result.map(|result| result._override))
                 }
             ),
@@ -219,7 +229,7 @@ impl Rule {
 
         let rule_parser_body = if record_position {
             quote!(
-                let ok_result = parse(state.clone(), cache)?;
+                let ok_result = parse(state.clone(), tracer, cache)?;
                 Ok(ok_result.map_with_state(
                     |r, new_state| super::#rule_type{
                         #( #field_names:r.#field_names,)*
@@ -229,7 +239,7 @@ impl Rule {
             )
         } else {
             quote!(
-                let ok_result = parse(state, cache)?;
+                let ok_result = parse(state, tracer, cache)?;
                 Ok(ok_result.map(
                     |r| super::#rule_type{
                         #( #field_names:r.#field_names,)*
@@ -245,7 +255,11 @@ impl Rule {
             quote!(
                 #inner_enum_uses
                 #[inline(always)]
-                pub fn rule_parser <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, super::#rule_type> {
+                pub fn rule_parser <'a>(
+                    state: ParseState<'a>,
+                    tracer: impl ParseTracer,
+                    cache: &mut ParseCache<'a>
+                ) -> ParseResult<'a, super::#rule_type> {
                     #rule_parser_body
                 }
             ),

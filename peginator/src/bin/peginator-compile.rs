@@ -8,9 +8,7 @@ use std::fs;
 use anyhow::Result;
 use clap::Parser;
 
-use peginator::{
-    CodegenGrammar, CodegenSettings, Grammar, ParseSettings, PegParser, PrettyParseError,
-};
+use peginator::{CodegenGrammar, CodegenSettings, Grammar, PegParser, PrettyParseError};
 
 /// Compile EBNF grammar into rust parser code.
 #[derive(Parser, Debug)]
@@ -34,12 +32,11 @@ struct Args {
 fn main_wrap() -> Result<()> {
     let args = Args::parse();
     let grammar = fs::read_to_string(&args.grammar_file)?;
-    let parsed_grammar = Grammar::parse_advanced(
-        &grammar,
-        &ParseSettings {
-            tracing: args.trace,
-        },
-    )
+    let parsed_grammar = if args.trace {
+        Grammar::parse_with_trace(&grammar)
+    } else {
+        Grammar::parse(&grammar)
+    }
     .map_err(|err| PrettyParseError::from_parse_error(&err, &grammar, Some(&args.grammar_file)))?;
     if args.ast_only {
         println!("{:#?}", parsed_grammar);

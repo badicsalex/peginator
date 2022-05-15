@@ -19,8 +19,12 @@ impl Codegen for NegativeLookahead {
                 #body
             }
             #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
-                match negative_lookahead::parse (state.clone(), cache) {
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
+                match negative_lookahead::parse (state.clone(), tracer, cache) {
                     Ok(_) => Err(state.report_error(ParseErrorSpecifics::NegativeLookaheadFailed)),
                     Err(_) => Ok(ParseOk{result:Parsed, state, farthest_error:None}),
                 }

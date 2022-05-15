@@ -33,7 +33,7 @@ impl Codegen for Closure {
         let parse_result = quote!(Parsed{ #( #field_names,)* });
         let at_least_one_body = if self.at_least_one.is_some() {
             quote!(
-                let ParseOk{result, mut state, mut farthest_error} = closure::parse(state, cache)?;
+                let ParseOk{result, mut state, mut farthest_error} = closure::parse(state, tracer.clone(), cache)?;
                 #assignments
             )
         } else {
@@ -49,11 +49,15 @@ impl Codegen for Closure {
                 #closure_body
             }
             #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
                 #declarations
                 #at_least_one_body
                 loop {
-                    match closure::parse(state.clone(), cache) {
+                    match closure::parse(state.clone(), tracer.clone(), cache) {
                         Ok(ParseOk{result, state:new_state, farthest_error:new_farthest_error}) => {
                             #assignments
                             state = new_state;

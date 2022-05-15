@@ -19,6 +19,7 @@ impl Codegen for Sequence {
                 #[inline(always)]
                 pub fn parse<'a>(
                     state: ParseState<'a>,
+                    tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
                     Ok(ParseOk {
@@ -85,7 +86,7 @@ impl Sequence {
             let inner_fields = part.get_filtered_rule_fields(rule_fields)?;
             let call = if inner_fields.is_empty() {
                 quote!(
-                    match #part_mod::parse(state, cache) {
+                    match #part_mod::parse(state, tracer.clone(), cache) {
                         Ok(ParseOk{
                             result:_,
                             state:new_state,
@@ -114,7 +115,7 @@ impl Sequence {
                     field_assignments.extend(field_assignment);
                 }
                 quote!(
-                    let result = match #part_mod::parse(state, cache) {
+                    let result = match #part_mod::parse(state, tracer.clone(), cache) {
                         Ok(ParseOk{
                             result,
                             state:new_state,
@@ -135,7 +136,11 @@ impl Sequence {
         let parse_result = quote!(Parsed{ #( #field_names,)* });
         Ok(quote!(
             #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
                 let mut farthest_error: Option<ParseError> = None;
                 #calls

@@ -24,12 +24,13 @@ impl CodegenGrammar for Grammar {
                     if exported {
                         all_parsers.extend(quote!(
                             impl peginator_generated::PegParser for #rule_ident {
-                                fn parse_advanced(
+                                fn parse_advanced<T: peginator_generated::ParseTracer>(
                                     s: &str,
                                     settings: &peginator_generated::ParseSettings)
                                 -> Result<Self, peginator_generated::ParseError> {
                                     Ok(peginator_generated::#internal_parser_name(
                                         peginator_generated::ParseState::new(s, settings),
+                                        T::new(),
                                         &mut Default::default(),
                                     )?.result)
                                 }
@@ -59,7 +60,9 @@ impl CodegenGrammar for Grammar {
             )]
             mod peginator_generated {
                 use super::*;
-                pub use #peginator_crate::runtime::{ParseError, ParseSettings, ParseState, PegParser};
+                pub use #peginator_crate::runtime::{
+                    ParseError, ParseSettings, ParseState, PegParser, IndentedTracer, ParseTracer
+                };
                 use #peginator_crate::runtime::*;
 
                 #[derive(Default)]

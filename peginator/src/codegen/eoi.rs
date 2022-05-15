@@ -19,7 +19,11 @@ impl Codegen for EndOfInput {
         };
         Ok(quote!(
             #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 if state.is_empty() {
                     Ok(ParseOk{result:Parsed, state, farthest_error:None})

@@ -18,7 +18,7 @@ impl CharRulePart {
             }
             CharRulePart::Identifier(ident) => {
                 let parser_name = format_ident!("parse_{}", ident);
-                Ok(quote!(#parser_name(state.clone(), cache)))
+                Ok(quote!(#parser_name(state.clone(), tracer, cache)))
             }
         }
     }
@@ -37,7 +37,11 @@ impl CharRule {
 
         Ok(quote!(
             #[inline]
-            pub(super) fn #parser_name <'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, #rule_type> {
+            pub(super) fn #parser_name <'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, #rule_type> {
                 #(if let Ok(result) = #parser_calls { return Ok(result)})*
                 Err(state.report_error(ParseErrorSpecifics::ExpectedCharacterClass { name: #name }))
             }

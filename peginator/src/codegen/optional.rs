@@ -34,8 +34,12 @@ impl Codegen for Optional {
                 #body
             }
             #[inline(always)]
-            pub fn parse<'a>(state: ParseState<'a>, cache: &mut ParseCache<'a>) -> ParseResult<'a, Parsed> {
-                match optional::parse(state.clone(), cache) {
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
+                match optional::parse(state.clone(), tracer, cache) {
                 Ok(ok_result) => Ok(ok_result.map(|result| Parsed{#happy_case_fields})),
                 Err(err) => Ok(ParseOk{
                         result: Parsed{#unhappy_case_fields},
