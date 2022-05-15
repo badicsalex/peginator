@@ -23,8 +23,8 @@ impl TryFrom<&StringItem> for char {
 
 impl From<&HexaEscape> for char {
     fn from(value: &HexaEscape) -> Self {
-        let c1i = u8::from_str_radix(&value.c1, 16).unwrap();
-        let c2i = u8::from_str_radix(&value.c2, 16).unwrap();
+        let c1i = value.c1.to_digit(16).unwrap() as u8;
+        let c2i = value.c2.to_digit(16).unwrap() as u8;
         (c1i * 16 + c2i).into()
     }
 }
@@ -46,21 +46,21 @@ impl TryFrom<&Utf8Escape> for char {
     type Error = anyhow::Error;
 
     fn try_from(value: &Utf8Escape) -> Result<Self, Self::Error> {
-        let mut result: u32 = u32::from_str_radix(&value.c1, 16).unwrap();
+        let mut result: u32 = value.c1.to_digit(16).unwrap();
         if let Some(v) = &value.c2 {
-            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+            result = result * 16 + v.to_digit(16).unwrap();
         };
         if let Some(v) = &value.c3 {
-            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+            result = result * 16 + v.to_digit(16).unwrap();
         };
         if let Some(v) = &value.c4 {
-            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+            result = result * 16 + v.to_digit(16).unwrap();
         };
         if let Some(v) = &value.c5 {
-            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+            result = result * 16 + v.to_digit(16).unwrap();
         };
         if let Some(v) = &value.c6 {
-            result = result * 16 + u32::from_str_radix(v, 16).unwrap();
+            result = result * 16 + v.to_digit(16).unwrap();
         };
         char::from_u32(result).ok_or_else(|| anyhow!("Invalid utf-8 codepoint {:#x}", result))
     }

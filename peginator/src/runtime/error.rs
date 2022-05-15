@@ -11,6 +11,7 @@ pub enum ParseErrorSpecifics {
     ExpectedCharacter { c: char },
     ExpectedCharacterRange { from: char, to: char },
     ExpectedString { s: &'static str },
+    ExpectedCharacterClass { name: &'static str },
     ExpectedEoi,
     NegativeLookaheadFailed,
     // Special ones
@@ -37,6 +38,9 @@ impl ParseError {
             ParseErrorSpecifics::ExpectedCharacter { c } => format!("expected character '{}'", c),
             ParseErrorSpecifics::ExpectedCharacterRange { from, to } => {
                 format!("expected character from range '{}'-'{}'", from, to)
+            }
+            ParseErrorSpecifics::ExpectedCharacterClass { name } => {
+                format!("expected character from character class {}", name)
             }
             ParseErrorSpecifics::ExpectedString { s } => format!("expected string \"{}\"", s),
             ParseErrorSpecifics::ExpectedEoi => "expected end of input".to_string(),

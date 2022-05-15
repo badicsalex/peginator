@@ -6,6 +6,7 @@
 pub(crate) mod test_utils;
 
 mod additional_traits;
+mod char_rule;
 mod choice;
 mod closure;
 mod enums;

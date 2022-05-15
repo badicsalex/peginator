@@ -1,0 +1,19 @@
+@export
+HexNumTester = num:HexNum;
+
+@string
+@no_skip_ws
+HexNum = {Hexadecimal}+;
+
+@char
+Hexadecimal = '0'..'9' | 'a'..'f' | 'A'..'F';
+
+@export
+@no_skip_ws
+WeirdTest = '.' a:CharA w:Weird;
+
+@char
+CharA = 'a';
+
+@char
+Weird = 'x' | '1'..'8' | CharA | '\u{2700}';

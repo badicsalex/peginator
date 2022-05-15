@@ -28,7 +28,10 @@ pub fn parse_char<'a, _CT>(state: ParseState<'a>, _cache: &_CT) -> ParseResult<'
 }
 
 #[inline(always)]
-pub fn parse_string_literal<'a>(state: ParseState<'a>, s: &'static str) -> ParseResult<'a, ()> {
+pub fn parse_string_literal<'a>(
+    state: ParseState<'a>,
+    s: &'static str,
+) -> ParseResult<'a, &'static str> {
     if !state.s().starts_with(s) {
         Err(state.report_error(ParseErrorSpecifics::ExpectedString { s }))
     } else {
@@ -39,7 +42,7 @@ pub fn parse_string_literal<'a>(state: ParseState<'a>, s: &'static str) -> Parse
         // We are skipping a correct string's length, so we should be OK.
         let state = unsafe { state.advance(s.len()) };
         Ok(ParseOk {
-            result: (),
+            result: s,
             state,
             farthest_error: None,
         })
@@ -47,7 +50,7 @@ pub fn parse_string_literal<'a>(state: ParseState<'a>, s: &'static str) -> Parse
 }
 
 #[inline(always)]
-pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
+pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<char> {
     if c.is_ascii() {
         // fast path
         if state.is_empty() || state.s().as_bytes()[0] != c as u8 {
@@ -60,7 +63,7 @@ pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
             // The byte we are skipping is ASCII, so we are OK.
             let state = unsafe { state.advance(1) };
             Ok(ParseOk {
-                result: (),
+                result: c,
                 state,
                 farthest_error: None,
             })
@@ -76,7 +79,7 @@ pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
         // We are skipping a full character, so we should be OK.
         let state = unsafe { state.advance(c.len_utf8()) };
         Ok(ParseOk {
-            result: (),
+            result: c,
             state,
             farthest_error: None,
         })
@@ -84,27 +87,32 @@ pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<()> {
 }
 
 #[inline(always)]
-pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseResult<()> {
+pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseResult<char> {
     if from.is_ascii() && to.is_ascii() {
         // fast path
-        if state.is_empty()
-            || state.s().as_bytes()[0] < from as u8
-            || state.s().as_bytes()[0] > to as u8
-        {
-            Err(state.report_error(ParseErrorSpecifics::ExpectedCharacterRange { from, to }))
-        } else {
-            // SAFETY:
-            // Callers of this function are responsible that these preconditions are satisfied:
-            //    Indexes must lie on UTF-8 sequence boundaries.
-            //
-            // The byte we are skipping is ASCII, so we are OK.
-            let state = unsafe { state.advance(1) };
-            Ok(ParseOk {
-                result: (),
-                state,
-                farthest_error: None,
-            })
+        if state.is_empty() {
+            return Err(
+                state.report_error(ParseErrorSpecifics::ExpectedCharacterRange { from, to })
+            );
         }
+
+        let first_byte = state.s().as_bytes()[0];
+        if first_byte < from as u8 || first_byte > to as u8 {
+            return Err(
+                state.report_error(ParseErrorSpecifics::ExpectedCharacterRange { from, to })
+            );
+        }
+        // SAFETY:
+        // Callers of this function are responsible that these preconditions are satisfied:
+        //    Indexes must lie on UTF-8 sequence boundaries.
+        //
+        // The byte we are skipping is ASCII, so we are OK.
+        let state = unsafe { state.advance(1) };
+        Ok(ParseOk {
+            result: first_byte as char,
+            state,
+            farthest_error: None,
+        })
     } else {
         // utf-8 path
         let c = state.s().chars().next().ok_or_else(|| {
@@ -122,7 +130,7 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
             // We are skipping a full character, so we should be OK.
             let state = unsafe { state.advance(c.len_utf8()) };
             Ok(ParseOk {
-                result: (),
+                result: c,
                 state,
                 farthest_error: None,
             })

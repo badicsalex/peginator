@@ -1,7 +1,11 @@
 @export
-Grammar = {rules:Rule ";"} $ ;
+Grammar = {(rules:Rule | rules:CharRule) ";"} $ ;
 
 Rule = {directives:DirectiveExpression} name:Identifier "=" definition:Choice;
+
+CharRule = CharDirective name:Identifier "=" choices:CharRulePart {"|" choices:CharRulePart };
+
+CharRulePart = @:CharacterRange | @:CharRangePart | @:Identifier;
 
 Choice = choices:Sequence {"|" choices:Sequence};
 
@@ -48,7 +52,10 @@ DelimitedExpression =
 
 @string
 @no_skip_ws
-Identifier = {'a'..'z' | 'A'..'Z' | '0'..'9' | '_'}+;
+Identifier = {IdentifierChar}+;
+
+@char
+IdentifierChar = 'a'..'z' | 'A'..'Z' | '0'..'9' | '_';
 
 @no_skip_ws
 StringItem = '\\' (@:SimpleEscape | @:HexaEscape | @:Utf8Escape) | !'\\' @:char ;
@@ -79,8 +86,7 @@ SimpleEscapeDQuote = '"';
 @no_skip_ws
 HexaEscape = 'x' c1:HexChar c2:HexChar;
 
-@string
-@no_skip_ws
+@char
 HexChar = '0'..'9' | 'a'..'f' | 'A'..'F';
 
 @no_skip_ws
@@ -90,8 +96,14 @@ Utf8Escape =
     'U' '0' '0' c1:HexChar c2:HexChar c3:HexChar c4:HexChar c5:HexChar c6:HexChar
 ;
 
-DirectiveExpression = @:StringDirective | @:NoSkipWsDirective | @:ExportDirective | @:PositionDirective;
+DirectiveExpression =
+    @:StringDirective |
+    @:NoSkipWsDirective |
+    @:ExportDirective |
+    @:PositionDirective
+;
 StringDirective = "@string";
+CharDirective = "@char";
 NoSkipWsDirective = "@no_skip_ws";
 ExportDirective = "@export";
 PositionDirective = "@position";
