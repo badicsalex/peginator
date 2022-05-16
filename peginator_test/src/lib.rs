@@ -18,5 +18,6 @@ mod optional;
 mod palindrome;
 mod position;
 mod precedence;
+mod sequence;
 mod simple;
 mod string;

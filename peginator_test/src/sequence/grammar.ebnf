@@ -1,0 +1,25 @@
+@export 
+MergeSimple = x:FieldA (a:FieldA b:FieldA ) ["empty"] y:FieldA;
+
+@export
+MultiSimple = 
+    x:FieldX x:FieldX
+    y:FieldY ('.' y:FieldY ) y:FieldY 
+    z:FieldZ (',' z:FieldZ z:FieldZ) z:FieldZ
+    (w:FieldW w:FieldW) w:FieldW
+;
+
+@export
+MultiOpt = 
+    x:FieldX ['.' x:FieldX] x:FieldX
+    [y:FieldY] ['.' y:FieldY ] y:FieldY
+    z:FieldZ [',' z:FieldZ z:FieldZ] z:FieldZ
+    [w:FieldW w:FieldW] w:FieldW
+;
+
+FieldA = 'a';
+
+FieldX = 'x';
+FieldY = 'y';
+FieldZ = 'z';
+FieldW = 'w';
