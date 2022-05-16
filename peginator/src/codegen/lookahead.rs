@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 use proc_macro2::TokenStream;
 use quote::quote;
 
@@ -33,8 +33,9 @@ impl Codegen for NegativeLookahead {
     }
 
     fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
-        // TODO: check if body has fields. It should NOT, since capturing in a negative lookeahead
-        // is not supported at all.
+        if !self.expr.get_fields()?.is_empty() {
+            bail!("The body of negative lookaheads should not contain named fields")
+        }
         Ok(Vec::new())
     }
 }

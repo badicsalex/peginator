@@ -69,7 +69,6 @@ impl Codegen for OverrideField {
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        // TODO: CONVERT
         let parser_name = format_ident!("parse_{}", self.typ);
         let skip_ws = if settings.skip_whitespace {
             quote!(let state = state.skip_whitespace();)
