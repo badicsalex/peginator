@@ -16,24 +16,28 @@ Let's see the classic calculator as an example, and how it looks in Peginator:
 
 ```ebnf
 @export
-OneExpression = expr:Expression;
+Assignment = lvalue:Identifier '=' expr:Expression ';'$;
 
 Expression = @:Additive | @:Term;
-
+Additive = parts:Term {(parts:Plus | parts:Minus) parts:Term}+;
 Plus = '+';
 Minus = '-';
 
 Term = @:Multiplicative | @:Factor;
-
+Multiplicative = parts:Factor {(parts:Mul | parts:Div) parts:Factor}+;
 Mul = '*';
 Div = '/';
 
 Factor = @:Group | @:Number;
-
+Group = '(' body:*Expression ')';
 
 @string
 @no_skip_ws
 Number = {'0'..'9'}+;
+
+@string
+@no_skip_ws
+Identifier = {'a'..'z' | '0'..'9' | '_'}+;
 ```
 
 This will be converted to the following types:
@@ -89,37 +93,51 @@ impl peginator::PegParser for OneExpression {...}
 And the expression:
 
 ```
-(1 - 2 + 3) * (13 - 37 * 4 + 20)
+result = (1 - 2 + 3) * (13 - 37 * 4 + 20);
 ```
 
 Turns into the following tree (less the enum variants):
 
 
 ```rust
-Multiplicative {
-    parts: [
-        Group {
-            body: Additive {
-                parts: ["1", Minus, "2", Plus, "3"],
+Assignment {
+    lvalue: "result",
+    expr: Multiplicative {
+        parts: [
+            Group {
+                body: Additive {
+                    parts: ["1", Minus, "2", Plus, "3"],
+                },
             },
-        },
-        Mul,
-        Group {
-            body: Additive {
-                parts: [
-                    "13",
-                    Minus,
-                    Multiplicative {
-                        parts: ["37", Mul, "4"],
-                    },
-                    Plus,
-                    "20",
-                ],
+            Mul,
+            Group {
+                body: Additive {
+                    parts: [
+                        "13",
+                        Minus,
+                        Multiplicative {
+                            parts: ["37", Mul, "4"],
+                        },
+                        Plus,
+                        "20",
+                    ],
+                },
             },
-        },
-    ],
+        ],
+    }
 }
 ```
+
+## Debugging
+
+We have pretty errors, based on the first failure of the longest match
+(a'la python's parser):
+
+![Colors and stuff on a console](docs/error.png)
+
+And parse tracing (opt-in, no cost if not used):
+
+![More colors and indentation](docs/trace.png)
 
 ## Integration
 

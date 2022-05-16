@@ -1,5 +1,5 @@
 @export
-OneExpression = expr:Expression;
+Assignment = lvalue:Identifier '=' expr:Expression ';'$;
 
 Expression = @:Additive | @:Term;
 Additive = parts:Term {(parts:Plus | parts:Minus) parts:Term}+;
@@ -17,3 +17,7 @@ Group = '(' body:*Expression ')';
 @string
 @no_skip_ws
 Number = {'0'..'9'}+;
+
+@string
+@no_skip_ws
+Identifier = {'a'..'z' | '0'..'9' | '_'}+;
