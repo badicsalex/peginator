@@ -17,5 +17,6 @@ mod memoization;
 mod optional;
 mod palindrome;
 mod position;
+mod precedence;
 mod simple;
 mod string;
