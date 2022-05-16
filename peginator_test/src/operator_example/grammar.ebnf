@@ -1,0 +1,19 @@
+@export
+OneExpression = expr:Expression;
+
+Expression = @:Additive | @:Term;
+Additive = parts:Term {(parts:Plus | parts:Minus) parts:Term}+;
+Plus = '+';
+Minus = '-';
+
+Term = @:Multiplicative | @:Factor;
+Multiplicative = parts:Factor {(parts:Mul | parts:Div) parts:Factor}+;
+Mul = '*';
+Div = '/';
+
+Factor = @:Group | @:Number;
+Group = '(' body:*Expression ')';
+
+@string
+@no_skip_ws
+Number = {'0'..'9'}+;
