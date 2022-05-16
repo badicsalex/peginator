@@ -1,0 +1,44 @@
+@export
+SkipWsString = 'aaa' 'bbb';
+@export
+@no_skip_ws
+NoSkipWsString = 'aaa' 'bbb';
+
+@export
+SkipWsCharRange = 'a'..'b' 'c'..'d';
+@export
+@no_skip_ws
+NoSkipWsCharRange = 'a'..'b' 'c'..'d';
+
+@export
+SkipWsEoi = 'a' $;
+@export
+@no_skip_ws
+NoSkipWsEoi = 'a' $;
+
+@export
+SkipWsField = a:NoSkipWsString b:NoSkipWsCharRange;
+@export
+@no_skip_ws
+NoSkipWsField = a:NoSkipWsString b:NoSkipWsCharRange;
+
+@export
+@no_skip_ws
+OverrideTester = s:SkipWsOField ns:NoSkipWsOField s2:SkipWsOField;
+
+SkipWsOField = @:NoSkipWsString | @:NoSkipWsCharRange;
+@no_skip_ws
+NoSkipWsOField = @:NoSkipWsString | @:NoSkipWsCharRange;
+
+@export
+@no_skip_ws
+MixedSkipWsField = a:SkipWsString b:SkipWsCharRange;
+
+
+@export
+SkipWsPropagation = 'a' ['.' {'b'}+] 'c';
+
+@export
+@no_skip_ws
+NoSkipWsPropagation = 'a' ['.' {'b'}+] 'c';
+

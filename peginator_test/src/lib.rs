@@ -20,4 +20,5 @@ mod position;
 mod precedence;
 mod sequence;
 mod simple;
+mod skip_ws;
 mod string;
