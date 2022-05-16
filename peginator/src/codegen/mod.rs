@@ -9,6 +9,7 @@ mod common;
 mod eoi;
 mod field;
 mod grammar;
+mod header;
 mod lookahead;
 mod misc;
 mod optional;
@@ -17,3 +18,4 @@ mod sequence;
 mod string;
 
 pub use common::{CodegenGrammar, CodegenSettings};
+pub use header::generate_source_header;
