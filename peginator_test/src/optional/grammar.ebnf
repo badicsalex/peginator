@@ -1,0 +1,4 @@
+@export 
+Tester = [simple:FieldA] [',' [optional:FieldA]] ['.' {multi:FieldA}];
+
+FieldA = 'a';

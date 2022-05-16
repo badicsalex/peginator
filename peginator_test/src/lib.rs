@@ -14,6 +14,7 @@ mod eoi;
 mod field;
 mod lookahead;
 mod memoization;
+mod optional;
 mod palindrome;
 mod position;
 mod simple;
