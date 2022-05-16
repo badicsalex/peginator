@@ -104,13 +104,14 @@ impl Sequence {
                     let name = format_ident!("{}", field.name);
                     let field_assignment = if !fields_seen.contains(field.name) {
                         fields_seen.insert(field.name);
-                        quote!(let mut #name = result.#name;)
-                    } else {
-                        match field.arity {
-                            Arity::One => quote!(let #name = result.#name;),
-                            Arity::Optional => quote!(#name = #name.or(result.#name);),
-                            Arity::Multiple => quote!(#name.extend(result.#name);),
+                        if field.arity == Arity::Multiple {
+                            quote!(let mut #name = result.#name;)
+                        } else {
+                            quote!(let #name = result.#name;)
                         }
+                    } else {
+                        assert_eq!(field.arity, Arity::Multiple);
+                        quote!(#name.extend(result.#name);)
                     };
                     field_assignments.extend(field_assignment);
                 }

@@ -586,7 +586,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut name = result.name;
+            let name = result.name;
             match part_2::parse(state, tracer.clone(), cache) {
                 Ok(ParseOk {
                     result: _,
@@ -610,7 +610,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut definition = result.definition;
+            let definition = result.definition;
             Ok(ParseOk {
                 result: Parsed {
                     directives,
@@ -868,7 +868,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut name = result.name;
+            let name = result.name;
             match part_2::parse(state, tracer.clone(), cache) {
                 Ok(ParseOk {
                     result: _,
@@ -1418,7 +1418,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut body = result.body;
+            let body = result.body;
             match part_2::parse(state, tracer.clone(), cache) {
                 Ok(ParseOk {
                     result: _,
@@ -1540,7 +1540,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut body = result.body;
+            let body = result.body;
             match part_2::parse(state, tracer.clone(), cache) {
                 Ok(ParseOk {
                     result: _,
@@ -1707,7 +1707,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut body = result.body;
+            let body = result.body;
             match part_2::parse(state, tracer.clone(), cache) {
                 Ok(ParseOk {
                     result: _,
@@ -1731,7 +1731,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut at_least_one = result.at_least_one;
+            let at_least_one = result.at_least_one;
             Ok(ParseOk {
                 result: Parsed { body, at_least_one },
                 state,
@@ -1867,7 +1867,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut expr = result.expr;
+            let expr = result.expr;
             Ok(ParseOk {
                 result: Parsed { expr },
                 state,
@@ -1969,7 +1969,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut from = result.from;
+            let from = result.from;
             match part_1::parse(state, tracer.clone(), cache) {
                 Ok(ParseOk {
                     result: _,
@@ -1993,7 +1993,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut to = result.to;
+            let to = result.to;
             Ok(ParseOk {
                 result: Parsed { from, to },
                 state,
@@ -2105,7 +2105,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut _override = result._override;
+            let _override = result._override;
             match part_2::parse(state, tracer.clone(), cache) {
                 Ok(ParseOk {
                     result: _,
@@ -2741,7 +2741,7 @@ mod peginator_generated {
                         }
                         Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                     };
-                    let mut name = result.name;
+                    let name = result.name;
                     match part_1::parse(state, tracer.clone(), cache) {
                         Ok(ParseOk {
                             result: _,
@@ -2765,7 +2765,7 @@ mod peginator_generated {
                         }
                         Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                     };
-                    let mut boxed = result.boxed;
+                    let boxed = result.boxed;
                     Ok(ParseOk {
                         result: Parsed { name, boxed },
                         state,
@@ -2842,8 +2842,8 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut name = result.name;
-            let mut boxed = result.boxed;
+            let name = result.name;
+            let boxed = result.boxed;
             let result = match part_1::parse(state, tracer.clone(), cache) {
                 Ok(ParseOk {
                     result,
@@ -2856,7 +2856,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut typ = result.typ;
+            let typ = result.typ;
             Ok(ParseOk {
                 result: Parsed { name, boxed, typ },
                 state,
@@ -3018,7 +3018,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut typ = result.typ;
+            let typ = result.typ;
             Ok(ParseOk {
                 result: Parsed { typ },
                 state,
@@ -3569,7 +3569,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut _override = result._override;
+                let _override = result._override;
                 Ok(ParseOk {
                     result: Parsed { _override },
                     state,
@@ -3668,7 +3668,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut _override = result._override;
+                let _override = result._override;
                 Ok(ParseOk {
                     result: Parsed { _override },
                     state,
@@ -4201,7 +4201,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut c1 = result.c1;
+            let c1 = result.c1;
             let result = match part_2::parse(state, tracer.clone(), cache) {
                 Ok(ParseOk {
                     result,
@@ -4214,7 +4214,7 @@ mod peginator_generated {
                 }
                 Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
             };
-            let mut c2 = result.c2;
+            let c2 = result.c2;
             Ok(ParseOk {
                 result: Parsed { c1, c2 },
                 state,
@@ -4482,7 +4482,7 @@ mod peginator_generated {
                                                         .unwrap())
                                                     }
                                                 };
-                                                let mut c5 = result.c5;
+                                                let c5 = result.c5;
                                                 let result = match part_1::parse(
                                                     state,
                                                     tracer.clone(),
@@ -4508,7 +4508,7 @@ mod peginator_generated {
                                                         .unwrap())
                                                     }
                                                 };
-                                                let mut c6 = result.c6;
+                                                let c6 = result.c6;
                                                 Ok(ParseOk {
                                                     result: Parsed { c5, c6 },
                                                     state,
@@ -4582,7 +4582,7 @@ mod peginator_generated {
                                                     .unwrap())
                                                 }
                                             };
-                                        let mut c4 = result.c4;
+                                        let c4 = result.c4;
                                         let result =
                                             match part_1::parse(state, tracer.clone(), cache) {
                                                 Ok(ParseOk {
@@ -4605,8 +4605,8 @@ mod peginator_generated {
                                                     .unwrap())
                                                 }
                                             };
-                                        let mut c5 = result.c5;
-                                        let mut c6 = result.c6;
+                                        let c5 = result.c5;
+                                        let c6 = result.c6;
                                         Ok(ParseOk {
                                             result: Parsed { c4, c5, c6 },
                                             state,
@@ -4675,7 +4675,7 @@ mod peginator_generated {
                                         )
                                     }
                                 };
-                                let mut c3 = result.c3;
+                                let c3 = result.c3;
                                 let result = match part_1::parse(state, tracer.clone(), cache) {
                                     Ok(ParseOk {
                                         result,
@@ -4693,9 +4693,9 @@ mod peginator_generated {
                                         )
                                     }
                                 };
-                                let mut c4 = result.c4;
-                                let mut c5 = result.c5;
-                                let mut c6 = result.c6;
+                                let c4 = result.c4;
+                                let c5 = result.c5;
+                                let c6 = result.c6;
                                 Ok(ParseOk {
                                     result: Parsed { c3, c4, c5, c6 },
                                     state,
@@ -4765,7 +4765,7 @@ mod peginator_generated {
                                 return Err(combine_errors(farthest_error, Some(err)).unwrap())
                             }
                         };
-                        let mut c2 = result.c2;
+                        let c2 = result.c2;
                         let result = match part_1::parse(state, tracer.clone(), cache) {
                             Ok(ParseOk {
                                 result,
@@ -4780,10 +4780,10 @@ mod peginator_generated {
                                 return Err(combine_errors(farthest_error, Some(err)).unwrap())
                             }
                         };
-                        let mut c3 = result.c3;
-                        let mut c4 = result.c4;
-                        let mut c5 = result.c5;
-                        let mut c6 = result.c6;
+                        let c3 = result.c3;
+                        let c4 = result.c4;
+                        let c5 = result.c5;
+                        let c6 = result.c6;
                         Ok(ParseOk {
                             result: Parsed { c2, c3, c4, c5, c6 },
                             state,
@@ -4891,7 +4891,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c1 = result.c1;
+                let c1 = result.c1;
                 let result = match part_3::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result,
@@ -4904,11 +4904,11 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c2 = result.c2;
-                let mut c3 = result.c3;
-                let mut c4 = result.c4;
-                let mut c5 = result.c5;
-                let mut c6 = result.c6;
+                let c2 = result.c2;
+                let c3 = result.c3;
+                let c4 = result.c4;
+                let c5 = result.c5;
+                let c6 = result.c6;
                 match part_4::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result: _,
@@ -5054,7 +5054,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c1 = result.c1;
+                let c1 = result.c1;
                 let result = match part_2::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result,
@@ -5067,7 +5067,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c2 = result.c2;
+                let c2 = result.c2;
                 let result = match part_3::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result,
@@ -5080,7 +5080,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c3 = result.c3;
+                let c3 = result.c3;
                 let result = match part_4::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result,
@@ -5093,7 +5093,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c4 = result.c4;
+                let c4 = result.c4;
                 Ok(ParseOk {
                     result: Parsed { c1, c2, c3, c4 },
                     state,
@@ -5301,7 +5301,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c1 = result.c1;
+                let c1 = result.c1;
                 let result = match part_4::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result,
@@ -5314,7 +5314,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c2 = result.c2;
+                let c2 = result.c2;
                 let result = match part_5::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result,
@@ -5327,7 +5327,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c3 = result.c3;
+                let c3 = result.c3;
                 let result = match part_6::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result,
@@ -5340,7 +5340,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c4 = result.c4;
+                let c4 = result.c4;
                 let result = match part_7::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result,
@@ -5353,7 +5353,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c5 = result.c5;
+                let c5 = result.c5;
                 let result = match part_8::parse(state, tracer.clone(), cache) {
                     Ok(ParseOk {
                         result,
@@ -5366,7 +5366,7 @@ mod peginator_generated {
                     }
                     Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
                 };
-                let mut c6 = result.c6;
+                let c6 = result.c6;
                 Ok(ParseOk {
                     result: Parsed {
                         c1,
