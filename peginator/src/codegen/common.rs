@@ -23,8 +23,7 @@ pub trait CodegenGrammar {
 }
 
 pub trait CodegenRule {
-    fn generate_code(&self, settings: &CodegenSettings)
-        -> Result<(bool, TokenStream, TokenStream)>;
+    fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

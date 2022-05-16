@@ -1,4 +1,5 @@
 @export
 Root = parsed:Recursive '.' $;
 
+@memoize
 Recursive = 'a' inner:*Recursive 'b' | 'a' inner:*Recursive 'c'|;

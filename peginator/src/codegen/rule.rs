@@ -10,10 +10,7 @@ use super::common::{
 };
 
 impl CodegenRule for Rule {
-    fn generate_code(
-        &self,
-        settings: &CodegenSettings,
-    ) -> Result<(bool, TokenStream, TokenStream)> {
+    fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)> {
         let flags = self.flags();
         let settings = CodegenSettings {
             skip_whitespace: settings.skip_whitespace && !flags.no_skip_ws,
@@ -39,8 +36,22 @@ impl CodegenRule for Rule {
             self.generate_normal_rule(&fields, &settings, flags.position)?
         };
 
+        let rule_parser_call = if flags.memoize {
+            quote!(
+                let cache_key = state.cache_key();
+                if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
+                    cached.clone()
+                } else {
+                    let result = #rule_mod::rule_parser(state, tracer, cache);
+                    cache.#cache_entry_ident.insert(cache_key, result.clone());
+                    result
+                }
+            )
+        } else {
+            quote!(#rule_mod::rule_parser(state, tracer, cache))
+        };
+
         Ok((
-            flags.export,
             types,
             quote!(
                 mod #rule_mod{
@@ -57,14 +68,7 @@ impl CodegenRule for Rule {
                     tracer.run_traced(
                         #name, state,
                         |state, tracer| {
-                            let cache_key = state.cache_key();
-                            if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
-                                cached.clone()
-                            } else {
-                                let result = #rule_mod::rule_parser(state, tracer, cache);
-                                cache.#cache_entry_ident.insert(cache_key, result.clone());
-                                result
-                            }
+                            #rule_parser_call
                         },
                     )
                 }
@@ -74,15 +78,16 @@ impl CodegenRule for Rule {
 }
 
 #[derive(Debug, Default)]
-struct RuleFlags {
+pub struct RuleFlags {
     pub no_skip_ws: bool,
     pub export: bool,
     pub string: bool,
     pub position: bool,
+    pub memoize: bool,
 }
 
 impl Rule {
-    fn flags(&self) -> RuleFlags {
+    pub fn flags(&self) -> RuleFlags {
         let mut result = RuleFlags::default();
         for directive in &self.directives {
             match directive {
@@ -90,6 +95,7 @@ impl Rule {
                 DirectiveExpression::NoSkipWsDirective(_) => result.no_skip_ws = true,
                 DirectiveExpression::ExportDirective(_) => result.export = true,
                 DirectiveExpression::PositionDirective(_) => result.position = true,
+                DirectiveExpression::MemoizeDirective(_) => result.memoize = true,
             }
         }
         result

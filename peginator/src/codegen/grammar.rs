@@ -16,12 +16,13 @@ impl CodegenGrammar for Grammar {
         for rule_entry in &self.rules {
             match rule_entry {
                 Grammar_rules::Rule(rule) => {
-                    let (exported, types, impls) = rule.generate_code(settings)?;
+                    let flags = rule.flags();
+                    let (types, impls) = rule.generate_code(settings)?;
                     all_types.extend(types);
                     all_impls.extend(impls);
                     let rule_ident = format_ident!("{}", rule.name);
                     let internal_parser_name = format_ident!("parse_{}", rule.name);
-                    if exported {
+                    if flags.export {
                         all_parsers.extend(quote!(
                             impl peginator_generated::PegParser for #rule_ident {
                                 fn parse_advanced<T: peginator_generated::ParseTracer>(
@@ -38,9 +39,11 @@ impl CodegenGrammar for Grammar {
                         ))
                     }
 
-                    let cache_entry_ident = format_ident!("c_{}", rule.name);
-                    cache_entries
-                        .extend(quote!(pub #cache_entry_ident: CacheEntries<'a, #rule_ident>,));
+                    if flags.memoize {
+                        let cache_entry_ident = format_ident!("c_{}", rule.name);
+                        cache_entries
+                            .extend(quote!(pub #cache_entry_ident: CacheEntries<'a, #rule_ident>,));
+                    }
                 }
                 Grammar_rules::CharRule(char_rule) => {
                     let rule_ident = format_ident!("{}", char_rule.name);
@@ -68,6 +71,7 @@ impl CodegenGrammar for Grammar {
                 #[derive(Default)]
                 pub struct ParseCache<'a> {
                     #cache_entries
+                    _please_dont_complain: std::marker::PhantomData<&'a ()>,
                 }
                 #all_impls
             }
