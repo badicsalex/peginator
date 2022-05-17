@@ -15,23 +15,13 @@ pub enum ParseErrorSpecifics {
     ExpectedEoi,
     NegativeLookaheadFailed,
     // Special ones
+
     Other,
 }
 
-#[derive(Debug, Clone)]
-pub struct ParseError {
-    pub position: usize,
-    pub specifics: ParseErrorSpecifics,
-}
-
-impl ParseError {
-    #[inline]
-    fn farther_than(&self, other: &Self) -> bool {
-        self.position > other.position
-    }
-
-    pub fn specifics_as_string(&self) -> String {
-        match self.specifics {
+impl ToString for ParseErrorSpecifics {
+    fn to_string(&self) -> String {
+        match self {
             ParseErrorSpecifics::ExpectedAnyCharacter => {
                 "expected any character (found end of input)".to_string()
             }
@@ -52,6 +42,21 @@ impl ParseError {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct ParseError {
+    /// The byte-position of the furthest match failure.
+    pub position: usize,
+    /// The atomic match that was unsuccessful at the furthest parsing position.
+    pub specifics: ParseErrorSpecifics,
+}
+
+impl ParseError {
+    #[inline]
+    fn farther_than(&self, other: &Self) -> bool {
+        self.position > other.position
+    }
+}
+
 #[inline]
 pub fn combine_errors(first: Option<ParseError>, second: Option<ParseError>) -> Option<ParseError> {
     match (first, second) {
@@ -64,7 +69,7 @@ pub fn combine_errors(first: Option<ParseError>, second: Option<ParseError>) -> 
 
 impl std::fmt::Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let specifics = self.specifics_as_string();
+        let specifics = self.specifics.to_string();
         write!(
             f,
             "Parse error on byte position {} while parsing: {}",
@@ -156,7 +161,7 @@ impl PrettyParseError {
         };
         let err_string = format!(
             "{err}\n{arrow}{position}\n{pipe}\n{pipe}{the_line}\n{pipe}{caret:>caret_offset$}\n",
-            err = err.specifics_as_string().bold().white(),
+            err = err.specifics.to_string().bold().white(),
             position = position,
             the_line = target_line.s.trim_end(),
             caret = "^".bold().red(),
