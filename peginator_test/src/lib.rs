@@ -12,6 +12,7 @@ mod closure;
 mod enums;
 mod eoi;
 mod field;
+mod fndef_example;
 mod lookahead;
 mod memoization;
 mod operator_example;

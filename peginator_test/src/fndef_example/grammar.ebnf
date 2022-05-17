@@ -1,0 +1,19 @@
+@export
+FunctionDef = 'fn' name:Ident '(' param_list:ParamList ')' [ '->' return_value:Type ];
+
+ParamList = self_param:SelfParam {',' params:Param} | params:Param  {',' params:Param} | ;
+
+Param = name:Ident ':' typ: Type;
+
+SelfParam = [ref_type:ReferenceMarker] 'self';
+
+Type = [ref_type:ReferenceMarker] typename:Ident;
+
+ReferenceMarker = @:MutableReference | @:ImmutableReference;
+
+ImmutableReference = '&';
+MutableReference = '&' 'mut';
+
+@string
+@no_skip_ws
+Ident = {'a'..'z' | 'A'..'Z' | '_' | '0'..'9'};
