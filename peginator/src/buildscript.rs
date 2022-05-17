@@ -16,7 +16,7 @@ use colored::*;
 use crate::codegen::{generate_source_header, CodegenGrammar, Grammar};
 use crate::{PegParser, PrettyParseError};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 #[must_use]
 pub struct Compile {
     source_path: PathBuf,
@@ -27,18 +27,27 @@ pub struct Compile {
 }
 
 impl Compile {
+    fn default() -> Self {
+        Compile {
+            source_path: PathBuf::new(),
+            destination_path: None,
+            format: false,
+            recursive: false,
+            use_peginator_build_time: false,
+        }
+    }
     pub fn directory<T: Into<PathBuf>>(filename: T) -> Self {
         Compile {
             source_path: filename.into(),
             recursive: true,
-            ..Default::default()
+            ..Self::default()
         }
     }
 
     pub fn file<T: Into<PathBuf>>(filename: T) -> Self {
         Compile {
             source_path: filename.into(),
-            ..Default::default()
+            ..Self::default()
         }
     }
 
@@ -84,7 +93,7 @@ impl Compile {
             source_header,
             parsed_grammar.generate_code(&Default::default())?
         );
-        fs::write(destination, generated_code.to_string())?;
+        fs::write(destination, &generated_code)?;
         if self.format {
             Command::new("rustfmt").arg(destination).status()?;
         };
