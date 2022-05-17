@@ -9,7 +9,8 @@ use std::{
 use anyhow::Result;
 use colored::*;
 
-use crate::{generate_source_header, CodegenGrammar, Grammar, PegParser, PrettyParseError};
+use crate::codegen::{generate_source_header, CodegenGrammar, Grammar};
+use crate::{PegParser, PrettyParseError};
 
 #[derive(Debug, Default)]
 #[must_use]

@@ -2,13 +2,14 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use super::{BUILD_TIME, VERSION};
 use sha2::{Digest, Sha256};
 
 pub fn generate_source_header(grammar: &str, use_build_time: bool) -> String {
     let version = if use_build_time {
-        format!("{}@{}", crate::VERSION, crate::BUILD_TIME)
+        format!("{}@{}", VERSION, BUILD_TIME)
     } else {
-        crate::VERSION.to_string()
+        VERSION.to_string()
     };
     let hash = Sha256::digest(grammar);
     format!(

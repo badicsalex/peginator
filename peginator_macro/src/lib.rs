@@ -2,7 +2,8 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use peginator::{CodegenGrammar, CodegenSettings, Grammar, PegParser};
+use peginator::codegen::{CodegenGrammar, CodegenSettings, Grammar};
+use peginator::PegParser;
 use proc_macro::TokenStream;
 
 #[proc_macro]
