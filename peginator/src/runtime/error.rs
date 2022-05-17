@@ -5,17 +5,25 @@
 use colored::*;
 use std::error::Error;
 
+/// The type and specifics of the atomic match, used by [`ParseError`].
 #[derive(Debug, Clone)]
 pub enum ParseErrorSpecifics {
+    /// Expected any character, but found end of input.
     ExpectedAnyCharacter,
+    /// Expected a specific character.
     ExpectedCharacter { c: char },
+    /// Expected a character from a specific range.
     ExpectedCharacterRange { from: char, to: char },
+    /// Expected a specific string.
     ExpectedString { s: &'static str },
+    /// Expected to match a @char rule.
     ExpectedCharacterClass { name: &'static str },
+    /// Expected the end of file, but found additional characters.
     ExpectedEoi,
+    /// A negative lookahead (`!`) rule part failed.
     NegativeLookaheadFailed,
-    // Special ones
 
+    /// An unknown error happened. Usually means there is a problem with peginator itself.
     Other,
 }
 
@@ -42,6 +50,13 @@ impl ToString for ParseErrorSpecifics {
     }
 }
 
+/// An error happened during parsing (compact version).
+///
+/// During parsing, the parser records the furthest it got without encountering a match failure. The
+/// error will contain both this furthest position and the first unmatched atomic matcher at this
+/// position.
+///
+/// Convert to [`PrettyParseError`] before showing it to a user.
 #[derive(Debug, Clone)]
 pub struct ParseError {
     /// The byte-position of the furthest match failure.
@@ -129,12 +144,21 @@ impl<'a> Iterator for IndexedStringLineIterator<'a> {
     }
 }
 
+/// An error happened during parsing (pretty version).
+///
+/// Converted from [`ParseError`], produces a very pretty, colored error message when printed with
+/// regular [`std::fmt::Display`].
 #[derive(Debug, Clone)]
 pub struct PrettyParseError {
     err_string: String,
 }
 
 impl PrettyParseError {
+    /// Convert from [`ParseError`]
+    ///
+    /// The parsed `text` needs to be supplied to show the context of the error.
+    ///
+    /// The `source_file` parameter is used to print the error with the same format `rustc` does.
     pub fn from_parse_error(err: &ParseError, text: &str, source_file: Option<&str>) -> Self {
         let target_line = IndexedStringLineIterator::new(text)
             .find(|l| l.start_offset <= err.position && l.end_offset >= err.position)

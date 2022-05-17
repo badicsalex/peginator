@@ -2,6 +2,10 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+//! Buildscript helpers for peginator
+//!
+//! See [Compile] for examples.
+
 use std::{
     ffi::OsStr,
     fs::{self, File},
@@ -16,6 +20,41 @@ use colored::*;
 use crate::codegen::{generate_source_header, CodegenGrammar, Grammar};
 use crate::{PegParser, PrettyParseError};
 
+/// Compiles peginator grammars into rust code with a builder interface.
+///
+/// It only recompiles files if it detects (based on the generated file header in the `.rs` file)
+/// change in either the peginator library, or the grammar file.
+///
+/// It is meant to be used as `peginator::buildscript::Compile`, hence the generic name.
+///
+/// Example `build.rs` for using a single grammar file and putting the result in the target directory:
+/// ```no_run
+///# #[allow(clippy::needless_doctest_main)]
+/// fn main() {
+///     peginator::buildscript::Compile::file("my_grammar.ebnf")
+///        .destination(format!("{}/my_grammar.rs", std::env::var("OUT_DIR").unwrap()))
+///        .format()
+///        .run_exit_on_error();
+///     println!("cargo:rerun-if-changed=my_grammar.ebnf");
+/// }
+/// ```
+///
+/// Importing this grammar:
+/// ```ignore
+/// mod grammar { include!(concat!(env!("OUT_DIR"), "/my_grammar.rs")); }
+/// ```
+///
+/// Example `build.rs` for multiple grammar files in the src directory, putting compiled files next to
+/// their grammar definitions:
+/// ```no_run
+///# #[allow(clippy::needless_doctest_main)]
+/// fn main() {
+///     peginator::buildscript::Compile::directory("src")
+///        .format()
+///        .run_exit_on_error()
+/// }
+/// ```
+///
 #[derive(Debug)]
 #[must_use]
 pub struct Compile {
@@ -36,6 +75,10 @@ impl Compile {
             use_peginator_build_time: false,
         }
     }
+    /// Run compilation on a whole directory run.
+    ///
+    /// The whole directory is recursively searched for files with the `.ebnf` extension, and
+    /// compiled to rust code with the same filename but with `.rs` extension.
     pub fn directory<T: Into<PathBuf>>(filename: T) -> Self {
         Compile {
             source_path: filename.into(),
@@ -44,6 +87,10 @@ impl Compile {
         }
     }
 
+    /// Run compilation on a single file.
+    ///
+    /// The file will be compiled. If destination is not given, it will be the same filename in the
+    /// same directory, but with `.rs` extension.
     pub fn file<T: Into<PathBuf>>(filename: T) -> Self {
         Compile {
             source_path: filename.into(),
@@ -51,6 +98,9 @@ impl Compile {
         }
     }
 
+    /// Destination file name.
+    ///
+    /// This option only used if running on a single file.
     pub fn destination<T: Into<PathBuf>>(self, filename: T) -> Self {
         Compile {
             destination_path: Some(filename.into()),
@@ -58,6 +108,7 @@ impl Compile {
         }
     }
 
+    /// Format .rs files with rustfmt after grammar compilation.
     pub fn format(self) -> Self {
         Compile {
             format: true,
@@ -65,6 +116,12 @@ impl Compile {
         }
     }
 
+    /// Include the build time of the peginator library in the peginator version part of the
+    /// generated header.
+    ///
+    /// In effect, this will recompile grammar files if the peginator library changed without a
+    /// version bump. This is mostly only useful during the development of peginator itself, and is
+    /// only used in the peginator_tests package.
     pub fn use_peginator_build_time(self) -> Self {
         Compile {
             use_peginator_build_time: true,
@@ -112,6 +169,10 @@ impl Compile {
         }
     }
 
+    /// Run the compilation, returning an error.
+    ///
+    /// In case of a parse error, [crate::PrettyParseError] is thrown, which will print a pretty
+    /// error with `format!` or `print!`.
     pub fn run(self) -> Result<()> {
         if self.recursive {
             self.run_recursively(&self.source_path)
@@ -126,6 +187,9 @@ impl Compile {
         }
     }
 
+    /// Run the compilation, and exit with an exit code in case of an error.
+    ///
+    /// It also makes sure to pretty-print the error, should one occur.
     pub fn run_exit_on_error(self) {
         colored::control::set_override(true);
         let result = self.run();
