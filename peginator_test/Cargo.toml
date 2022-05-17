@@ -1,7 +1,13 @@
 [package]
 name = "peginator_test"
+description = "Test package for peginator"
 version = "0.1.0"
 edition = "2021"
+
+authors = ["Alex Badics <admin@stickman.hu>"]
+repository = "https://github.com/badicsalex/peginator"
+license = "MIT"
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
