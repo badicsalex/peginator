@@ -15,5 +15,5 @@ license = "MIT"
 proc-macro = true
 
 [dependencies]
-peginator = { path = "../peginator" }
+peginator = { path = "../" }
 syn = { version = "1.0", default-features = false, features = ["parsing", "proc-macro"] }
