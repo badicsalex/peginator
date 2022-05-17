@@ -34,20 +34,20 @@ impl IndentedTracer {
     #[inline]
     pub fn print_trace_start(&self, state: &ParseState, name: &str) {
         let indentation = "    ".repeat(self.indentation_level);
-        println!("{}{:?}", indentation, state.first_n_chars(50));
-        println!("{}{}?", indentation, name.yellow());
+        eprintln!("{}{:?}", indentation, state.first_n_chars(50));
+        eprintln!("{}{}?", indentation, name.yellow());
     }
 
     #[inline]
     pub fn print_trace_result<T>(&self, result: &ParseResult<T>) {
         let indentation = "    ".repeat(self.indentation_level);
         match &result {
-            Ok(_) => println!("{}{}", indentation, "Ok".green()),
-            Err(err) => println!(
+            Ok(_) => eprintln!("{}{}", indentation, "Ok".green()),
+            Err(err) => eprintln!(
                 "{}{} {}",
                 indentation,
                 "Error:".red(),
-                err.specifics_as_string()
+                err.specifics.to_string()
             ),
         };
     }
