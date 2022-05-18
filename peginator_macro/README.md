@@ -4,7 +4,7 @@ Proc-macro support for [peginator](https://github.com/badicsalex/peginator). Ple
 doucmentation and other goodies on the main project.
 
 Usage:
-```
+```rust
 use peginator_macro::peginate;
 use peginator::PegParser;
 
