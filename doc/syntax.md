@@ -80,6 +80,10 @@ Or to match any character but one:
 Rule = '(' {!')' body:char} ')';
 ```
 
+#### `(expression)`
+
+**Group**: match the expression. Used to clarify precedences.
+
 #### `'string'` or `"string"`
 
 **String or character literal**. There is no difference between the quote styles. If there
