@@ -9,7 +9,8 @@
 //! most, streaming-style parsers out there.
 //!
 //! It generates both the tree structure and the parsing code that can create that tree from any
-//! `&str`.
+//! `&str`. The generated parsing code is deliberately very simple straightforward Rust
+//! code, which is usually optimized very well by the compiler.
 //!
 //! There is an opt-in memoization feature that makes it a proper packrat parser that can parse
 //! any input in linear time and space.
@@ -135,6 +136,17 @@
 //! ```
 //!
 //! Alternatively, you can use a buildscript using the [`buildscript::Compile`] struct.
+//!
+//! ## About PEGs
+//!
+//! This documentation describes how peginator implements PEGs. A basic understanding of PEGs
+//! are assumed. There are good introductions on
+//! [wikipedia](https://en.wikipedia.org/wiki/Parsing_expression_grammar) or in the
+//! [docs of other parser generators](https://pest.rs/book/grammars/syntax.html).
+//!
+//! Peginator is bootstrapped using its own
+//! [syntax and grammar file](https://github.com/badicsalex/peginator/blob/master/grammar.ebnf),
+//! which is somewhat easy-to-read.
 //!
 #![doc = include_str!("../doc/syntax.md")]
 

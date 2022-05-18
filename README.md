@@ -1,6 +1,6 @@
 # Peginator
 
-Peginator is a PEG (Parsing Expression Grammar) parser generator written in Rust. It 
+Peginator is a PEG (Parsing Expression Grammar) parser generator written in Rust. It
 is specifically made to parse into ASTs (Abstract Syntax Trees), as opposed to most,
 streaming-style parsers out there.
 
@@ -18,8 +18,9 @@ are assumed. There are good introductions on
 [wikipedia](https://en.wikipedia.org/wiki/Parsing_expression_grammar) or in the
 [docs of other parser generators](https://pest.rs/book/grammars/syntax.html).
 
-Peginator is bootstrapped using its own [../grammar.ebnf](syntax and grammar file), which
-is somewhat easy-to-read.
+Peginator is bootstrapped using its own
+[syntax and grammar file](https://github.com/badicsalex/peginator/blob/master/grammar.ebnf),
+which is somewhat easy-to-read.
 
 Please see [the syntax reference](doc/syntax.md) and
 [the API documentation](https://docs.rs/peginator/latest/peginator/)
@@ -28,119 +29,99 @@ The [tests](peginator_test/src) can also be used as examples.
 
 ## Quick Start
 
-Let's see the classic calculator as an example, and how it looks in Peginator:
+The grammars for peginator are written in a syntax similar to EBNF
+(extended Backus-Naur form):
 
 ```ebnf
 @export
-Assignment = lvalue:Identifier '=' expr:Expression ';'$;
+FunctionDef = 'fn' name:Ident '(' param_list:ParamList ')' [ '->' return_value:Type ];
 
-Expression = @:Additive | @:Term;
-Additive = parts:Term {(parts:Plus | parts:Minus) parts:Term}+;
-Plus = '+';
-Minus = '-';
+ParamList = self_param:SelfParam {',' params:Param} | params:Param  {',' params:Param} | ;
 
-Term = @:Multiplicative | @:Factor;
-Multiplicative = parts:Factor {(parts:Mul | parts:Div) parts:Factor}+;
-Mul = '*';
-Div = '/';
+Param = name:Ident ':' typ: Type;
 
-Factor = @:Group | @:Number;
-Group = '(' body:*Expression ')';
+SelfParam = [ref_type:ReferenceMarker] 'self';
 
-@string
-@no_skip_ws
-Number = {'0'..'9'}+;
+Type = [ref_type:ReferenceMarker] typename:Ident;
+
+ReferenceMarker = @:MutableReference | @:ImmutableReference;
+
+ImmutableReference = '&';
+MutableReference = '&' 'mut';
 
 @string
 @no_skip_ws
-Identifier = {'a'..'z' | '0'..'9' | '_'}+;
+Ident = {'a'..'z' | 'A'..'Z' | '_' | '0'..'9'};
 ```
 
-This will be converted to the following types:
+Based on the above grammar, peginator will generate the following types:
 
-```rust
-pub struct OneExpression {
-    pub expr: Expression,
+```ignore
+pub struct FunctionDef {
+    pub name: Ident,
+    pub param_list: ParamList,
+    pub return_value: Option<Type>,
 }
-pub enum Expression {
-    Additive(Additive),
-    Term(Term),
+pub struct ParamList {
+    pub self_param: Option<SelfParam>,
+    pub params: Vec<Param>,
 }
+pub struct Param {
+    pub name: Ident,
+    pub typ: Type,
+}
+pub struct SelfParam {
+    pub ref_type: Option<ReferenceMarker>,
+}
+pub struct Type {
+    pub ref_type: Option<ReferenceMarker>,
+    pub typename: Ident,
+}
+pub enum ReferenceMarker {
+    ImmutableReference(ImmutableReference),
+    MutableReference(MutableReference),
+}
+pub struct ImmutableReference;
+pub struct MutableReference;
+pub type Ident = String;
 
-pub struct Additive {
-    pub parts: Vec<Additive_parts>,
-}
-pub enum Additive_parts {
-    Minus(Minus),
-    Plus(Plus),
-    Term(Term),
-}
-pub struct Plus;
-pub struct Minus;
-
-pub enum Term {
-    Factor(Factor),
-    Multiplicative(Multiplicative),
-}
-pub struct Multiplicative {
-    pub parts: Vec<Multiplicative_parts>,
-}
-
-pub enum Multiplicative_parts {
-    Div(Div),
-    Factor(Factor),
-    Mul(Mul),
-}
-pub struct Mul;
-pub struct Div;
-pub enum Factor {
-    Group(Group),
-    Number(Number),
-}
-
-pub struct Group {
-    pub body: Box<Expression>,
-}
-pub type Number = String;
-
-impl peginator::PegParser for OneExpression {...}
+impl PegParser for FunctionDef { /* omitted */ }
 ```
 
-And the expression:
-
+Parsing then looks like this:
+```ignore
+FunctionDef::parse("fn example(&self, input:&str, rectified:&mut Rect) -> ExampleResult;")
 ```
-result = (1 - 2 + 3) * (13 - 37 * 4 + 20);
-```
 
-Turns into the following tree (less the enum variants):
-
-
-```rust
-Assignment {
-    lvalue: "result",
-    expr: Multiplicative {
-        parts: [
-            Group {
-                body: Additive {
-                    parts: ["1", Minus, "2", Plus, "3"],
+Which results in the folowing structure:
+```ignore
+FunctionDef {
+    name: "example",
+    param_list: ParamList {
+        self_param: Some(SelfParam {
+            ref_type: Some(ImmutableReference(ImmutableReference)),
+        }),
+        params: [
+            Param {
+                name: "input",
+                typ: Type {
+                    ref_type: Some(ImmutableReference(ImmutableReference)),
+                    typename: "str",
                 },
             },
-            Mul,
-            Group {
-                body: Additive {
-                    parts: [
-                        "13",
-                        Minus,
-                        Multiplicative {
-                            parts: ["37", Mul, "4"],
-                        },
-                        Plus,
-                        "20",
-                    ],
+            Param {
+                name: "rectified",
+                typ: Type {
+                    ref_type: Some(MutableReference(MutableReference)),
+                    typename: "Rect",
                 },
             },
         ],
-    }
+    },
+    return_value: Some(Type {
+        ref_type: None,
+        typename: "ExampleResult",
+    }),
 }
 ```
 
@@ -172,7 +153,7 @@ At this point, I'd be happy if someone other than me used this code. Please reac
 The project is meant to be an almost drop-in replacement for [Tatsu](https://github.com/neogeny/TatSu),
 and its fantastic Model Builder. This is why the grammar looks like the way it does.
 
-There are a ton of other PEG parser implementations in Rust, please check them out. Non-exhaustive list in 
+There are a ton of other PEG parser implementations in Rust, please check them out. Non-exhaustive list in
 no particular order:
 
 * [pest](https://github.com/pest-parser/pest)
