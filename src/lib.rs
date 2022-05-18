@@ -14,7 +14,7 @@
 //! There is an opt-in memoization feature that makes it a proper packrat parser that can parse
 //! any input in linear time and space.
 //!
-//! # Parsing with peginator
+//! # Quickstart
 //!
 //! The grammars for peginator are written in a syntax similar to EBNF
 //! (extended Backus-Naur form):
@@ -136,6 +136,7 @@
 //!
 //! Alternatively, you can use a buildscript using the [`buildscript::Compile`] struct.
 //!
+#![doc = include_str!("../doc/syntax.md")]
 
 mod grammar;
 

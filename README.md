@@ -5,12 +5,28 @@ is specifically made to parse into ASTs (Abstract Syntax Trees), as opposed to m
 streaming-style parsers out there.
 
 It generates both the tree structure and the parsing code that can create that tree from
-a `&str`.
+a `&str`. The generated parsing code is deliberately very simple straightforward Rust
+code, which is usually optimized very well by the compiler.
 
 There is an opt-in memoization feature that makes it a proper packrat parser that can
 parse any input in linear time and space.
 
-## Example
+## Documentation
+
+This documentation describes how peginator implements PEGs. A basic understanding of PEGs
+are assumed. There are good introductions on
+[wikipedia](https://en.wikipedia.org/wiki/Parsing_expression_grammar) or in the
+[docs of other parser generators](https://pest.rs/book/grammars/syntax.html).
+
+Peginator is bootstrapped using its own [../grammar.ebnf](syntax and grammar file), which
+is somewhat easy-to-read.
+
+Please see [the syntax reference](doc/syntax.md) and
+[the API documentation](https://docs.rs/peginator/latest/peginator/)
+
+The [tests](peginator_test/src) can also be used as examples.
+
+## Quick Start
 
 Let's see the classic calculator as an example, and how it looks in Peginator:
 
@@ -133,27 +149,19 @@ Assignment {
 We have pretty errors, based on the first failure of the longest match
 (a'la python's parser):
 
-![Colors and stuff on a console](docs/error.png)
+![Colors and stuff on a console](doc/error.png)
 
 And parse tracing (opt-in, no cost if not used):
 
-![More colors and indentation](docs/trace.png)
+![More colors and indentation](doc/trace.png)
 
 ## Integration
 
 There are multiple ways to integrate a Peginator grammar to your project:
 
 * You can just use the `peginator-compile` binary
-* You can use the `peginate!` macro
-* Or you can use the buildscript helper
-
-## Documentation
-
-Documentation is left as an exercise to the reader.
-
-I'm just kidding, I'm on it right now. Meanwhile, you can look at the
-[grammar used by the compiler itself](peginator/grammar.ebnf), or the various mini
-[examples in the test crate](peginator_test/src).
+* You can use the `peginate!` macro from the peginator_macro package
+* Or you can use the [buildscript helper](https://docs.rs/peginator/latest/peginator/buildscript/struct.Compile.html)
 
 ## Contribution
 
