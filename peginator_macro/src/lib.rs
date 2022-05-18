@@ -2,10 +2,17 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+#![doc = include_str!("../README.md")]
+
 use peginator::codegen::{CodegenGrammar, CodegenSettings, Grammar};
 use peginator::PegParser;
 use proc_macro::TokenStream;
 
+/// Compile peginator grammar in-place
+///
+/// The parameter is the grammar as a string, and will generate the parser in-place.
+///
+/// [`peginator::PegParser`] needs to be `use`-d separately.
 #[proc_macro]
 pub fn peginate(input: TokenStream) -> TokenStream {
     let param: syn::LitStr =
