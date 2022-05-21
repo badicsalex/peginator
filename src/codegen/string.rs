@@ -79,7 +79,7 @@ impl Codegen for CharacterRange {
         let from: char = (&self.from).try_into()?;
         let to: char = (&self.to).try_into()?;
         let skip_ws = if settings.skip_whitespace {
-            quote!(let state = state.skip_whitespace();)
+            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
         } else {
             quote!()
         };
@@ -114,7 +114,7 @@ impl Codegen for StringLiteral {
             .map(|item| -> Result<char> { item.try_into() })
             .collect::<Result<String>>()?;
         let skip_ws = if settings.skip_whitespace {
-            quote!(let state = state.skip_whitespace();)
+            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
         } else {
             quote!()
         };

@@ -1,3 +1,7 @@
+# Copyright (C) 2022, Alex Badics
+# This file is part of peginator
+# Licensed under the MIT license. See LICENSE file in the project root for details.
+
 @export
 SkipWsString = 'aaa' 'bbb';
 @export
@@ -42,3 +46,6 @@ SkipWsPropagation = 'a' ['.' {'b'}+] 'c';
 @no_skip_ws
 NoSkipWsPropagation = 'a' ['.' {'b'}+] 'c';
 
+@export
+@no_skip_ws
+OptBack = 'a' Whitespace 'b' 'c';

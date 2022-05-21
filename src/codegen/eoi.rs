@@ -17,7 +17,7 @@ impl Codegen for EndOfInput {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let skip_ws = if settings.skip_whitespace {
-            quote!(let state = state.skip_whitespace();)
+            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
         } else {
             quote!()
         };

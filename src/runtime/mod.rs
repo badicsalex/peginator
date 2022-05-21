@@ -20,7 +20,7 @@ pub use state::ParseState;
 pub use trace::{IndentedTracer, NoopTracer, ParseTracer};
 
 pub use builtin_parsers::{
-    parse_char, parse_character_literal, parse_character_range, parse_string_literal,
+    parse_char, parse_character_literal, parse_character_range, parse_string_literal, parse_Whitespace
 };
 
 pub type CacheEntries<'a, T> = HashMap<usize, ParseResult<'a, T>, BuildNoHashHasher<usize>>;

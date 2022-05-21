@@ -240,3 +240,26 @@ character range or end of input match.
 This can be disabled on a rule basis with the [@no_skip_ws](#no_skip_ws) directive.
 
 Be sure to use [@no_skip_ws](#no_skip_ws) on mached subrules too.
+
+#### The `Whitespace` rule
+
+The whitespace matching is just a built-in rule named `Whitespace`. It can be used just like regular
+rule, which is useful for `@no_skip_ws` rules:
+
+```ebnf
+@no_skip_ws
+Something = 'Sum:' Whitespace [prefix:Prefix] num:Number;
+```
+
+It can be overridden too. Comment skipping functionality can be implemented this way:
+
+```ebnf
+@no_skip_ws
+Whitespace = {Comment |  '\t' | '\n' | '\x0C' | '\r' | ' '};
+
+@no_skip_ws
+Comment = '#' {!'\n' char} '\n';
+```
+
+Be sure to use `@no_skip_ws` on the `Whitespace` rule, and all rules it calls, or else the code will
+most likely run into infinite recursion.

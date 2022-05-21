@@ -31,6 +31,36 @@ pub fn parse_char<'a, _CT>(
     })
 }
 
+/// Hand-written 'rule parser' for skipping whitespace. Shadowed by grammar-generated implementations, if there is one.
+///
+/// Should always look just like all the other generated parse functions.
+#[inline]
+#[allow(non_snake_case)]
+pub fn parse_Whitespace<'a, _CT>(
+    state: ParseState<'a>,
+    _tracer: impl ParseTracer,
+    _cache: &_CT,
+) -> ParseResult<'a, ()> {
+    let mut state = state;
+    while !state.is_empty() {
+        if state.s().as_bytes()[0].is_ascii_whitespace() {
+            // SAFETY:
+            // Callers of this function are responsible that these preconditions are satisfied:
+            //    Indexes must lie on UTF-8 sequence boundaries.
+            //
+            // The byte we are skipping is ASCII, so we are OK.
+            state = unsafe { state.advance(1) };
+        } else {
+            break;
+        }
+    }
+    Ok(ParseOk {
+        result: (),
+        state,
+        farthest_error: None,
+    })
+}
+
 #[inline(always)]
 pub fn parse_string_literal<'a>(
     state: ParseState<'a>,

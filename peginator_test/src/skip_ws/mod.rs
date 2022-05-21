@@ -88,3 +88,11 @@ fn test_propagation() {
     assert!(NoSkipWsPropagation::parse("a.bb bc").is_err());
     assert!(NoSkipWsPropagation::parse("a.bbb c").is_err());
 }
+
+#[test]
+fn test_opt_back() {
+    assert!(OptBack::parse("abc").is_ok());
+    assert!(OptBack::parse("a  \nbc").is_ok());
+    assert!(OptBack::parse("ab c").is_err());
+    assert!(OptBack::parse(" abc").is_err());
+}

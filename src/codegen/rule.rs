@@ -23,7 +23,7 @@ impl CodegenRule for Rule {
 
         let fields = self.definition.get_fields()?;
 
-        Self::check_flags(&flags)?;
+        self.check_flags(&flags)?;
 
         let name = &self.name;
         let rule_mod = format_ident!("{}_impl", self.name);
@@ -105,12 +105,15 @@ impl Rule {
         result
     }
 
-    fn check_flags(flags: &RuleFlags) -> Result<()> {
+    fn check_flags(&self, flags: &RuleFlags) -> Result<()> {
         if flags.export && flags.string {
             bail!("@string rules cannot be @export-ed");
         }
         if flags.position && flags.string {
             bail!("@string rules cannot contain @position");
+        }
+        if self.name == "Whitespace" && !flags.no_skip_ws {
+            bail!("The 'Whitespace' rule (and all called rules) must be @no_skip_ws to prevent recursion");
         }
         Ok(())
     }

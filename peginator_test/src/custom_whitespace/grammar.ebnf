@@ -2,7 +2,11 @@
 # This file is part of peginator
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 
-@export 
-Tester = [simple:FieldA] [',' [optional:FieldA]] ['.' {multi:FieldA}];
+@export
+Simple = 'a' 'b' $;
 
-FieldA = 'a';
+@no_skip_ws
+Whitespace = {Comment | 'x' | ' '};
+
+@no_skip_ws
+Comment = '#' {!'\n' char} '\n';

@@ -67,24 +67,6 @@ impl<'a> ParseState<'a> {
     }
 
     #[inline]
-    pub fn skip_whitespace(self) -> Self {
-        let mut result = self;
-        while !result.is_empty() {
-            if result.s().as_bytes()[0].is_ascii_whitespace() {
-                // SAFETY:
-                // Callers of this function are responsible that these preconditions are satisfied:
-                //    Indexes must lie on UTF-8 sequence boundaries.
-                //
-                // The byte we are skipping is ASCII, so we are OK.
-                result = unsafe { result.advance(1) };
-            } else {
-                break;
-            }
-        }
-        result
-    }
-
-    #[inline]
     pub fn cache_key(&self) -> usize {
         self.start_index
     }
