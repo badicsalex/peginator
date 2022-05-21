@@ -33,7 +33,7 @@ to match, the whole sequence expression will fail.
 
 **Ordered choice**: it will try to match expression1, and if it was unsuccessful,
 it will try to match expression2. If none of them were successful, the choice expression
-will be unsuccesful too.
+will be unsuccessful too.
 
 **Precedence between choice and sequence**: Choice has the least precedence of all expressions, i.e. these two rules are the same:
 
@@ -148,7 +148,7 @@ If a field appears multiple times (in the same choice arm) or is part of a
 closure, it will be encapsulated in a `Vec`. In this case `Box`-ing it is not
 needed, and will not be done even if `*` is used.
 
-If a field appears multiple times with different types, an enum type with the various
+If a field appears multiple times with different types, an `enum` type with the various
 choices will be created and automatically used.
 
 Fields deep in the rule expressions will be flattened into the rule `struct` itself:
@@ -166,14 +166,14 @@ struct Rule {
 `char` can be used as a field type, in this case the field will have the type `char`, and
 will match exactly one utf-8 character.
 
-### Override
+#### Override
 
 Override declarations are similar to actual field declarations:
 ```ebnf
 @:RuleType
 ```
 
-This will match RuleType, and will directly assign the result to the Rule itself.
+This will match `RuleType`, and will directly assign the result to the Rule itself.
 
 Override declarations can appear with multiple different types on different arms of
 choices. In this case, the Rule will become an `enum` declaration:
@@ -189,29 +189,29 @@ part of optional or closure construct.
 
 ### Directives
 
-#### @export
+#### `@export`
 
 Exports the rule as a parse root, i.e. implements the [`PegParser`] traits on it.
 
-#### @no_skip_ws
+#### `@no_skip_ws`
 
 Disables whitespace skipping for the rule. It does not disable skipping in the internals
 of matched rules.
 
-#### @position
+#### `@position`
 
 Record the start and end positions (byte indexes) of the rule match in the Rule `struct`.
 
-#### @string
+#### `@string`
 
 Force the rule to be a `String`. All field declarations will be ignored, and the whole match
 will be recorded.
 
 This is functionality is meant to replace the use of regular expression matches.
 
-Should be used with [@no_skip_ws](#no_skip_ws)
+Should be used with `@no_skip_ws`
 
-#### @char
+#### `@char`
 
 Force the rule to be a `char`. These are special kind of rules, which shall not have any other
 directives, and can only contain a single choice, where all arms are simple characters, character
@@ -226,7 +226,7 @@ Hexadecimal = 'a'..'f' | 'A'..'F' | '0'..'9';
 IdentifierChar =  Hexadecimal | '_';
 ```
 
-#### @memoize
+#### `@memoize`
 
 Enable memoization for the rule. It has a non-trivial performance impact (good or bad), so only use
 when it's actually needed. (Mainly when having multiple alternative rules with the same, complex
@@ -237,9 +237,9 @@ prefix and different postfix)
 By default, peginator will skip ASCII whitespaces before every rule match, field, override, literal,
 character range or end of input match.
 
-This can be disabled on a rule basis with the [@no_skip_ws](#no_skip_ws) directive.
+This can be disabled on a rule basis with the `@no_skip_ws` directive.
 
-Be sure to use [@no_skip_ws](#no_skip_ws) on mached subrules too.
+Be sure to use `@no_skip_ws` on matched subrules too.
 
 #### The `Whitespace` rule
 

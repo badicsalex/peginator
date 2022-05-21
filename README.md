@@ -93,7 +93,7 @@ Parsing then looks like this:
 FunctionDef::parse("fn example(&self, input:&str, rectified:&mut Rect) -> ExampleResult;")
 ```
 
-Which results in the folowing structure:
+Which results in the following structure:
 ```ignore
 FunctionDef {
     name: "example",
@@ -140,8 +140,8 @@ And parse tracing (opt-in, no cost if not used):
 
 There are multiple ways to integrate a Peginator grammar to your project:
 
-* You can just use the `peginator-compile` binary
-* You can use the `peginate!` macro from the peginator_macro package
+* Compile your grammars directly with the `peginator-compile` binary
+* Inline your grammars with the `peginate!` macro from the [peginator_macro](https://crates.io/crates/peginator_macro) package
 * Or you can use the [buildscript helper](https://docs.rs/peginator/latest/peginator/buildscript/struct.Compile.html)
 
 ## Contribution
