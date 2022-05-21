@@ -8,7 +8,9 @@ use peginator::PegParser;
 
 #[test]
 fn test_positions() {
-    let s = Root::parse("nice f:abcd f:z rulerino and some junk").unwrap();
+    let parsed_str = "nice f:abcd f:z rulerino and some junk";
+    let s = Root::parse(parsed_str).unwrap();
+    assert_eq!(parsed_str[s.field.s.position.clone()], *"abcd");
     assert_eq!(
         s,
         Root {
