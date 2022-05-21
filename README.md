@@ -156,6 +156,7 @@ and its fantastic Model Builder. This is why the grammar looks like the way it d
 There are a ton of other PEG parser implementations in Rust, please check them out. Non-exhaustive list in
 no particular order:
 
+* [oak](https://github.com/ptal/oak) is very similar in that it generates a typed AST, but much more flexible
 * [pest](https://github.com/pest-parser/pest)
 * [rust-peg](https://github.com/kevinmehall/rust-peg)
 * [lrpeg](https://github.com/seanyoung/lrpeg) (left recursive!)
