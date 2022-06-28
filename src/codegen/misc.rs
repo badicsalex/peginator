@@ -22,6 +22,9 @@ impl Codegen for DelimitedExpression {
             DelimitedExpression::NegativeLookahead(a) => {
                 a.generate_code_spec(rule_fields, settings)
             }
+            DelimitedExpression::PositiveLookahead(a) => {
+                a.generate_code_spec(rule_fields, settings)
+            }
             DelimitedExpression::CharacterRange(a) => a.generate_code_spec(rule_fields, settings),
             DelimitedExpression::StringLiteral(a) => a.generate_code_spec(rule_fields, settings),
             DelimitedExpression::EndOfInput(a) => a.generate_code_spec(rule_fields, settings),
@@ -36,6 +39,7 @@ impl Codegen for DelimitedExpression {
             DelimitedExpression::Optional(a) => a.get_fields(),
             DelimitedExpression::Closure(a) => a.get_fields(),
             DelimitedExpression::NegativeLookahead(a) => a.get_fields(),
+            DelimitedExpression::PositiveLookahead(a) => a.get_fields(),
             DelimitedExpression::CharacterRange(a) => a.get_fields(),
             DelimitedExpression::StringLiteral(a) => a.get_fields(),
             DelimitedExpression::EndOfInput(a) => a.get_fields(),

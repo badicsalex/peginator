@@ -80,6 +80,14 @@ Or to match any character but one:
 Rule = '(' {!')' body:char} ')';
 ```
 
+#### `&expression`
+
+**Positive lookahead**: succeeds if expression matches, doesn't consume input.
+
+It may not contain any field declarations.
+
+Precedence is the same as the Negative lookahead.
+
 #### `(expression)`
 
 **Group**: match the expression. Used to clarify precedences.

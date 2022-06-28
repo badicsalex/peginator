@@ -24,6 +24,8 @@ AtLeastOneMarker = '+';
 
 NegativeLookahead = "!" expr:*DelimitedExpression;
 
+PositiveLookahead = "&" expr:*DelimitedExpression;
+
 CharacterRange = from:CharRangePart ".." to:CharRangePart;
 
 @no_skip_ws
@@ -46,6 +48,7 @@ DelimitedExpression =
     @:Optional |
     @:Closure |
     @:NegativeLookahead |
+    @:PositiveLookahead |
     @:CharacterRange |
     @:StringLiteral |
     @:EndOfInput |

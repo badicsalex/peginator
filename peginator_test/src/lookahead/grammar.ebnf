@@ -11,3 +11,10 @@ AnyButASDF = !('a' | 's' | 'd' | 'f') c:char;
 @export
 @no_skip_ws
 SplitLast = { !(',' {!',' char} $) list_rest:char } ',' {list_last:char} $;
+
+@export
+List = {parts:ListPart (',' | &(('.' | '!') $))}+ ('.' | '!')$;
+ListPart = a:char '*' b:char;
+
+@export
+Intersection = &'a'..'f' 'e'..'h';

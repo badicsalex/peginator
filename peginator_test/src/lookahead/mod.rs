@@ -32,3 +32,27 @@ fn test_split_last() {
     assert_eq!(split_last(",,,,"), (",,,".to_string(), "".to_string()));
     assert!(SplitLast::parse_with_trace("asd").is_err());
 }
+
+#[test]
+fn test_list() {
+    let result = List::parse("1*2, 2*3!").unwrap();
+    assert_eq!(
+        result,
+        List {
+            parts: vec![ListPart { a: '1', b: '2' }, ListPart { a: '2', b: '3' }]
+        }
+    );
+    assert!(List::parse("1*2, 2*3, 5*6.").is_ok());
+    assert!(List::parse("1*2! 2*3!").is_err());
+    assert!(List::parse("1*2, 2*3,").is_err());
+    assert!(List::parse("1*2,").is_err());
+    assert!(List::parse("1*2").is_err());
+}
+
+#[test]
+fn test_intersection() {
+    assert!(Intersection::parse("d").is_err());
+    assert!(Intersection::parse("e").is_ok());
+    assert!(Intersection::parse("f").is_ok());
+    assert!(Intersection::parse("g").is_err());
+}
