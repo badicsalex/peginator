@@ -18,7 +18,7 @@ impl Codegen for Field {
     ) -> Result<TokenStream> {
         let parser_name = format_ident!("parse_{}", self.typ);
         let skip_ws = if settings.skip_whitespace {
-            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer.clone(), cache)?;)
+            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
         } else {
             quote!()
         };
@@ -75,7 +75,7 @@ impl Codegen for OverrideField {
     ) -> Result<TokenStream> {
         let parser_name = format_ident!("parse_{}", self.typ);
         let skip_ws = if settings.skip_whitespace {
-            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer.clone(), cache)?;)
+            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
         } else {
             quote!()
         };

@@ -92,7 +92,7 @@ impl Choice {
                 let choice_mod = format_ident!("choice_{}", num);
                 if fields.is_empty() {
                     Ok(quote!(
-                        match #choice_mod::parse(state.clone(), tracer.clone(), cache) {
+                        match #choice_mod::parse(state.clone(), tracer, cache) {
                             Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
                             Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
                         }
@@ -120,7 +120,7 @@ impl Choice {
                         })
                         .collect();
                     Ok(quote!(
-                        match #choice_mod::parse(state.clone(), tracer.clone(), cache) {
+                        match #choice_mod::parse(state.clone(), tracer, cache) {
                             Ok(ok_result) => return Ok(
                                     ok_result.map(|result|
                                         Parsed{

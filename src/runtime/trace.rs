@@ -5,7 +5,7 @@ use colored::*;
 
 use super::{ParseResult, ParseState};
 
-pub trait ParseTracer: Clone {
+pub trait ParseTracer: Clone + Copy {
     fn run_traced<'a, T, F>(
         self,
         name: &'static str,
@@ -18,7 +18,7 @@ pub trait ParseTracer: Clone {
     fn new() -> Self;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct IndentedTracer {
     indentation_level: usize,
 }
@@ -77,7 +77,7 @@ impl ParseTracer for IndentedTracer {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct NoopTracer {}
 
 impl ParseTracer for NoopTracer {

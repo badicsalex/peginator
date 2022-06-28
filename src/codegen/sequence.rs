@@ -90,7 +90,7 @@ impl Sequence {
             let inner_fields = part.get_filtered_rule_fields(rule_fields)?;
             let call = if inner_fields.is_empty() {
                 quote!(
-                    match #part_mod::parse(state, tracer.clone(), cache) {
+                    match #part_mod::parse(state, tracer, cache) {
                         Ok(ParseOk{
                             result:_,
                             state:new_state,
@@ -120,7 +120,7 @@ impl Sequence {
                     field_assignments.extend(field_assignment);
                 }
                 quote!(
-                    let result = match #part_mod::parse(state, tracer.clone(), cache) {
+                    let result = match #part_mod::parse(state, tracer, cache) {
                         Ok(ParseOk{
                             result,
                             state:new_state,
