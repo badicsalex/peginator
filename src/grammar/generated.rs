@@ -3391,7 +3391,7 @@ mod peginator_generated {
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, String> {
             let ok_result = parse(state.clone(), tracer, cache)?;
-            Ok(ok_result.map_with_state(|_, new_state| state.slice_until(&new_state).to_string()))
+            Ok(ok_result.map_with_state(|_, new_state| state.slice_until(new_state).to_string()))
         }
     }
     #[inline]

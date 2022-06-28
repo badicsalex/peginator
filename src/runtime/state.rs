@@ -52,7 +52,6 @@ impl<'a> ParseState<'a> {
             //    The starting index must not exceed the ending index;
             //    Indexes must be within bounds of the original slice;
             partial_string: unsafe { self.partial_string.get_unchecked(length..) },
-            ..self
         }
     }
 
