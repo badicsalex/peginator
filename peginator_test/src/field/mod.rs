@@ -52,6 +52,29 @@ fn test_overrides() {
         ),
         _ => panic!("Invalid parse"),
     }
+    assert_eq!(result.o, None);
+    assert_eq!(result.v, vec![]);
+    let result = OverrideTest::parse("(1;2) (3;4) (5;6) (7;8) (9;10)").unwrap();
+    assert_eq!(
+        result.o,
+        Some(Point {
+            x: "5".to_string(),
+            y: "6".to_string()
+        })
+    );
+    assert_eq!(
+        result.v,
+        vec![
+            Point {
+                x: "7".to_string(),
+                y: "8".to_string()
+            },
+            Point {
+                x: "9".to_string(),
+                y: "10".to_string()
+            }
+        ]
+    );
 }
 
 #[test]

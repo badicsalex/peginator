@@ -9,11 +9,15 @@ EnumTest = 'a' a:Point | 'b' a:NoFieldName;
 EnumTestComplex = 'a' a:Point | ('b' a:NoFieldName | 'c' a:OverrideTest);
 
 @export
-OverrideTest = s:SimpleOverride e:EnumOverride;
+OverrideTest = s:SimpleOverride e:EnumOverride o:OptionOverride v:VecOverride;
 
 SimpleOverride = @:Point;
 
 EnumOverride = @:Point | @:NoFieldName;
+
+OptionOverride = [@:Point];
+
+VecOverride = {@:Point};
 
 @export
 NoFieldName = "dontcare:" Coordinate f:Coordinate;

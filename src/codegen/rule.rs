@@ -152,12 +152,12 @@ impl Rule {
         if flags.position {
             bail!("Overridden (containing '@:') rules cannot contain @position");
         }
-        if field.arity != Arity::One {
-            bail!("'@:' fields have to be used exactly once in all choice branches, and must not be used in closures or optional parts.");
-        }
         if field.type_names.len() <= 1 {
             self.generate_override_rule_simple(field, settings)
         } else {
+            if field.arity != Arity::One {
+                bail!("Enum '@:' fields have to be used exactly once in all choice branches, and must not be used in closures or optional parts.");
+            }
             self.generate_override_rule_enum(field, settings)
         }
     }
