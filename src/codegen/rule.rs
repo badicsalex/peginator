@@ -10,7 +10,7 @@ use crate::grammar::{DirectiveExpression, Rule};
 
 use super::common::{
     generate_enum_type, generate_field_type, Arity, Codegen, CodegenRule, CodegenSettings,
-    FieldDescriptor,
+    FieldDescriptor, PublicType, RecordPosition,
 };
 
 impl CodegenRule for Rule {
@@ -37,7 +37,7 @@ impl CodegenRule for Rule {
         } else if fields.len() == 1 && fields[0].name == "_override" {
             self.generate_override_rule(&fields, &settings)?
         } else {
-            self.generate_normal_rule(&fields, &settings, flags.position)?
+            self.generate_normal_rule(&fields, &settings, flags.position.into())?
         };
 
         let rule_parser_call = if flags.memoize {
@@ -218,7 +218,7 @@ impl Rule {
         &self,
         fields: &[FieldDescriptor],
         settings: &CodegenSettings,
-        record_position: bool,
+        record_position: RecordPosition,
     ) -> Result<(TokenStream, TokenStream)> {
         let rule_type = format_ident!("{}", self.name);
         let parsed_enum_types: TokenStream = fields
@@ -226,9 +226,13 @@ impl Rule {
             .filter(|f| f.type_names.len() > 1)
             .map(|f| generate_enum_type(&format!("{}_{}", self.name, f.name), f, settings))
             .collect();
-        let parsed_struct_type =
-            self.definition
-                .generate_struct_type(fields, settings, &self.name, record_position)?;
+        let parsed_struct_type = self.definition.generate_struct_type(
+            fields,
+            settings,
+            &self.name,
+            record_position,
+            PublicType::Yes,
+        )?;
         let inner_enum_uses: TokenStream = fields
             .iter()
             .filter(|f| f.type_names.len() > 1)
@@ -240,7 +244,7 @@ impl Rule {
             .collect();
         let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
 
-        let rule_parser_body = if record_position {
+        let rule_parser_body = if record_position == RecordPosition::Yes {
             quote!(
                 let ok_result = parse(state.clone(), tracer, cache)?;
                 Ok(ok_result.map_with_state(

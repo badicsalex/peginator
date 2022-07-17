@@ -45,6 +45,28 @@ pub struct FieldDescriptor<'a> {
     pub boxed: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecordPosition {
+    No,
+    Yes,
+}
+
+impl From<bool> for RecordPosition {
+    fn from(b: bool) -> Self {
+        if b {
+            Self::Yes
+        } else {
+            Self::No
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PublicType {
+    No,
+    Yes,
+}
+
 pub trait Codegen {
     /// Generate code that's related to the parse function and the child parsers and types.
     ///
@@ -67,7 +89,13 @@ pub trait Codegen {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let spec_body = self.generate_code_spec(rule_fields, settings)?;
-        let parsed_type = self.generate_struct_type(rule_fields, settings, "Parsed", false)?;
+        let parsed_type = self.generate_struct_type(
+            rule_fields,
+            settings,
+            "Parsed",
+            RecordPosition::No,
+            PublicType::No,
+        )?;
         Ok(quote!(
             #spec_body
             #parsed_type
@@ -79,7 +107,8 @@ pub trait Codegen {
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
         type_name: &str,
-        record_position: bool,
+        record_position: RecordPosition,
+        public_type: PublicType,
     ) -> Result<TokenStream> {
         let fields = self.get_filtered_rule_fields(rule_fields)?;
         Ok(generate_parsed_struct_type(
@@ -87,6 +116,7 @@ pub trait Codegen {
             &fields,
             settings,
             record_position,
+            public_type,
         ))
     }
 
@@ -107,12 +137,19 @@ fn generate_parsed_struct_type(
     type_name: &str,
     fields: &[FieldDescriptor],
     settings: &CodegenSettings,
-    record_position: bool,
+    record_position: RecordPosition,
+    public_type: PublicType,
 ) -> TokenStream {
     let type_ident = format_ident!("{}", type_name);
-    if fields.is_empty() && !record_position {
+    let derives = if public_type == PublicType::Yes {
+        quote!(#[derive(Debug, Clone, PartialEq, Eq)])
+    } else {
+        quote!()
+    };
+
+    if fields.is_empty() && record_position == RecordPosition::No {
         quote!(
-            #[derive(Debug, Clone, PartialEq, Eq)]
+            #derives
             pub struct #type_ident;
         )
     } else {
@@ -124,13 +161,13 @@ fn generate_parsed_struct_type(
             .iter()
             .map(|f| generate_field_type(type_name, f, settings))
             .collect();
-        let position_field = if record_position {
+        let position_field = if record_position == RecordPosition::Yes {
             quote!(pub position: std::ops::Range<usize>,)
         } else {
             quote!()
         };
         quote!(
-            #[derive(Debug, Clone, PartialEq, Eq)]
+            #derives
             pub struct #type_ident {
                 #( pub #field_names: #field_types, )*
                 #position_field
@@ -181,6 +218,7 @@ pub fn generate_enum_type(
     _settings: &CodegenSettings,
 ) -> TokenStream {
     let ident = format_ident!("{}", name);
+    let derives = quote!(#[derive(Debug, Clone, PartialEq, Eq)]);
     let type_idents: Vec<Ident> = field
         .type_names
         .iter()
@@ -188,7 +226,7 @@ pub fn generate_enum_type(
         .collect();
     quote!(
         #[allow(non_camel_case_types)]
-        #[derive(Debug, Clone, PartialEq, Eq)]
+        #derives
         pub enum #ident {
             #(#type_idents(#type_idents),)*
         }
