@@ -9,6 +9,7 @@ mod additional_traits;
 mod char_rule;
 mod choice;
 mod closure;
+mod custom_derives_empty;
 mod custom_whitespace;
 mod enums;
 mod eoi;

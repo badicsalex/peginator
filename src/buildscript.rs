@@ -17,7 +17,7 @@ use std::{
 use anyhow::Result;
 use colored::*;
 
-use crate::codegen::{generate_source_header, CodegenGrammar, Grammar};
+use crate::codegen::{generate_source_header, CodegenGrammar, CodegenSettings, Grammar};
 use crate::{PegParser, PrettyParseError};
 
 /// Compiles peginator grammars into rust code with a builder interface.
@@ -63,6 +63,7 @@ pub struct Compile {
     format: bool,
     recursive: bool,
     use_peginator_build_time: bool,
+    settings: CodegenSettings,
 }
 
 impl Compile {
@@ -73,6 +74,7 @@ impl Compile {
             format: false,
             recursive: false,
             use_peginator_build_time: false,
+            settings: Default::default(),
         }
     }
     /// Run compilation on a whole directory run.
@@ -129,6 +131,14 @@ impl Compile {
         }
     }
 
+    /// Use a specific set of derives when declaring structs.
+    ///
+    /// The default set is `#[derive(Debug, Clone)]`
+    pub fn derives(mut self, derives: Vec<String>) -> Self {
+        self.settings.derives = derives;
+        self
+    }
+
     fn run_on_single_file(&self, source: &PathBuf, destination: &PathBuf) -> Result<()> {
         let grammar = fs::read_to_string(source)?;
         let source_header = generate_source_header(&grammar, self.use_peginator_build_time);
@@ -148,7 +158,7 @@ impl Compile {
         let generated_code = format!(
             "{}\n{}",
             source_header,
-            parsed_grammar.generate_code(&Default::default())?
+            parsed_grammar.generate_code(&self.settings)?
         );
         fs::write(destination, &generated_code)?;
         if self.format {

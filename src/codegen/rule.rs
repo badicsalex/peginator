@@ -18,12 +18,12 @@ impl CodegenRule for Rule {
         let flags = self.flags();
         let settings = CodegenSettings {
             skip_whitespace: settings.skip_whitespace && !flags.no_skip_ws,
-            ..Default::default()
+            ..settings.clone()
         };
 
         let fields = self.definition.get_fields()?;
 
-        self.check_flags(&flags)?;
+        self.check_flags(&flags, &settings)?;
 
         let name = &self.name;
         let rule_mod = format_ident!("{}_impl", self.name);
@@ -105,7 +105,7 @@ impl Rule {
         result
     }
 
-    fn check_flags(&self, flags: &RuleFlags) -> Result<()> {
+    fn check_flags(&self, flags: &RuleFlags, settings: &CodegenSettings) -> Result<()> {
         if flags.export && flags.string {
             bail!("@string rules cannot be @export-ed");
         }
@@ -114,6 +114,9 @@ impl Rule {
         }
         if self.name == "Whitespace" && !flags.no_skip_ws {
             bail!("The 'Whitespace' rule (and all called rules) must be @no_skip_ws to prevent recursion");
+        }
+        if flags.memoize && !settings.derives.contains(&"Clone".into()) {
+            bail!("@memoize can only be used if 'Clone' is in the derives set");
         }
         Ok(())
     }

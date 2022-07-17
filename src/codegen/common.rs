@@ -8,9 +8,11 @@ use quote::{format_ident, quote};
 use proc_macro2::{Ident, Span, TokenStream};
 use std::collections::BTreeSet;
 
+#[derive(Debug, Clone)]
 pub struct CodegenSettings {
     pub skip_whitespace: bool,
     pub peginator_crate_name: String,
+    pub derives: Vec<String>,
 }
 
 impl Default for CodegenSettings {
@@ -18,6 +20,7 @@ impl Default for CodegenSettings {
         Self {
             skip_whitespace: true,
             peginator_crate_name: "peginator".into(),
+            derives: vec!["Debug".into(), "Clone".into()],
         }
     }
 }
@@ -133,6 +136,18 @@ pub trait Codegen {
     }
 }
 
+fn generate_derives(settings: &CodegenSettings) -> TokenStream {
+    if settings.derives.is_empty() {
+        return quote!();
+    }
+    let derive_idents: Vec<Ident> = settings
+        .derives
+        .iter()
+        .map(|f| Ident::new(f, Span::call_site()))
+        .collect();
+    quote!(#[derive( #( #derive_idents, )*)])
+}
+
 fn generate_parsed_struct_type(
     type_name: &str,
     fields: &[FieldDescriptor],
@@ -142,7 +157,7 @@ fn generate_parsed_struct_type(
 ) -> TokenStream {
     let type_ident = format_ident!("{}", type_name);
     let derives = if public_type == PublicType::Yes {
-        quote!(#[derive(Debug, Clone, PartialEq, Eq)])
+        generate_derives(settings)
     } else {
         quote!()
     };
@@ -215,10 +230,10 @@ pub fn generate_field_type(
 pub fn generate_enum_type(
     name: &str,
     field: &FieldDescriptor,
-    _settings: &CodegenSettings,
+    settings: &CodegenSettings,
 ) -> TokenStream {
     let ident = format_ident!("{}", name);
-    let derives = quote!(#[derive(Debug, Clone, PartialEq, Eq)]);
+    let derives = generate_derives(settings);
     let type_idents: Vec<Ident> = field
         .type_names
         .iter()

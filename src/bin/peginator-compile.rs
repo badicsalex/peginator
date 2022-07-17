@@ -27,6 +27,10 @@ struct Args {
     #[clap(short, long)]
     trace: bool,
 
+    /// Use a custom set of derives for the generated types
+    #[clap(short, long)]
+    derives: Vec<String>,
+
     grammar_file: String,
 }
 
@@ -47,6 +51,11 @@ fn main_wrap() -> Result<()> {
     let settings = CodegenSettings {
         skip_whitespace: true,
         peginator_crate_name: args.peginator_crate_name,
+        derives: if args.derives.is_empty() {
+            CodegenSettings::default().derives
+        } else {
+            args.derives
+        },
     };
     let generated_code = parsed_grammar.generate_code(&settings)?;
     println!("{}", generate_source_header(&grammar, false));
