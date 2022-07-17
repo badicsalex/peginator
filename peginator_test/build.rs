@@ -17,5 +17,6 @@ fn main() {
         .format()
         .use_peginator_build_time()
         .derives(vec![])
+        .prefix("pub struct ImJustHereToConfuse;".into())
         .run_exit_on_error();
 }

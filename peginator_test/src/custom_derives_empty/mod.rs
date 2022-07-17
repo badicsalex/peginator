@@ -30,4 +30,6 @@ impl PartialEq for Field {
 fn test() {
     let s = Simple::parse("a").unwrap();
     assert_eq!(s.a, Field);
+
+    let _check_custom_struct = ImJustHereToConfuse;
 }

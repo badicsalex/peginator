@@ -64,6 +64,7 @@ pub struct Compile {
     recursive: bool,
     use_peginator_build_time: bool,
     settings: CodegenSettings,
+    prefix: String,
 }
 
 impl Compile {
@@ -75,6 +76,7 @@ impl Compile {
             recursive: false,
             use_peginator_build_time: false,
             settings: Default::default(),
+            prefix: String::new(),
         }
     }
     /// Run compilation on a whole directory run.
@@ -139,9 +141,20 @@ impl Compile {
         self
     }
 
+    /// Set a prefix (code) that will be pasted into the file between the header and the generated code
+    ///
+    /// Useful for `use` declarations or maybe custom structs.
+    pub fn prefix(self, prefix: String) -> Self {
+        Compile { prefix, ..self }
+    }
+
     fn run_on_single_file(&self, source: &PathBuf, destination: &PathBuf) -> Result<()> {
         let grammar = fs::read_to_string(source)?;
-        let source_header = generate_source_header(&grammar, self.use_peginator_build_time);
+        let source_header = format!(
+            "{}\n{}",
+            generate_source_header(&grammar, self.use_peginator_build_time),
+            self.prefix
+        );
         if let Ok(f) = File::open(destination) {
             let mut existing_header = String::new();
             if f.take(source_header.bytes().count() as u64)
