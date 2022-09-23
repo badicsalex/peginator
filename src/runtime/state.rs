@@ -55,6 +55,19 @@ impl<'a> ParseState<'a> {
         }
     }
 
+    /// Advance the parsing pointer n chars. Panics if length indexes into a character
+    #[inline]
+    pub fn advance_safe(self, length: usize) -> Self {
+        if length > self.partial_string.len() {
+            // This should be optimized out in most cases
+            panic!("String length overrun in advance()")
+        };
+        Self {
+            start_index: self.start_index + length,
+            partial_string: &self.partial_string[length..],
+        }
+    }
+
     #[inline]
     pub fn slice_until(&self, other: &ParseState) -> &str {
         &self.partial_string[..(other.start_index - self.start_index)]

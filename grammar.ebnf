@@ -3,13 +3,15 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 
 @export
-Grammar = {(rules:Rule | rules:CharRule) ";"} $ ;
+Grammar = {(rules:Rule | rules:CharRule | rules:ExternRule) ";"} $ ;
 
 Rule = {directives:DirectiveExpression} name:Identifier "=" definition:Choice;
 
 CharRule = {directives:CheckDirective} CharDirective {directives:CheckDirective} name:Identifier "=" choices:CharRulePart {"|" choices:CharRulePart };
 
 CharRulePart = @:CharacterRange | @:CharRangePart | @:Identifier;
+
+ExternRule = directive:ExternDirective name:Identifier;
 
 Choice = choices:Sequence {"|" choices:Sequence};
 
@@ -118,9 +120,15 @@ ExportDirective = "@export";
 PositionDirective = "@position";
 MemoizeDirective = "@memoize";
 CheckDirective = "@check" "(" name_parts:RustNamePart { '::' name_parts:RustNamePart } ")";
+ExternDirective = 
+    "@extern" "("
+        name_parts:RustNamePart { '::' name_parts:RustNamePart } 
+        [ '->' type_parts:RustNamePart { '::' type_parts:RustNamePart } ]
+    ")"
+    ;
 
 @string
-RustNamePart = {!( ')' |':' ) char}+;
+RustNamePart = {!( '-' | ')' |':' ) char}+;
 
 EndOfInput = '$';
 

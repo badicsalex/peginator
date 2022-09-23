@@ -8,6 +8,7 @@ mod choice;
 mod closure;
 mod common;
 mod eoi;
+mod extern_rule;
 mod field;
 mod grammar;
 mod header;

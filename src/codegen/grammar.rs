@@ -54,6 +54,11 @@ impl CodegenGrammar for Grammar {
                     all_types.extend(quote!(pub type #rule_ident = char;));
                     all_impls.extend(char_rule.generate_code());
                 }
+                Grammar_rules::ExternRule(extern_rule) => {
+                    let (types, impls) = extern_rule.generate_code()?;
+                    all_types.extend(types);
+                    all_impls.extend(impls);
+                }
             }
         }
         Ok(quote!(

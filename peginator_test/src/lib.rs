@@ -14,6 +14,7 @@ mod custom_derives_empty;
 mod custom_whitespace;
 mod enums;
 mod eoi;
+pub mod extern_directive;
 mod field;
 mod fndef_example;
 mod lookahead;

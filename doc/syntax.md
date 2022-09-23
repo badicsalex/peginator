@@ -265,6 +265,59 @@ pub fn check_point(p: &Point) -> bool {
 }
 ```
 
+### `@extern(...)`
+
+Call an external parsing function. The rule must only have a name and no `=` and body.
+
+If a result type is not given, String is assumed.
+
+An `.into()` is called on the result of the function. This is useful if a function returns an &str,
+but the result type is a String.
+
+The function signature is
+
+```ignore
+fn parse(s: &str) -> Result<(T, usize), &'static str>;
+```
+
+In case of a successful parse, a tuple with the resulting object, and the number of bytes (!) consumed
+from the input string shall be returned, wrapped in Ok(). It is important that the number of bytes is
+returned, not the number of characters, they will be different in the presence of utf-8 characters.
+Not doing so will misalign the parser, and could also panic.
+
+In case of an unsuccessful parse, a static string shall be returned, describing the parse problem
+(preferably in "expected X" form).
+
+
+Examples:
+
+```ebnf
+# Assumed return (and rule) type is String
+@extern(crate::parse_identifier)
+Identifier;
+
+# Explicit return type
+@extern(crate::Point::parse -> crate::Point)
+Point;
+```
+
+The above will call the following functions:
+
+```ignore
+// Note that the result can be both &str or String
+fn parse_identifier(s: &str) -> Result<(&str, usize), &'static str>{
+    ...
+}
+
+struct Point{...}
+
+impl Point {
+    pub fn parse(s: &str) -> Result<(Self, usize), &'static str>{
+        ...
+    }
+}
+```
+
 ## Whitespace skipping
 
 By default, peginator will skip ASCII whitespaces before every rule match, field, override, literal,

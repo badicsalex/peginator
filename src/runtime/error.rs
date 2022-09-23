@@ -24,6 +24,11 @@ pub enum ParseErrorSpecifics {
     NegativeLookaheadFailed,
     /// A custom check function failed
     CheckFunctionFailed { function_name: &'static str },
+    /// A custom extern rule failed
+    ExternRuleFailed {
+        function_name: &'static str,
+        error_string: &'static str,
+    },
 
     /// An unknown error happened. Usually means there is a problem with peginator itself.
     Other,
@@ -49,6 +54,15 @@ impl ToString for ParseErrorSpecifics {
             }
             ParseErrorSpecifics::CheckFunctionFailed { function_name } => {
                 format!("check function '{}' failed", function_name)
+            }
+            ParseErrorSpecifics::ExternRuleFailed {
+                function_name,
+                error_string,
+            } => {
+                format!(
+                    "extern function '{}' failed with '{}'",
+                    function_name, error_string
+                )
             }
             ParseErrorSpecifics::Other => "Unknown error. Sorry :(".to_string(),
         }
