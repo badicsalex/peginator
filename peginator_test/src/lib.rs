@@ -7,6 +7,7 @@ pub(crate) mod test_utils;
 
 mod additional_traits;
 mod char_rule;
+pub mod check;
 mod choice;
 mod closure;
 mod custom_derives_empty;

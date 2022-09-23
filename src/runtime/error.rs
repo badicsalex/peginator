@@ -22,6 +22,8 @@ pub enum ParseErrorSpecifics {
     ExpectedEoi,
     /// A negative lookahead (`!`) rule part failed.
     NegativeLookaheadFailed,
+    /// A custom check function failed
+    CheckFunctionFailed { function_name: &'static str },
 
     /// An unknown error happened. Usually means there is a problem with peginator itself.
     Other,
@@ -44,6 +46,9 @@ impl ToString for ParseErrorSpecifics {
             ParseErrorSpecifics::ExpectedEoi => "expected end of input".to_string(),
             ParseErrorSpecifics::NegativeLookaheadFailed => {
                 "negative lookahead condition failed".to_string()
+            }
+            ParseErrorSpecifics::CheckFunctionFailed { function_name } => {
+                format!("check function '{}' failed", function_name)
             }
             ParseErrorSpecifics::Other => "Unknown error. Sorry :(".to_string(),
         }

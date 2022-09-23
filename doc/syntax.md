@@ -240,6 +240,31 @@ Enable memoization for the rule. It has a non-trivial performance impact (good o
 when it's actually needed. (Mainly when having multiple alternative rules with the same, complex
 prefix and different postfix)
 
+#### `@check(...)`
+
+Add additional checks to a rule. The "parameter" of the `@check` directive is a function name that
+will be called with the result of the rule. The function name should be fully qualified (i.e. start
+with a crate name or `crate::`).
+
+The function shall return a bool. True means the check was successful.
+
+Multiple checks can be added to a single rule.
+
+For example, the following rule:
+
+```ebnf
+@check(crate::checks::check_point)
+Point = '(' x:Number ',' y:Number ')'
+```
+
+Will call the following function in the `checks` module:
+
+```ignore
+pub fn check_point(p: &Point) -> bool {
+    ...
+}
+```
+
 ## Whitespace skipping
 
 By default, peginator will skip ASCII whitespaces before every rule match, field, override, literal,

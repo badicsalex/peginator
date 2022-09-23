@@ -100,6 +100,7 @@ impl Rule {
                 DirectiveExpression::ExportDirective(_) => result.export = true,
                 DirectiveExpression::PositionDirective(_) => result.position = true,
                 DirectiveExpression::MemoizeDirective(_) => result.memoize = true,
+                DirectiveExpression::CheckDirective(_) => (),
             }
         }
         result
@@ -126,6 +127,7 @@ impl Rule {
         _settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
         let rule_type = format_ident!("{}", self.name);
+        let check_calls = self.generate_check_calls()?;
         Ok((
             quote!(pub type #rule_type = String;),
             quote!(
@@ -135,9 +137,14 @@ impl Rule {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, String> {
-                    let ok_result = parse(state.clone(), tracer, cache)?;
-                    Ok(ok_result
-                        .map_with_state(|_, new_state| state.slice_until(new_state).to_string()))
+                    let result =
+                        parse(state.clone(), tracer, cache)?
+                        .map_with_state(
+                            |_, new_state|
+                            state.slice_until(new_state).to_string()
+                        );
+                    #check_calls
+                    Ok(result)
                 }
             ),
         ))
@@ -172,6 +179,7 @@ impl Rule {
     ) -> Result<(TokenStream, TokenStream)> {
         let rule_type = format_ident!("{}", self.name);
         let override_type = generate_field_type(&self.name, field, settings);
+        let check_calls = self.generate_check_calls()?;
         Ok((
             quote!(
                 pub type #rule_type = #override_type;
@@ -184,8 +192,11 @@ impl Rule {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>
                 ) -> ParseResult<'a, super::#rule_type> {
-                    let ok_result = parse(state, tracer, cache)?;
-                    Ok(ok_result.map(|result| result._override))
+                    let result =
+                        parse(state, tracer, cache)?
+                        .map(|result| result._override);
+                    #check_calls
+                    Ok(result)
                 }
             ),
         ))
@@ -198,6 +209,7 @@ impl Rule {
     ) -> Result<(TokenStream, TokenStream)> {
         let rule_type = format_ident!("{}", self.name);
         let enum_type = generate_enum_type(&self.name, field, settings);
+        let check_calls = self.generate_check_calls()?;
         Ok((
             quote!(
                 #enum_type
@@ -210,8 +222,11 @@ impl Rule {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>
                 ) -> ParseResult<'a, super::#rule_type> {
-                    let ok_result = parse(state, tracer, cache)?;
-                    Ok(ok_result.map(|result| result._override))
+                    let result =
+                        parse(state, tracer, cache)?
+                        .map(|result| result._override);
+                    #check_calls
+                    Ok(result)
                 }
             ),
         ))
@@ -247,24 +262,32 @@ impl Rule {
             .collect();
         let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
 
+        let check_calls = self.generate_check_calls()?;
+
         let rule_parser_body = if record_position == RecordPosition::Yes {
             quote!(
-                let ok_result = parse(state.clone(), tracer, cache)?;
-                Ok(ok_result.map_with_state(
-                    |r, new_state| super::#rule_type{
-                        #( #field_names:r.#field_names,)*
-                        position: state.range_until(new_state),
-                    }
-                ))
+                let result =
+                    parse(state.clone(), tracer, cache)?
+                    .map_with_state(
+                        |r, new_state| super::#rule_type{
+                            #( #field_names:r.#field_names,)*
+                            position: state.range_until(new_state),
+                        }
+                    );
+                #check_calls
+                Ok(result)
             )
         } else {
             quote!(
-                let ok_result = parse(state, tracer, cache)?;
-                Ok(ok_result.map(
-                    |r| super::#rule_type{
-                        #( #field_names:r.#field_names,)*
-                    }
-                ))
+                let result =
+                    parse(state, tracer, cache)?
+                    .map(
+                        |r| super::#rule_type{
+                            #( #field_names:r.#field_names,)*
+                        }
+                    );
+                #check_calls
+                Ok(result)
             )
         };
         Ok((
@@ -283,6 +306,36 @@ impl Rule {
                     #rule_parser_body
                 }
             ),
+        ))
+    }
+
+    fn generate_check_calls(&self) -> Result<TokenStream> {
+        let check_name_parts = self.directives.iter().filter_map(|d| {
+            if let DirectiveExpression::CheckDirective(c) = d {
+                Some(&c.name_parts)
+            } else {
+                None
+            }
+        });
+        let check_idents = check_name_parts.clone().map(|ps| {
+            let part_idents = ps.iter().map(|p| format_ident!("{}", p));
+            quote!(#(#part_idents)::*)
+        });
+        let check_names = check_name_parts.map(|ps| ps.join("::"));
+
+        Ok(quote!(
+            #(
+                if !#check_idents(&result.result) {
+                    let check_function_error = result.state.report_error(
+                        ParseErrorSpecifics::CheckFunctionFailed{function_name: #check_names}
+                    );
+                    let farthest_error = combine_errors(
+                        result.farthest_error,
+                        Some(check_function_error)
+                    ).unwrap();
+                    return Err(farthest_error);
+                }
+            )*
         ))
     }
 }

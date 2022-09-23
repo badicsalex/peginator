@@ -1,0 +1,27 @@
+# Copyright (C) 2022, Alex Badics
+# This file is part of peginator
+# Licensed under the MIT license. See LICENSE file in the project root for details.
+
+@export
+Test = 'u' u:UnitRule | 'f' f:FailingUnitRule | 'c' c:ComplexRule | 's' s:SmallNumber | 'd' d:DualNumber ;
+
+@check(crate::check::unit_checker)
+UnitRule = 'a';
+
+@check(crate::check::unit_checker_failing)
+FailingUnitRule = 'a';
+
+@check(crate::check::complex_checker)
+ComplexRule = '(' x:Number ',' y:Number ')';
+
+@check(crate::check::override_check)
+SmallNumber = 's' @:Number;
+
+@check(crate::check::enum_override_check)
+DualNumber = @:HexNumber | @:Number ;
+
+@string
+Number = { '0'..'9' }+;
+
+@string
+HexNumber = '0x' {'0'..'9' | 'a'..'f'};

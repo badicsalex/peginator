@@ -108,7 +108,8 @@ DirectiveExpression =
     @:NoSkipWsDirective |
     @:ExportDirective |
     @:PositionDirective |
-    @:MemoizeDirective
+    @:MemoizeDirective |
+    @:CheckDirective
 ;
 StringDirective = "@string";
 CharDirective = "@char";
@@ -116,6 +117,10 @@ NoSkipWsDirective = "@no_skip_ws";
 ExportDirective = "@export";
 PositionDirective = "@position";
 MemoizeDirective = "@memoize";
+CheckDirective = "@check" "(" name_parts:RustNamePart { '::' name_parts:RustNamePart } ")";
+
+@string
+RustNamePart = {!( ')' |':' ) char}+;
 
 EndOfInput = '$';
 
