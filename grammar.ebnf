@@ -7,7 +7,7 @@ Grammar = {(rules:Rule | rules:CharRule) ";"} $ ;
 
 Rule = {directives:DirectiveExpression} name:Identifier "=" definition:Choice;
 
-CharRule = CharDirective name:Identifier "=" choices:CharRulePart {"|" choices:CharRulePart };
+CharRule = {directives:CheckDirective} CharDirective {directives:CheckDirective} name:Identifier "=" choices:CharRulePart {"|" choices:CharRulePart };
 
 CharRulePart = @:CharacterRange | @:CharRangePart | @:Identifier;
 

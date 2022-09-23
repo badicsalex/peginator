@@ -28,6 +28,9 @@ fn test() {
         DualNumber::HexNumber("0xabc".to_string())
     );
     assert!(Test::parse("d0xbc").is_err());
+
+    assert_eq!(Test::parse("lű").unwrap().l.unwrap(), 'ű');
+    assert!(Test::parse("lŰ").is_err());
 }
 
 pub fn unit_checker(_: &UnitRule) -> bool {

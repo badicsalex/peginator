@@ -38,6 +38,7 @@ impl CharRule {
             .iter()
             .map(|c| c.generate_parse_call())
             .collect::<Result<Vec<TokenStream>>>()?;
+        let check_calls = self.generate_check_calls()?;
 
         Ok(quote!(
             #[inline]
@@ -46,8 +47,32 @@ impl CharRule {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, #rule_type> {
+                #check_calls
                 #(if let Ok(result) = #parser_calls { return Ok(result)})*
                 Err(state.report_error(ParseErrorSpecifics::ExpectedCharacterClass { name: #name }))
+            }
+        ))
+    }
+
+    fn generate_check_calls(&self) -> Result<TokenStream> {
+        if self.directives.is_empty() {
+            return Ok(TokenStream::new());
+        }
+        let name = &self.name;
+        let check_idents = self.directives.iter().map(|d| {
+            let part_idents = d.name_parts.iter().map(|p| format_ident!("{}", p));
+            quote!(#(#part_idents)::*)
+        });
+
+        Ok(quote!(
+            if let Some(c) = state.s().chars().next() {
+                #(
+                    if !#check_idents(c) {
+                        return Err(state.report_error(ParseErrorSpecifics::ExpectedCharacterClass { name: #name }))
+                    }
+                )*
+            } else {
+                return Err(state.report_error(ParseErrorSpecifics::ExpectedCharacterClass { name: #name }))
             }
         ))
     }
