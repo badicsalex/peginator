@@ -7,12 +7,13 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common::{Codegen, CodegenSettings, FieldDescriptor};
-use crate::grammar::EndOfInput;
+use crate::grammar::{EndOfInput, Grammar};
 
 impl Codegen for EndOfInput {
     fn generate_code_spec(
         &self,
         _rule_fields: &[FieldDescriptor],
+        _grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let skip_ws = if settings.skip_whitespace {
@@ -37,7 +38,7 @@ impl Codegen for EndOfInput {
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
         Ok(Vec::new())
     }
 }

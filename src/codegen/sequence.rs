@@ -9,12 +9,13 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
 use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
-use crate::grammar::Sequence;
+use crate::grammar::{Grammar, Sequence};
 
 impl Codegen for Sequence {
     fn generate_code_spec(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         if self.parts.is_empty() {
@@ -34,7 +35,7 @@ impl Codegen for Sequence {
             ));
         }
         if self.parts.len() < 2 {
-            return self.parts[0].generate_code_spec(rule_fields, settings);
+            return self.parts[0].generate_code_spec(rule_fields, grammar, settings);
         }
         let part_bodies = self
             .parts
@@ -42,7 +43,7 @@ impl Codegen for Sequence {
             .enumerate()
             .map(|(num, part)| -> Result<TokenStream> {
                 let part_mod = format_ident!("part_{}", num);
-                let part_body = part.generate_code(rule_fields, settings)?;
+                let part_body = part.generate_code(rule_fields, grammar, settings)?;
                 Ok(quote!(
                     mod #part_mod{
                         use super::*;
@@ -51,17 +52,17 @@ impl Codegen for Sequence {
                 ))
             })
             .collect::<Result<TokenStream>>()?;
-        let parse_function = self.generate_parse_function(rule_fields, settings)?;
+        let parse_function = self.generate_parse_function(rule_fields, grammar, settings)?;
         Ok(quote!(
             #part_bodies
             #parse_function
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
         let mut all_fields = Vec::<FieldDescriptor>::new();
         for part in &self.parts {
-            let new_fields = part.get_fields()?;
+            let new_fields = part.get_fields(grammar)?;
             for new_field in new_fields {
                 if let Some(original) = all_fields.iter_mut().find(|f| f.name == new_field.name) {
                     original.arity = Arity::Multiple;
@@ -79,14 +80,15 @@ impl Sequence {
     fn generate_parse_function(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         _settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let fields = self.get_filtered_rule_fields(rule_fields)?;
+        let fields = self.get_filtered_rule_fields(rule_fields, grammar)?;
         let mut calls = TokenStream::new();
         let mut fields_seen = HashSet::<&str>::new();
         for (num, part) in self.parts.iter().enumerate() {
             let part_mod = format_ident!("part_{}", num);
-            let inner_fields = part.get_filtered_rule_fields(rule_fields)?;
+            let inner_fields = part.get_filtered_rule_fields(rule_fields, grammar)?;
             let call = if inner_fields.is_empty() {
                 quote!(
                     match #part_mod::parse(state, tracer, cache) {

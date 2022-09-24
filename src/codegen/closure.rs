@@ -9,16 +9,17 @@ use quote::quote;
 use super::common::{
     generate_field_type, safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor,
 };
-use crate::grammar::Closure;
+use crate::grammar::{Closure, Grammar};
 
 impl Codegen for Closure {
     fn generate_code_spec(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let closure_body = self.body.generate_code(rule_fields, settings)?;
-        let fields = self.body.get_filtered_rule_fields(rule_fields)?;
+        let closure_body = self.body.generate_code(rule_fields, grammar, settings)?;
+        let fields = self.body.get_filtered_rule_fields(rule_fields, grammar)?;
         let declarations: TokenStream = fields
             .iter()
             .map(|f| {
@@ -79,8 +80,8 @@ impl Codegen for Closure {
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
-        Ok(set_arity_to_multiple(self.body.get_fields()?))
+    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
+        Ok(set_arity_to_multiple(self.body.get_fields(grammar)?))
     }
 }
 

@@ -10,17 +10,21 @@ use super::common::{
     generate_enum_type, generate_field_type, safe_ident, Arity, Codegen, CodegenRule,
     CodegenSettings, FieldDescriptor, PublicType, RecordPosition,
 };
-use crate::grammar::{DirectiveExpression, Rule};
+use crate::grammar::{DirectiveExpression, Grammar, Rule};
 
 impl CodegenRule for Rule {
-    fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)> {
+    fn generate_code(
+        &self,
+        grammar: &Grammar,
+        settings: &CodegenSettings,
+    ) -> Result<(TokenStream, TokenStream)> {
         let flags = self.flags();
         let settings = CodegenSettings {
             skip_whitespace: settings.skip_whitespace && !flags.no_skip_ws,
             ..settings.clone()
         };
 
-        let fields = self.definition.get_fields()?;
+        let fields = self.definition.get_fields(grammar)?;
 
         self.check_flags(&flags, &settings)?;
 
@@ -29,14 +33,14 @@ impl CodegenRule for Rule {
         let rule_type = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
         let cache_entry_ident = format_ident!("c_{}", self.name);
-        let choice_body = self.definition.generate_code(&fields, &settings)?;
+        let choice_body = self.definition.generate_code(&fields, grammar, &settings)?;
 
         let (types, inner_code) = if flags.string {
             self.generate_string_rule(&settings)?
         } else if fields.len() == 1 && fields[0].name == "_override" {
             self.generate_override_rule(&fields, &settings)?
         } else {
-            self.generate_normal_rule(&fields, &settings, flags.position.into())?
+            self.generate_normal_rule(&fields, grammar, &settings, flags.position.into())?
         };
 
         let rule_parser_call = if flags.memoize {
@@ -234,6 +238,7 @@ impl Rule {
     fn generate_normal_rule(
         &self,
         fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
         record_position: RecordPosition,
     ) -> Result<(TokenStream, TokenStream)> {
@@ -245,6 +250,7 @@ impl Rule {
             .collect();
         let parsed_struct_type = self.definition.generate_struct_type(
             fields,
+            grammar,
             settings,
             &self.name,
             record_position,

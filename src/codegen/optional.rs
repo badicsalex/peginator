@@ -7,16 +7,17 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
-use crate::grammar::Optional;
+use crate::grammar::{Grammar, Optional};
 
 impl Codegen for Optional {
     fn generate_code_spec(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let body = self.body.generate_code(rule_fields, settings)?;
-        let fields = self.body.get_filtered_rule_fields(rule_fields)?;
+        let body = self.body.generate_code(rule_fields, grammar, settings)?;
+        let fields = self.body.get_filtered_rule_fields(rule_fields, grammar)?;
         let happy_case_fields: TokenStream = fields
             .iter()
             .map(|field| {
@@ -54,8 +55,8 @@ impl Codegen for Optional {
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
-        Ok(set_arity_to_optional(self.body.get_fields()?))
+    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
+        Ok(set_arity_to_optional(self.body.get_fields(grammar)?))
     }
 }
 

@@ -8,7 +8,7 @@ use quote::quote;
 
 use super::common::{Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{
-    CharacterRange, HexaEscape, SimpleEscape, StringItem, StringLiteral, Utf8Escape,
+    CharacterRange, Grammar, HexaEscape, SimpleEscape, StringItem, StringLiteral, Utf8Escape,
 };
 
 impl TryFrom<&StringItem> for char {
@@ -73,6 +73,7 @@ impl Codegen for CharacterRange {
     fn generate_code_spec(
         &self,
         _rule_fields: &[FieldDescriptor],
+        _grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let from: char = (&self.from).try_into()?;
@@ -96,7 +97,7 @@ impl Codegen for CharacterRange {
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
         Ok(Vec::new())
     }
 }
@@ -105,6 +106,7 @@ impl Codegen for StringLiteral {
     fn generate_code_spec(
         &self,
         _rule_fields: &[FieldDescriptor],
+        _grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let literal = &self
@@ -137,7 +139,7 @@ impl Codegen for StringLiteral {
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
         Ok(Vec::new())
     }
 }

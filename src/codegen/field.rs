@@ -7,12 +7,13 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
-use crate::grammar::{Field, OverrideField};
+use crate::grammar::{Field, Grammar, OverrideField};
 
 impl Codegen for Field {
     fn generate_code_spec(
         &self,
         rule_fields: &[FieldDescriptor],
+        _grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let parser_name = format_ident!("parse_{}", self.typ);
@@ -52,7 +53,7 @@ impl Codegen for Field {
         }
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
         if let Some(field_name) = &self.name {
             Ok(vec![FieldDescriptor {
                 name: field_name,
@@ -70,6 +71,7 @@ impl Codegen for OverrideField {
     fn generate_code_spec(
         &self,
         rule_fields: &[FieldDescriptor],
+        _grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let parser_name = format_ident!("parse_{}", self.typ);
@@ -93,7 +95,7 @@ impl Codegen for OverrideField {
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
         Ok(vec![FieldDescriptor {
             name: "_override",
             type_names: [&self.typ as &str].into(),

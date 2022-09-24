@@ -20,7 +20,7 @@ impl CodegenGrammar for Grammar {
             match rule_entry {
                 Grammar_rules::Rule(rule) => {
                     let flags = rule.flags();
-                    let (types, impls) = rule.generate_code(settings)?;
+                    let (types, impls) = rule.generate_code(self, settings)?;
                     all_types.extend(types);
                     all_impls.extend(impls);
                     let rule_ident = safe_ident(&rule.name);

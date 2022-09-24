@@ -7,15 +7,16 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::common::{Codegen, CodegenSettings, FieldDescriptor};
-use crate::grammar::{NegativeLookahead, PositiveLookahead};
+use crate::grammar::{Grammar, NegativeLookahead, PositiveLookahead};
 
 impl Codegen for NegativeLookahead {
     fn generate_code_spec(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let body = self.expr.generate_code(rule_fields, settings)?;
+        let body = self.expr.generate_code(rule_fields, grammar, settings)?;
         Ok(quote!(
             mod negative_lookahead{
                 use super::*;
@@ -35,8 +36,8 @@ impl Codegen for NegativeLookahead {
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
-        if !self.expr.get_fields()?.is_empty() {
+    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
+        if !self.expr.get_fields(grammar)?.is_empty() {
             bail!("The body of negative lookaheads should not contain named fields")
         }
         Ok(Vec::new())
@@ -47,9 +48,10 @@ impl Codegen for PositiveLookahead {
     fn generate_code_spec(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let body = self.expr.generate_code(rule_fields, settings)?;
+        let body = self.expr.generate_code(rule_fields, grammar, settings)?;
         Ok(quote!(
             mod positive_lookahead{
                 use super::*;
@@ -67,8 +69,8 @@ impl Codegen for PositiveLookahead {
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
-        if !self.expr.get_fields()?.is_empty() {
+    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
+        if !self.expr.get_fields(grammar)?.is_empty() {
             bail!("The body of positive lookaheads should not contain named fields")
         }
         Ok(Vec::new())

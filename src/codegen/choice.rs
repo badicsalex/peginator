@@ -7,16 +7,17 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
-use crate::grammar::Choice;
+use crate::grammar::{Choice, Grammar};
 
 impl Codegen for Choice {
     fn generate_code_spec(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         if self.choices.len() < 2 {
-            return self.choices[0].generate_code_spec(rule_fields, settings);
+            return self.choices[0].generate_code_spec(rule_fields, grammar, settings);
         }
         let choice_bodies = self
             .choices
@@ -24,7 +25,7 @@ impl Codegen for Choice {
             .enumerate()
             .map(|(num, choice)| -> Result<TokenStream> {
                 let choice_mod = format_ident!("choice_{}", num);
-                let sequence_body = choice.generate_code(rule_fields, settings)?;
+                let sequence_body = choice.generate_code(rule_fields, grammar, settings)?;
                 Ok(quote!(
                     mod #choice_mod{
                     use super::*;
@@ -33,18 +34,18 @@ impl Codegen for Choice {
                 ))
             })
             .collect::<Result<TokenStream>>()?;
-        let parse_function = self.generate_parse_function(rule_fields, settings)?;
+        let parse_function = self.generate_parse_function(rule_fields, grammar, settings)?;
         Ok(quote!(
             #choice_bodies
             #parse_function
         ))
     }
 
-    fn get_fields(&self) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
         let mut all_fields = Vec::<FieldDescriptor>::new();
         let mut first_iteration = true;
         for choice in &self.choices {
-            let new_fields = choice.get_fields()?;
+            let new_fields = choice.get_fields(grammar)?;
 
             if !first_iteration {
                 for field in &mut all_fields {
@@ -79,15 +80,16 @@ impl Choice {
     fn generate_parse_function(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         _settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let fields = self.get_filtered_rule_fields(rule_fields)?;
+        let fields = self.get_filtered_rule_fields(rule_fields, grammar)?;
         let calls = self
             .choices
             .iter()
             .enumerate()
             .map(|(num, choice)| {
-                let inner_fields = choice.get_fields().unwrap();
+                let inner_fields = choice.get_fields(grammar).unwrap();
                 let choice_mod = format_ident!("choice_{}", num);
                 if fields.is_empty() {
                     Ok(quote!(
