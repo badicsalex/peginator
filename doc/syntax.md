@@ -105,6 +105,14 @@ The following escape sequences are supported:
 * `\U00XXXXXX` (Exactly 8 hex digits, the first two must be `0`)
 * `\u{XXXX}` (1 to 6 hex digits)
 
+#### `i'string'` or `i"string"`
+
+**Case insensitive string or character literal**. Same as a string or character literals,
+except they match case-insensitively. The casing of the literal in the grammar does not
+matter.
+
+ASCII only currently. Please open a GitHub issue if you need unicode support.
+
 #### `'a'..'z'`
 
 **Character range** (inclusive).

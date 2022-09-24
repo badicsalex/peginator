@@ -2,7 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use proc_macro2::TokenStream;
 use quote::quote;
 
@@ -119,7 +119,21 @@ impl Codegen for StringLiteral {
         } else {
             quote!()
         };
-        let parse_function = if literal.chars().count() == 1 {
+        let parse_function = if self.insensitive.is_some() {
+            if !literal.is_ascii() {
+                bail!(
+                    "Case insensitive matching only works for ascii strings. ({:?} was not ascii)",
+                    literal
+                );
+            }
+            let literal = literal.to_ascii_lowercase();
+            if literal.chars().count() == 1 {
+                let char_literal = literal.chars().next().unwrap();
+                quote!(parse_character_literal_insensitive(state, #char_literal))
+            } else {
+                quote!(parse_string_literal_insensitive(state, #literal))
+            }
+        } else if literal.chars().count() == 1 {
             let char_literal = literal.chars().next().unwrap();
             quote!(parse_character_literal(state, #char_literal))
         } else {

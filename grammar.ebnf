@@ -35,9 +35,14 @@ CharRangePart = "'" @:StringItem "'";
 
 @no_skip_ws
 StringLiteral =
-    '"' {!'"' body:StringItem } '"' |
-    "'" {!"'" body:StringItem } "'"
+    [insensitive:CaseInsensitiveMarker]
+    (
+        '"' {!'"' body:StringItem } '"' |
+        "'" {!"'" body:StringItem } "'"
+    )
 ;
+
+CaseInsensitiveMarker = 'i';
 
 Field = [name:Identifier ":" [boxed:BoxMarker]] typ:Identifier;
 

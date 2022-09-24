@@ -171,3 +171,50 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
         }
     }
 }
+
+#[inline(always)]
+pub fn parse_string_literal_insensitive<'a>(
+    state: ParseState<'a>,
+    s: &'static str,
+) -> ParseResult<'a, &'static str> {
+    let prefix = state
+        .s()
+        .bytes()
+        .map(|c| c.to_ascii_lowercase())
+        .take(s.len());
+    if !s.bytes().eq(prefix) {
+        Err(state.report_error(ParseErrorSpecifics::ExpectedString { s }))
+    } else {
+        // SAFETY:
+        // Callers of this function are responsible that these preconditions are satisfied:
+        //    Indexes must lie on UTF-8 sequence boundaries.
+        //
+        // We are skipping a correct string's length, so we should be OK.
+        let state = unsafe { state.advance(s.len()) };
+        Ok(ParseOk {
+            result: s,
+            state,
+            farthest_error: None,
+        })
+    }
+}
+
+#[inline(always)]
+pub fn parse_character_literal_insensitive(state: ParseState, c: char) -> ParseResult<char> {
+    // ASCII Only !
+    if state.is_empty() || state.s().as_bytes()[0].to_ascii_lowercase() != c as u8 {
+        Err(state.report_error(ParseErrorSpecifics::ExpectedCharacter { c }))
+    } else {
+        // SAFETY:
+        // Callers of this function are responsible that these preconditions are satisfied:
+        //    Indexes must lie on UTF-8 sequence boundaries.
+        //
+        // The byte we are skipping is ASCII, so we are OK.
+        let state = unsafe { state.advance(1) };
+        Ok(ParseOk {
+            result: c,
+            state,
+            farthest_error: None,
+        })
+    }
+}
