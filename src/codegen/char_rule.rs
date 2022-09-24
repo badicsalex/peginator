@@ -2,6 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use crate::codegen::safe_ident;
 use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -31,7 +32,7 @@ impl CharRulePart {
 impl CharRule {
     pub fn generate_code(&self) -> Result<TokenStream> {
         let name = &self.name;
-        let rule_type = format_ident!("{}", self.name);
+        let rule_type = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
         let parser_calls = self
             .choices
@@ -60,7 +61,7 @@ impl CharRule {
         }
         let name = &self.name;
         let check_idents = self.directives.iter().map(|d| {
-            let part_idents = d.name_parts.iter().map(|p| format_ident!("{}", p));
+            let part_idents = d.name_parts.iter().map(|p| safe_ident(p));
             quote!(#(#part_idents)::*)
         });
 

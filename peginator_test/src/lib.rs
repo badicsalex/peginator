@@ -28,3 +28,4 @@ mod sequence;
 mod simple;
 mod skip_ws;
 mod string;
+mod rust_keywords;

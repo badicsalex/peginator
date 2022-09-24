@@ -2,6 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use crate::codegen::safe_ident;
 use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -101,7 +102,7 @@ impl Choice {
                     let field_assignments: TokenStream = fields
                         .iter()
                         .map(|field| {
-                            let name = format_ident!("{}", field.name);
+                            let name = safe_ident(field.name);
                             let inner_exists = inner_fields
                                 .iter()
                                 .any(|inner_field| inner_field.name == field.name);

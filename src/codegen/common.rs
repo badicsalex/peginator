@@ -2,11 +2,13 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use std::collections::BTreeSet;
+
 use anyhow::Result;
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote};
 
-use proc_macro2::{Ident, Span, TokenStream};
-use std::collections::BTreeSet;
+use crate::codegen::safe_ident;
 
 #[derive(Debug, Clone)]
 pub struct CodegenSettings {
@@ -155,7 +157,7 @@ fn generate_parsed_struct_type(
     record_position: RecordPosition,
     public_type: PublicType,
 ) -> TokenStream {
-    let type_ident = format_ident!("{}", type_name);
+    let type_ident = safe_ident(type_name);
     let derives = if public_type == PublicType::Yes {
         generate_derives(settings)
     } else {
@@ -170,7 +172,11 @@ fn generate_parsed_struct_type(
     } else {
         let field_names: Vec<Ident> = fields
             .iter()
-            .map(|f| Ident::new(f.name, Span::call_site()))
+            .map(|f| {
+                let mut ident = safe_ident(f.name);
+                ident.set_span(Span::call_site());
+                ident
+            })
             .collect();
         let field_types: Vec<TokenStream> = fields
             .iter()
@@ -201,7 +207,7 @@ pub fn generate_field_type(
         quote!(#ident)
     } else {
         let type_name = field.type_names.iter().next().unwrap();
-        let ident = format_ident!("{}", type_name);
+        let ident = safe_ident(type_name);
         if type_name == &"char" {
             quote!(char)
         } else {
@@ -232,13 +238,9 @@ pub fn generate_enum_type(
     field: &FieldDescriptor,
     settings: &CodegenSettings,
 ) -> TokenStream {
-    let ident = format_ident!("{}", name);
+    let ident = safe_ident(name);
     let derives = generate_derives(settings);
-    let type_idents: Vec<Ident> = field
-        .type_names
-        .iter()
-        .map(|n| format_ident!("{}", n))
-        .collect();
+    let type_idents: Vec<Ident> = field.type_names.iter().map(|n| safe_ident(n)).collect();
     quote!(
         #[allow(non_camel_case_types)]
         #derives

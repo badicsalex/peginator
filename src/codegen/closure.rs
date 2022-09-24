@@ -2,9 +2,10 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use crate::codegen::safe_ident;
 use anyhow::Result;
 use proc_macro2::{Ident, TokenStream};
-use quote::{format_ident, quote};
+use quote::quote;
 
 use crate::grammar::Closure;
 
@@ -22,18 +23,18 @@ impl Codegen for Closure {
             .iter()
             .map(|f| {
                 let typ = generate_field_type("Parsed", f, settings);
-                let name_ident = format_ident!("{}", f.name);
+                let name_ident = safe_ident(f.name);
                 quote!(let mut #name_ident: #typ = Vec::new();)
             })
             .collect();
         let assignments: TokenStream = fields
             .iter()
             .map(|field| {
-                let name = format_ident!("{}", field.name);
+                let name = safe_ident(field.name);
                 quote!(#name.extend(result.#name);)
             })
             .collect();
-        let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
+        let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
         let parse_result = quote!(Parsed{ #( #field_names,)* });
         let at_least_one_body = if self.at_least_one.is_some() {
             quote!(

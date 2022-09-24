@@ -18,10 +18,12 @@ mod optional;
 mod rule;
 mod sequence;
 mod string;
+mod utils;
 
 pub use crate::grammar::Grammar;
 pub use common::{CodegenGrammar, CodegenSettings};
 pub use header::generate_source_header;
+pub use utils::safe_ident;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const BUILD_TIME: &str = build_time_utc!();

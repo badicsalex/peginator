@@ -2,6 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use crate::codegen::safe_ident;
 use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -16,7 +17,7 @@ impl CodegenGrammar for Grammar {
         let mut all_parsers = TokenStream::new();
         let mut all_impls = TokenStream::new();
         let mut cache_entries = TokenStream::new();
-        let peginator_crate = format_ident!("{}", settings.peginator_crate_name);
+        let peginator_crate = safe_ident(&settings.peginator_crate_name);
         for rule_entry in &self.rules {
             match rule_entry {
                 Grammar_rules::Rule(rule) => {
@@ -24,7 +25,7 @@ impl CodegenGrammar for Grammar {
                     let (types, impls) = rule.generate_code(settings)?;
                     all_types.extend(types);
                     all_impls.extend(impls);
-                    let rule_ident = format_ident!("{}", rule.name);
+                    let rule_ident = safe_ident(&rule.name);
                     let internal_parser_name = format_ident!("parse_{}", rule.name);
                     if flags.export {
                         all_parsers.extend(quote!(
@@ -50,7 +51,7 @@ impl CodegenGrammar for Grammar {
                     }
                 }
                 Grammar_rules::CharRule(char_rule) => {
-                    let rule_ident = format_ident!("{}", char_rule.name);
+                    let rule_ident = safe_ident(&char_rule.name);
                     all_types.extend(quote!(pub type #rule_ident = char;));
                     all_impls.extend(char_rule.generate_code());
                 }

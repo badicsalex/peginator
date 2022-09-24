@@ -4,6 +4,7 @@
 
 use std::collections::HashSet;
 
+use crate::codegen::safe_ident;
 use anyhow::Result;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
@@ -105,7 +106,7 @@ impl Sequence {
             } else {
                 let mut field_assignments = TokenStream::new();
                 for field in &inner_fields {
-                    let name = format_ident!("{}", field.name);
+                    let name = safe_ident(field.name);
                     let field_assignment = if !fields_seen.contains(field.name) {
                         fields_seen.insert(field.name);
                         if field.arity == Arity::Multiple {
@@ -137,7 +138,7 @@ impl Sequence {
             };
             calls.extend(call);
         }
-        let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
+        let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
         let parse_result = quote!(Parsed{ #( #field_names,)* });
         Ok(quote!(
             #[inline(always)]

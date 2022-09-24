@@ -2,6 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use crate::codegen::utils::safe_ident;
 use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -23,7 +24,7 @@ impl Codegen for Field {
             quote!()
         };
         if let Some(field_name) = &self.name {
-            let field_ident = format_ident!("{}", field_name);
+            let field_ident = safe_ident(field_name);
             let field_conversion = generate_field_converter(field_name, &self.typ, rule_fields);
             Ok(quote!(
                 #[inline(always)]
@@ -115,7 +116,7 @@ fn generate_field_converter(
         .expect("Field not found in rule_fields");
     let enumified_field = if field.type_names.len() > 1 {
         let enum_type_name = format_ident!("Parsed_{}", field_name);
-        let field_type_ident = format_ident!("{}", field_type_name);
+        let field_type_ident = safe_ident(field_type_name);
         quote!(#enum_type_name::#field_type_ident(result))
     } else {
         quote!(result)
