@@ -24,6 +24,7 @@ mod optional;
 mod palindrome;
 mod position;
 mod precedence;
+mod rust_keywords;
 mod sequence;
 mod simple;
 mod skip_ws;

@@ -6,29 +6,21 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::grammar::ExternRule;
+use crate::{codegen::utils::safe_ident, grammar::ExternRule};
 
 impl ExternRule {
     pub fn generate_code(&self) -> Result<(TokenStream, TokenStream)> {
         let result_type = if self.directive.type_parts.is_empty() {
             quote!(String)
         } else {
-            let part_idents = self
-                .directive
-                .type_parts
-                .iter()
-                .map(|p| format_ident!("{}", p));
+            let part_idents = self.directive.type_parts.iter().map(safe_ident);
             quote!(#(#part_idents)::*)
         };
-        let name_idents = self
-            .directive
-            .name_parts
-            .iter()
-            .map(|p| format_ident!("{}", p));
+        let name_idents = self.directive.name_parts.iter().map(safe_ident);
         let function_ident = quote!(#(#name_idents)::*);
         let function_name = self.directive.name_parts.join("::");
 
-        let rule_ident = format_ident!("{}", self.name);
+        let rule_ident = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
 
         Ok((

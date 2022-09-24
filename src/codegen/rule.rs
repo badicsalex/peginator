@@ -6,11 +6,13 @@ use anyhow::{bail, Result};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
-use crate::grammar::{DirectiveExpression, Rule};
-
 use super::common::{
     generate_enum_type, generate_field_type, Arity, Codegen, CodegenRule, CodegenSettings,
     FieldDescriptor, PublicType, RecordPosition,
+};
+use crate::{
+    codegen::utils::safe_ident,
+    grammar::{DirectiveExpression, Rule},
 };
 
 impl CodegenRule for Rule {
@@ -27,7 +29,7 @@ impl CodegenRule for Rule {
 
         let name = &self.name;
         let rule_mod = format_ident!("{}_impl", self.name);
-        let rule_type = format_ident!("{}", self.name);
+        let rule_type = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
         let cache_entry_ident = format_ident!("c_{}", self.name);
         let choice_body = self.definition.generate_code(&fields, &settings)?;
@@ -126,7 +128,7 @@ impl Rule {
         &self,
         _settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
-        let rule_type = format_ident!("{}", self.name);
+        let rule_type = safe_ident(&self.name);
         let check_calls = self.generate_check_calls()?;
         Ok((
             quote!(pub type #rule_type = String;),
@@ -177,7 +179,7 @@ impl Rule {
         field: &FieldDescriptor,
         settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
-        let rule_type = format_ident!("{}", self.name);
+        let rule_type = safe_ident(&self.name);
         let override_type = generate_field_type(&self.name, field, settings);
         let check_calls = self.generate_check_calls()?;
         Ok((
@@ -207,7 +209,7 @@ impl Rule {
         field: &FieldDescriptor,
         settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
-        let rule_type = format_ident!("{}", self.name);
+        let rule_type = safe_ident(&self.name);
         let enum_type = generate_enum_type(&self.name, field, settings);
         let check_calls = self.generate_check_calls()?;
         Ok((
@@ -238,7 +240,7 @@ impl Rule {
         settings: &CodegenSettings,
         record_position: RecordPosition,
     ) -> Result<(TokenStream, TokenStream)> {
-        let rule_type = format_ident!("{}", self.name);
+        let rule_type = safe_ident(&self.name);
         let parsed_enum_types: TokenStream = fields
             .iter()
             .filter(|f| f.type_names.len() > 1)
@@ -260,7 +262,7 @@ impl Rule {
                 quote!(use super::#outer_name as #inner_name;)
             })
             .collect();
-        let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
+        let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
 
         let check_calls = self.generate_check_calls()?;
 
@@ -318,7 +320,7 @@ impl Rule {
             }
         });
         let check_idents = check_name_parts.clone().map(|ps| {
-            let part_idents = ps.iter().map(|p| format_ident!("{}", p));
+            let part_idents = ps.iter().map(safe_ident);
             quote!(#(#part_idents)::*)
         });
         let check_names = check_name_parts.map(|ps| ps.join("::"));

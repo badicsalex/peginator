@@ -4,11 +4,10 @@
 
 use anyhow::Result;
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
-
-use crate::grammar::Optional;
+use quote::quote;
 
 use super::common::{Arity, Codegen, CodegenSettings, FieldDescriptor};
+use crate::{codegen::utils::safe_ident, grammar::Optional};
 
 impl Codegen for Optional {
     fn generate_code_spec(
@@ -21,14 +20,14 @@ impl Codegen for Optional {
         let happy_case_fields: TokenStream = fields
             .iter()
             .map(|field| {
-                let name = format_ident!("{}", field.name);
+                let name = safe_ident(field.name);
                 quote!(#name: result.#name,)
             })
             .collect();
         let unhappy_case_fields: TokenStream = fields
             .iter()
             .map(|field| {
-                let name = format_ident!("{}", field.name);
+                let name = safe_ident(field.name);
                 quote!(#name: Default::default(),)
             })
             .collect();

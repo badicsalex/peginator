@@ -8,9 +8,8 @@ use anyhow::Result;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
-use crate::grammar::Sequence;
-
 use super::common::{Arity, Codegen, CodegenSettings, FieldDescriptor};
+use crate::{codegen::utils::safe_ident, grammar::Sequence};
 
 impl Codegen for Sequence {
     fn generate_code_spec(
@@ -105,7 +104,7 @@ impl Sequence {
             } else {
                 let mut field_assignments = TokenStream::new();
                 for field in &inner_fields {
-                    let name = format_ident!("{}", field.name);
+                    let name = safe_ident(field.name);
                     let field_assignment = if !fields_seen.contains(field.name) {
                         fields_seen.insert(field.name);
                         if field.arity == Arity::Multiple {
@@ -137,7 +136,7 @@ impl Sequence {
             };
             calls.extend(call);
         }
-        let field_names: Vec<Ident> = fields.iter().map(|f| format_ident!("{}", f.name)).collect();
+        let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
         let parse_result = quote!(Parsed{ #( #field_names,)* });
         Ok(quote!(
             #[inline(always)]

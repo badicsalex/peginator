@@ -18,6 +18,7 @@ mod optional;
 mod rule;
 mod sequence;
 mod string;
+mod utils;
 
 pub use common::{CodegenGrammar, CodegenSettings};
 pub use header::generate_source_header;

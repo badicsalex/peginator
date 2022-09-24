@@ -6,9 +6,8 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::grammar::Choice;
-
 use super::common::{Arity, Codegen, CodegenSettings, FieldDescriptor};
+use crate::{codegen::utils::safe_ident, grammar::Choice};
 
 impl Codegen for Choice {
     fn generate_code_spec(
@@ -101,7 +100,7 @@ impl Choice {
                     let field_assignments: TokenStream = fields
                         .iter()
                         .map(|field| {
-                            let name = format_ident!("{}", field.name);
+                            let name = safe_ident(field.name);
                             let inner_exists = inner_fields
                                 .iter()
                                 .any(|inner_field| inner_field.name == field.name);
