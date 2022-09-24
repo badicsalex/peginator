@@ -115,6 +115,26 @@ The same escape sequences work as for strings.
 
 **End of input**: fail if there are any unparsed characters left.
 
+### `>rule`
+
+**Include** (a.k.a. "inline rule"): Include the rule body at this point. The referred
+rule cannot be a `@char` or `@extern` rule.
+
+The following two grammars will generate equivalent parser codes and types:
+
+```ebnf
+ComplexRule = >OtherRule { >OtherRule2 };
+
+OtherRule = x:Number "," y:Number;
+OtherRule2 = "(" a:Number "," b:Number ")";
+```
+
+```ebnf
+ComplexRule = x:Number "," y:Number { "(" a:Number "," b:Number ")" };
+```
+
+See also Override rules, which overlaps this feature.
+
 #### Rule match
 
 Rules can be matched without recording their output, by simply using their name:
@@ -182,6 +202,9 @@ Override declarations are similar to actual field declarations:
 ```
 
 This will match `RuleType`, and will directly assign the result to the Rule itself.
+
+If there is only one override field, the rule's type will be a type alias to the
+referred rule. If you want to force a new type, use the Include operator.
 
 Override declarations can appear with multiple different types on different arms of
 choices. In this case, the Rule will become an `enum` declaration:

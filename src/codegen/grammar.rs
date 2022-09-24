@@ -68,6 +68,7 @@ impl CodegenGrammar for Grammar {
                 unused_variables,
                 unused_imports,
                 unused_mut,
+                dead_code,
             )]
             mod peginator_generated {
                 use super::*;

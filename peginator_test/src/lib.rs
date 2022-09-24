@@ -17,6 +17,7 @@ mod eoi;
 pub mod extern_directive;
 mod field;
 mod fndef_example;
+mod include_rule;
 mod lookahead;
 mod memoization;
 mod operator_example;

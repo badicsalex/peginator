@@ -80,7 +80,7 @@ impl Codegen for Closure {
         ))
     }
 
-    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
         Ok(set_arity_to_multiple(self.body.get_fields(grammar)?))
     }
 }

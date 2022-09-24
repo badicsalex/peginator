@@ -12,6 +12,7 @@ mod extern_rule;
 mod field;
 mod grammar;
 mod header;
+mod include_rule;
 mod lookahead;
 mod misc;
 mod optional;

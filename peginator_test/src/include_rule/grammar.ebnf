@@ -1,0 +1,25 @@
+# Copyright (C) 2022, Alex Badics
+# This file is part of peginator
+# Licensed under the MIT license. See LICENSE file in the project root for details.
+
+@export 
+Test = a:Field >IncludeMe;
+
+Field = 'a';
+
+IncludeMe = '(' x:Number ',' y:Number ')';
+
+Number = {'0'..'9'};
+
+@export 
+MultiTest = a:Field >IncludeMe >IncludeMe {>IncludeMe2};
+
+IncludeMe2 = '[' y:Number ',' z:Number ']';
+
+
+@export 
+OverrideTest = o:Overridden;
+
+Overridden = @:Field | >OverrideInclude;
+
+OverrideInclude = @:Number;

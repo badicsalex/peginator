@@ -59,7 +59,7 @@ impl Codegen for Sequence {
         ))
     }
 
-    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
         let mut all_fields = Vec::<FieldDescriptor>::new();
         for part in &self.parts {
             let new_fields = part.get_fields(grammar)?;

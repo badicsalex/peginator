@@ -39,11 +39,14 @@ impl Codegen for DelimitedExpression {
             DelimitedExpression::OverrideField(a) => {
                 a.generate_code_spec(rule_fields, grammar, settings)
             }
+            DelimitedExpression::IncludeRule(a) => {
+                a.generate_code_spec(rule_fields, grammar, settings)
+            }
             DelimitedExpression::Field(a) => a.generate_code_spec(rule_fields, grammar, settings),
         }
     }
 
-    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
         match self {
             DelimitedExpression::Group(a) => a.get_fields(grammar),
             DelimitedExpression::Optional(a) => a.get_fields(grammar),
@@ -54,6 +57,7 @@ impl Codegen for DelimitedExpression {
             DelimitedExpression::StringLiteral(a) => a.get_fields(grammar),
             DelimitedExpression::EndOfInput(a) => a.get_fields(grammar),
             DelimitedExpression::OverrideField(a) => a.get_fields(grammar),
+            DelimitedExpression::IncludeRule(a) => a.get_fields(grammar),
             DelimitedExpression::Field(a) => a.get_fields(grammar),
         }
     }
@@ -69,7 +73,7 @@ impl Codegen for Group {
         self.body.generate_code_spec(rule_fields, grammar, settings)
     }
 
-    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
         self.body.get_fields(grammar)
     }
 }

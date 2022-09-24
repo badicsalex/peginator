@@ -45,6 +45,8 @@ BoxMarker = '*';
 
 OverrideField = "@" ":" typ:Identifier;
 
+IncludeRule = ">" rule:Identifier;
+
 DelimitedExpression =
     @:Group |
     @:Optional |
@@ -55,6 +57,7 @@ DelimitedExpression =
     @:StringLiteral |
     @:EndOfInput |
     @:OverrideField |
+    @:IncludeRule |
     @:Field
 ;
 

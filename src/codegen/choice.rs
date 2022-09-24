@@ -41,7 +41,7 @@ impl Codegen for Choice {
         ))
     }
 
-    fn get_fields(&self, grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
+    fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
         let mut all_fields = Vec::<FieldDescriptor>::new();
         let mut first_iteration = true;
         for choice in &self.choices {
