@@ -6,10 +6,8 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::{
-    codegen::utils::safe_ident,
-    grammar::{CharRule, CharRulePart},
-};
+use super::common::safe_ident;
+use crate::grammar::{CharRule, CharRulePart};
 
 impl CharRulePart {
     pub fn generate_parse_call(&self) -> Result<TokenStream> {

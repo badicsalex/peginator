@@ -7,13 +7,10 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
 use super::common::{
-    generate_enum_type, generate_field_type, Arity, Codegen, CodegenRule, CodegenSettings,
-    FieldDescriptor, PublicType, RecordPosition,
+    generate_enum_type, generate_field_type, safe_ident, Arity, Codegen, CodegenRule,
+    CodegenSettings, FieldDescriptor, PublicType, RecordPosition,
 };
-use crate::{
-    codegen::utils::safe_ident,
-    grammar::{DirectiveExpression, Rule},
-};
+use crate::grammar::{DirectiveExpression, Rule};
 
 impl CodegenRule for Rule {
     fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)> {

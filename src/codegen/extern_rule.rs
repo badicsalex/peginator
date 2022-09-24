@@ -6,7 +6,8 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::{codegen::utils::safe_ident, grammar::ExternRule};
+use super::common::safe_ident;
+use crate::grammar::ExternRule;
 
 impl ExternRule {
     pub fn generate_code(&self) -> Result<(TokenStream, TokenStream)> {

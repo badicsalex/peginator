@@ -8,8 +8,8 @@ use anyhow::Result;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
-use super::common::{Arity, Codegen, CodegenSettings, FieldDescriptor};
-use crate::{codegen::utils::safe_ident, grammar::Sequence};
+use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
+use crate::grammar::Sequence;
 
 impl Codegen for Sequence {
     fn generate_code_spec(

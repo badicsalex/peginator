@@ -6,8 +6,8 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::common::{Arity, Codegen, CodegenSettings, FieldDescriptor};
-use crate::{codegen::utils::safe_ident, grammar::Optional};
+use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
+use crate::grammar::Optional;
 
 impl Codegen for Optional {
     fn generate_code_spec(

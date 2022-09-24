@@ -6,8 +6,10 @@ use anyhow::Result;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
-use super::common::{generate_field_type, Arity, Codegen, CodegenSettings, FieldDescriptor};
-use crate::{codegen::utils::safe_ident, grammar::Closure};
+use super::common::{
+    generate_field_type, safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor,
+};
+use crate::grammar::Closure;
 
 impl Codegen for Closure {
     fn generate_code_spec(

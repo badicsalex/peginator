@@ -6,11 +6,8 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::common::{CodegenGrammar, CodegenRule, CodegenSettings};
-use crate::{
-    codegen::utils::safe_ident,
-    grammar::{Grammar, Grammar_rules},
-};
+use super::common::{safe_ident, CodegenGrammar, CodegenRule, CodegenSettings};
+use crate::grammar::{Grammar, Grammar_rules};
 
 impl CodegenGrammar for Grammar {
     fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream> {
