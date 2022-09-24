@@ -233,6 +233,16 @@ of matched rules.
 
 Record the start and end positions (byte indexes) of the rule match in the Rule `struct`.
 
+The position is recorded in a field named `position`, but you can also access it with
+the trait function `position` if you use the [`PegPosition`] trait.
+
+If the rule is marked `@string`, a struct will be generated with two fields: `string` and
+`position`.
+
+If the rule is has multiple overrides (i.e. it is an enum rule), all variants have to be
+marked with @position, and a special `impl` will be generated that returns the parsed
+variant's position.
+
 #### `@string`
 
 Force the rule to be a `String`. All field declarations will be ignored, and the whole match

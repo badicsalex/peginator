@@ -24,3 +24,7 @@ pub use state::ParseState;
 pub use trace::{IndentedTracer, NoopTracer, ParseTracer};
 
 pub type CacheEntries<'a, T> = HashMap<usize, ParseResult<'a, T>, BuildNoHashHasher<usize>>;
+
+pub trait PegPosition {
+    fn position(&self) -> &std::ops::Range<usize>;
+}

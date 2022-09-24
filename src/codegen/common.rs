@@ -147,7 +147,7 @@ pub trait Codegen {
     }
 }
 
-fn generate_derives(settings: &CodegenSettings) -> TokenStream {
+pub fn generate_derives(settings: &CodegenSettings) -> TokenStream {
     if settings.derives.is_empty() {
         return quote!();
     }

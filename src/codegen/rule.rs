@@ -7,8 +7,8 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
 use super::common::{
-    generate_enum_type, generate_field_type, safe_ident, Arity, Codegen, CodegenRule,
-    CodegenSettings, FieldDescriptor, PublicType, RecordPosition,
+    generate_derives, generate_enum_type, generate_field_type, safe_ident, Arity, Codegen,
+    CodegenRule, CodegenSettings, FieldDescriptor, PublicType, RecordPosition,
 };
 use crate::grammar::{DirectiveExpression, Grammar, Rule};
 
@@ -42,6 +42,8 @@ impl CodegenRule for Rule {
         } else {
             self.generate_normal_rule(&fields, grammar, &settings, flags.position.into())?
         };
+
+        let position_impls = self.generate_impl_position(&fields);
 
         let rule_parser_call = if flags.memoize {
             quote!(
@@ -79,6 +81,7 @@ impl CodegenRule for Rule {
                         },
                     )
                 }
+                #position_impls
             ),
         ))
     }
@@ -113,9 +116,6 @@ impl Rule {
         if flags.export && flags.string {
             bail!("@string rules cannot be @export-ed");
         }
-        if flags.position && flags.string {
-            bail!("@string rules cannot contain @position");
-        }
         if self.name == "Whitespace" && !flags.no_skip_ws {
             bail!("The 'Whitespace' rule (and all called rules) must be @no_skip_ws to prevent recursion");
         }
@@ -127,24 +127,47 @@ impl Rule {
 
     fn generate_string_rule(
         &self,
-        _settings: &CodegenSettings,
+        settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
-        let rule_type = safe_ident(&self.name);
+        let rule_type_ident = safe_ident(&self.name);
         let check_calls = self.generate_check_calls()?;
+        let flags = self.flags();
+        let type_decl = if flags.position {
+            let derives = generate_derives(settings);
+            quote!(
+                #derives
+                pub struct #rule_type_ident {
+                    pub string: String,
+                    pub position: std::ops::Range<usize>
+                }
+            )
+        } else {
+            quote!(pub type #rule_type_ident = String;)
+        };
+        let return_value = if flags.position {
+            quote!(#rule_type_ident {
+                string,
+                position: state.range_until(new_state)
+            })
+        } else {
+            quote!(string)
+        };
         Ok((
-            quote!(pub type #rule_type = String;),
+            type_decl,
             quote!(
                 #[inline(always)]
                 pub fn rule_parser<'a>(
                     state: ParseState<'a>,
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
-                ) -> ParseResult<'a, String> {
+                ) -> ParseResult<'a, #rule_type_ident> {
                     let result =
                         parse(state.clone(), tracer, cache)?
                         .map_with_state(
-                            |_, new_state|
-                            state.slice_until(new_state).to_string()
+                            |_, new_state| {
+                                let string = state.slice_until(new_state).to_string();
+                                #return_value
+                            }
                         );
                     #check_calls
                     Ok(result)
@@ -158,14 +181,14 @@ impl Rule {
         settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream)> {
         let field = &fields[0];
-        let flags = self.flags();
-        if flags.export {
-            bail!("Overridden (containing '@:') rules cannot be @export-ed");
-        }
-        if flags.position {
-            bail!("Overridden (containing '@:') rules cannot contain @position");
-        }
         if field.type_names.len() <= 1 {
+            let flags = self.flags();
+            if flags.export {
+                bail!("Simply overridden (containing '@:') rules cannot be @export-ed. Try the > operator instead.");
+            }
+            if flags.position {
+                bail!("Simply overridden (containing '@:') rules cannot contain @position. Try the > operator instead.");
+            }
             self.generate_override_rule_simple(field, settings)
         } else {
             if field.arity != Arity::One {
@@ -342,5 +365,34 @@ impl Rule {
                 }
             )*
         ))
+    }
+
+    fn generate_impl_position(&self, fields: &[FieldDescriptor]) -> TokenStream {
+        let rule_type = safe_ident(&self.name);
+        if self.flags().position {
+            if fields.len() == 1 && fields[0].name == "_override" && fields[0].type_names.len() > 1
+            {
+                let cases = fields[0].type_names.iter().map(safe_ident);
+                quote!(
+                    impl PegPosition for #rule_type {
+                        fn position(&self) -> &std::ops::Range<usize> {
+                            match self{
+                                #(Self::#cases(x) => x.position(),)*
+                            }
+                        }
+                    }
+                )
+            } else {
+                quote!(
+                    impl PegPosition for #rule_type {
+                        fn position(&self) -> &std::ops::Range<usize> {
+                            &self.position
+                        }
+                    }
+                )
+            }
+        } else {
+            TokenStream::new()
+        }
     }
 }

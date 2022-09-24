@@ -14,3 +14,20 @@ OverriddenField = "f" ":" @:Ident;
 @position
 @no_skip_ws
 Ident = {'a'..'z'}+;
+
+@export
+Specials = n:Number e:EnumField;
+
+@string
+@no_skip_ws
+@position
+Number = {'0'..'9'}+;
+
+@position
+EnumField = @:FieldA | @:FieldB;
+
+@position
+FieldA = {'a'}+;
+
+@position
+FieldB = {'b'}+;

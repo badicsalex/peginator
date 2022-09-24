@@ -73,7 +73,7 @@ impl CodegenGrammar for Grammar {
             mod peginator_generated {
                 use super::*;
                 pub use #peginator_crate::runtime::{
-                    ParseError, ParseSettings, ParseState, PegParser, IndentedTracer, ParseTracer
+                    ParseError, ParseSettings, ParseState, PegParser, IndentedTracer, ParseTracer, PegPosition,
                 };
                 use #peginator_crate::runtime::*;
 
