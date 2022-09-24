@@ -8,7 +8,8 @@ use std::fs;
 use anyhow::Result;
 use clap::Parser;
 
-use peginator::codegen::{generate_source_header, CodegenGrammar, CodegenSettings, Grammar};
+use peginator::grammar::Grammar;
+use peginator::codegen::{generate_source_header, CodegenGrammar, CodegenSettings};
 use peginator::{PegParser, PrettyParseError};
 
 /// Compile EBNF grammar into rust parser code.

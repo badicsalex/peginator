@@ -17,7 +17,8 @@ use std::{
 use anyhow::Result;
 use colored::*;
 
-use crate::codegen::{generate_source_header, CodegenGrammar, CodegenSettings, Grammar};
+use crate::codegen::{generate_source_header, CodegenGrammar, CodegenSettings};
+use crate::grammar::Grammar;
 use crate::{PegParser, PrettyParseError};
 
 /// Compiles peginator grammars into rust code with a builder interface.

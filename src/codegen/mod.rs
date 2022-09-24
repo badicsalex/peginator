@@ -19,7 +19,6 @@ mod rule;
 mod sequence;
 mod string;
 
-pub use crate::grammar::Grammar;
 pub use common::{CodegenGrammar, CodegenSettings};
 pub use header::generate_source_header;
 

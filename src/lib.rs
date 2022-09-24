@@ -150,7 +150,8 @@
 //!
 #![doc = include_str!("../doc/syntax.md")]
 
-mod grammar;
+#[doc(hidden)]
+pub mod grammar;
 
 pub mod buildscript;
 #[doc(hidden)]
