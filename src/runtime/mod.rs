@@ -25,6 +25,12 @@ pub use trace::{IndentedTracer, NoopTracer, ParseTracer};
 
 pub type CacheEntries<'a, T> = HashMap<usize, ParseResult<'a, T>, BuildNoHashHasher<usize>>;
 
+/// Helper trait to get the parse position of the parsed rule
+///
+/// Useful for creating general error reporting functions or
+/// similar functionality where the position of multiple generated
+/// types are used.
 pub trait PegPosition {
+    /// The parsed position of the rule in bytes (not characters)
     fn position(&self) -> &std::ops::Range<usize>;
 }

@@ -240,7 +240,7 @@ If the rule is marked `@string`, a struct will be generated with two fields: `st
 `position`.
 
 If the rule is has multiple overrides (i.e. it is an enum rule), all variants have to be
-marked with @position, and a special `impl` will be generated that returns the parsed
+marked with `@position`, and a special `impl` will be generated that returns the parsed
 variant's position.
 
 #### `@string`

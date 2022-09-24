@@ -159,4 +159,6 @@ pub mod codegen;
 #[doc(hidden)]
 pub mod runtime;
 
-pub use runtime::{ParseError, ParseErrorSpecifics, ParseSettings, PegParser, PrettyParseError};
+pub use runtime::{
+    ParseError, ParseErrorSpecifics, ParseSettings, PegParser, PegPosition, PrettyParseError,
+};
