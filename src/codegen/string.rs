@@ -6,11 +6,10 @@ use anyhow::{anyhow, Result};
 use proc_macro2::TokenStream;
 use quote::quote;
 
+use super::common::{Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{
     CharacterRange, HexaEscape, SimpleEscape, StringItem, StringLiteral, Utf8Escape,
 };
-
-use super::common::{Codegen, CodegenSettings, FieldDescriptor};
 
 impl TryFrom<&StringItem> for char {
     type Error = anyhow::Error;

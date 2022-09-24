@@ -6,9 +6,8 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::grammar::EndOfInput;
-
 use super::common::{Codegen, CodegenSettings, FieldDescriptor};
+use crate::grammar::EndOfInput;
 
 impl Codegen for EndOfInput {
     fn generate_code_spec(

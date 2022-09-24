@@ -6,9 +6,8 @@ use anyhow::{bail, Result};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::grammar::{NegativeLookahead, PositiveLookahead};
-
 use super::common::{Codegen, CodegenSettings, FieldDescriptor};
+use crate::grammar::{NegativeLookahead, PositiveLookahead};
 
 impl Codegen for NegativeLookahead {
     fn generate_code_spec(

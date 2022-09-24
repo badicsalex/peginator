@@ -2,8 +2,9 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use super::{BUILD_TIME, VERSION};
 use sha2::{Digest, Sha256};
+
+use super::{BUILD_TIME, VERSION};
 
 pub fn generate_source_header(grammar: &str, use_build_time: bool) -> String {
     let version = if use_build_time {

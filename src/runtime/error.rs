@@ -2,8 +2,9 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use colored::*;
 use std::error::Error;
+
+use colored::*;
 
 /// The type and specifics of the atomic match, used by [`ParseError`].
 #[derive(Debug, Clone)]

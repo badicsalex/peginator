@@ -13,15 +13,14 @@ mod peg_parser;
 mod state;
 mod trace;
 
+pub use builtin_parsers::{
+    parse_Whitespace, parse_char, parse_character_literal, parse_character_range,
+    parse_string_literal,
+};
 pub use error::{combine_errors, ParseError, ParseErrorSpecifics, PrettyParseError};
 pub use parse_result::{ParseOk, ParseResult};
 pub use peg_parser::{ParseSettings, PegParser};
 pub use state::ParseState;
 pub use trace::{IndentedTracer, NoopTracer, ParseTracer};
-
-pub use builtin_parsers::{
-    parse_Whitespace, parse_char, parse_character_literal, parse_character_range,
-    parse_string_literal,
-};
 
 pub type CacheEntries<'a, T> = HashMap<usize, ParseResult<'a, T>, BuildNoHashHasher<usize>>;

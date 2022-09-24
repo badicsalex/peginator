@@ -2,14 +2,13 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use colored::*;
 use std::fs;
 
 use anyhow::Result;
 use clap::Parser;
-
-use peginator::grammar::Grammar;
+use colored::*;
 use peginator::codegen::{generate_source_header, CodegenGrammar, CodegenSettings};
+use peginator::grammar::Grammar;
 use peginator::{PegParser, PrettyParseError};
 
 /// Compile EBNF grammar into rust parser code.

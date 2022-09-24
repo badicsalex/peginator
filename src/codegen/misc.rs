@@ -5,9 +5,8 @@
 use anyhow::Result;
 use proc_macro2::TokenStream;
 
-use crate::grammar::{DelimitedExpression, Group};
-
 use super::common::{Codegen, CodegenSettings, FieldDescriptor};
+use crate::grammar::{DelimitedExpression, Group};
 
 impl Codegen for DelimitedExpression {
     fn generate_code_spec(
