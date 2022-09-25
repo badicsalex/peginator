@@ -26,3 +26,9 @@ colored = "2.0"
 nohash-hasher = "0.2.0"
 build-time = "0.1"
 sha2 = "0.10"
+lsp-types = {version = "0.93.1", optional = true}
+lsp-document = {version = "0.6.0", optional = true}
+
+[features]
+default = []
+lsp = ["lsp-types", "lsp-document"]
