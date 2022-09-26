@@ -42,7 +42,7 @@ impl CodegenGrammar for Grammar {
                         ))
                     }
 
-                    if flags.memoize {
+                    if flags.memoize || flags.left_recursive {
                         let cache_entry_ident = format_ident!("c_{}", rule.name);
                         cache_entries
                             .extend(quote!(pub #cache_entry_ident: CacheEntries<'a, #rule_ident>,));

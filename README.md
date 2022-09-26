@@ -11,6 +11,8 @@ code, which is usually optimized very well by the compiler.
 There is an opt-in memoization feature that makes it a proper packrat parser that can
 parse any input in linear time and space.
 
+Left-recursion is also supported using said memoization feature (also opt-in).
+
 ## Documentation
 
 This documentation describes how peginator implements PEGs. A basic understanding of PEGs
@@ -159,7 +161,7 @@ no particular order:
 * [oak](https://github.com/ptal/oak) is very similar in that it generates a typed AST, but much more flexible
 * [pest](https://github.com/pest-parser/pest)
 * [rust-peg](https://github.com/kevinmehall/rust-peg)
-* [lrpeg](https://github.com/seanyoung/lrpeg) (left recursive!)
+* [lrpeg](https://github.com/seanyoung/lrpeg)
 
 Special mention: [lalrpop](https://github.com/lalrpop/lalrpop)
 

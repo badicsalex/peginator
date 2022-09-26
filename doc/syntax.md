@@ -281,6 +281,18 @@ Enable memoization for the rule. It has a non-trivial performance impact (good o
 when it's actually needed. (Mainly when having multiple alternative rules with the same, complex
 prefix and different postfix)
 
+#### `@leftrec`
+
+Enable left recursion support on the rule. This also enables memoization. This directive _will_ make
+the rule parsing slower, because it will be evaluated at least twice.
+
+Its main use is building left-associative parse trees.
+
+Keep in mind that left recursion can be trickier than you think, and the interactions with other
+called left-recursive rules may be unintuitive (especially when combined with the `>` operator).
+In these cases, it might be better to rewrite the left-recursive rules to a list format (e.g.
+`num { '+' num }`, and create the associative tree in a post-processing step.
+
 #### `@check(...)`
 
 Add additional checks to a rule. The "parameter" of the `@check` directive is a function name that

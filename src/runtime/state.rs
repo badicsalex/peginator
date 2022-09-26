@@ -93,4 +93,9 @@ impl<'a> ParseState<'a> {
     pub fn first_n_chars(&self, n: usize) -> String {
         self.s().chars().take(n).collect()
     }
+
+    #[inline]
+    pub fn is_further_than(&self, other: &Self) -> bool {
+        self.start_index > other.start_index
+    }
 }

@@ -15,6 +15,8 @@ pub trait ParseTracer: Clone + Copy {
     where
         F: FnOnce(ParseState<'a>, Self) -> ParseResult<'a, T>;
 
+    fn print_informative(&self, s: &str);
+
     fn new() -> Self;
 }
 
@@ -42,7 +44,10 @@ impl IndentedTracer {
     pub fn print_trace_result<T>(&self, result: &ParseResult<T>) {
         let indentation = "    ".repeat(self.indentation_level);
         match &result {
-            Ok(_) => eprintln!("{}{}", indentation, "Ok".green()),
+            Ok(ok_result) => {
+                eprintln!("{}{:?}", indentation, ok_result.state.first_n_chars(50));
+                eprintln!("{}{}", indentation, "Ok".green());
+            }
             Err(err) => eprintln!(
                 "{}{} {}",
                 indentation,
@@ -52,6 +57,7 @@ impl IndentedTracer {
         };
     }
 }
+
 impl ParseTracer for IndentedTracer {
     #[inline(always)]
     fn run_traced<'a, T, F>(
@@ -67,6 +73,12 @@ impl ParseTracer for IndentedTracer {
         let result = f(state, self.indented());
         self.print_trace_result(&result);
         result
+    }
+
+    #[inline]
+    fn print_informative(&self, s: &str) {
+        let indentation = "    ".repeat(self.indentation_level);
+        eprintln!("{}{}", indentation, s.cyan());
     }
 
     #[inline]
@@ -93,6 +105,9 @@ impl ParseTracer for NoopTracer {
     {
         f(state, self)
     }
+
+    #[inline(always)]
+    fn print_informative(&self, _s: &str) {}
 
     #[inline]
     fn new() -> Self {

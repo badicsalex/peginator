@@ -12,24 +12,36 @@ pub enum ParseErrorSpecifics {
     /// Expected any character, but found end of input.
     ExpectedAnyCharacter,
     /// Expected a specific character.
-    ExpectedCharacter { c: char },
+    ExpectedCharacter {
+        c: char,
+    },
     /// Expected a character from a specific range.
-    ExpectedCharacterRange { from: char, to: char },
+    ExpectedCharacterRange {
+        from: char,
+        to: char,
+    },
     /// Expected a specific string.
-    ExpectedString { s: &'static str },
+    ExpectedString {
+        s: &'static str,
+    },
     /// Expected to match a @char rule.
-    ExpectedCharacterClass { name: &'static str },
+    ExpectedCharacterClass {
+        name: &'static str,
+    },
     /// Expected the end of file, but found additional characters.
     ExpectedEoi,
     /// A negative lookahead (`!`) rule part failed.
     NegativeLookaheadFailed,
     /// A custom check function failed
-    CheckFunctionFailed { function_name: &'static str },
+    CheckFunctionFailed {
+        function_name: &'static str,
+    },
     /// A custom extern rule failed
     ExternRuleFailed {
         function_name: &'static str,
         error_string: &'static str,
     },
+    LeftRecursionSentinel,
 
     /// An unknown error happened. Usually means there is a problem with peginator itself.
     Other,
@@ -64,6 +76,9 @@ impl ToString for ParseErrorSpecifics {
                     "extern function '{}' failed with '{}'",
                     function_name, error_string
                 )
+            }
+            ParseErrorSpecifics::LeftRecursionSentinel => {
+                "Left recursion sentinel reached, will probably retry.".to_string()
             }
             ParseErrorSpecifics::Other => "Unknown error. Sorry :(".to_string(),
         }

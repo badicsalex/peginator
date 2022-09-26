@@ -6,6 +6,7 @@
 pub(crate) mod test_utils;
 
 mod additional_traits;
+mod calculator_example;
 mod char_rule;
 pub mod check;
 mod choice;

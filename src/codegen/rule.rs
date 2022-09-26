@@ -29,10 +29,9 @@ impl CodegenRule for Rule {
         self.check_flags(&flags, &settings)?;
 
         let name = &self.name;
-        let rule_mod = format_ident!("{}_impl", self.name);
+        let rule_mod = self.rule_module_ident();
         let rule_type = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
-        let cache_entry_ident = format_ident!("c_{}", self.name);
         let choice_body = self.definition.generate_code(&fields, grammar, &settings)?;
 
         let (types, inner_code) = if flags.string {
@@ -45,20 +44,7 @@ impl CodegenRule for Rule {
 
         let position_impls = self.generate_impl_position(&fields);
 
-        let rule_parser_call = if flags.memoize {
-            quote!(
-                let cache_key = state.cache_key();
-                if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
-                    cached.clone()
-                } else {
-                    let result = #rule_mod::rule_parser(state, tracer, cache);
-                    cache.#cache_entry_ident.insert(cache_key, result.clone());
-                    result
-                }
-            )
-        } else {
-            quote!(#rule_mod::rule_parser(state, tracer, cache))
-        };
+        let rule_parser_call = self.generate_memoized_rule_call();
 
         Ok((
             types,
@@ -94,6 +80,7 @@ pub struct RuleFlags {
     pub string: bool,
     pub position: bool,
     pub memoize: bool,
+    pub left_recursive: bool,
 }
 
 impl Rule {
@@ -106,6 +93,7 @@ impl Rule {
                 DirectiveExpression::ExportDirective(_) => result.export = true,
                 DirectiveExpression::PositionDirective(_) => result.position = true,
                 DirectiveExpression::MemoizeDirective(_) => result.memoize = true,
+                DirectiveExpression::LeftrecDirective(_) => result.left_recursive = true,
                 DirectiveExpression::CheckDirective(_) => (),
             }
         }
@@ -394,5 +382,68 @@ impl Rule {
         } else {
             TokenStream::new()
         }
+    }
+
+    fn generate_memoized_rule_call(&self) -> TokenStream {
+        let flags = self.flags();
+        let cache_entry_ident = format_ident!("c_{}", self.name);
+        let rule_mod = self.rule_module_ident();
+        if flags.left_recursive {
+            quote!(
+                let cache_key = state.cache_key();
+                if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
+                    tracer.print_informative("Cache hit (left recursive)");
+                    cached.clone()
+                } else {
+                    let mut best_result = Err(state.clone().report_error(ParseErrorSpecifics::LeftRecursionSentinel));
+                    cache.#cache_entry_ident.insert(cache_key, best_result.clone());
+                    loop {
+                        tracer.print_informative("Starting new left recursive loop");
+                        let new_result = #rule_mod::rule_parser(state.clone(), tracer, cache);
+                        match (new_result, &best_result) {
+                            (Ok(nro), Ok(bro)) => {
+                                if nro.state.is_further_than(&bro.state) {
+                                    best_result = Ok(nro);
+                                    cache.#cache_entry_ident.insert(cache_key, best_result.clone());
+                                } else {
+                                    break;
+                                }
+                            }
+                            (Ok(nro), Err(bre)) => {
+                                best_result = Ok(nro);
+                                cache.#cache_entry_ident.insert(cache_key, best_result.clone());
+                            }
+                            (Err(nre), Ok(bro)) => {
+                                break;
+                            }
+                            (Err(nre), Err(bre)) => {
+                                best_result = Err(nre);
+                                cache.#cache_entry_ident.insert(cache_key, best_result.clone());
+                                break;
+                            }
+                        }
+                    }
+                    best_result
+                }
+            )
+        } else if flags.memoize {
+            quote!(
+                let cache_key = state.cache_key();
+                if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
+                    tracer.print_informative("Cache hit");
+                    cached.clone()
+                } else {
+                    let result = #rule_mod::rule_parser(state, tracer, cache);
+                    cache.#cache_entry_ident.insert(cache_key, result.clone());
+                    result
+                }
+            )
+        } else {
+            quote!(#rule_mod::rule_parser(state, tracer, cache))
+        }
+    }
+
+    fn rule_module_ident(&self) -> Ident {
+        format_ident!("{}_impl", self.name)
     }
 }

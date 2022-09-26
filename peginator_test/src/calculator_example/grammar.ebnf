@@ -1,0 +1,23 @@
+# Copyright (C) 2022, Alex Badics
+# This file is part of peginator
+# Licensed under the MIT license. See LICENSE file in the project root for details.
+
+@export
+@leftrec
+Expression = @:Add | @:Sub | @:Term;
+Add = left:*Expression '+'  right:Term;
+Sub = left:*Expression '-' right:Term;
+
+@leftrec
+Term = @:Mul | @:Div | @:Factor;
+Mul = left:*Term '*' right:Factor;
+Div = left:*Term '/' right:Factor;
+
+@memoize
+Factor = @:Group | @:Number;
+
+Group = '(' body:*Expression ')';
+
+@string
+@no_skip_ws
+Number = {'0'..'9'}+;
