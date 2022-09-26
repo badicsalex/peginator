@@ -123,7 +123,7 @@ The same escape sequences work as for strings.
 
 **End of input**: fail if there are any unparsed characters left.
 
-### `>rule`
+#### `>rule`
 
 **Include** (a.k.a. "inline rule"): Include the rule body at this point. The referred
 rule cannot be a `@char` or `@extern` rule.
@@ -158,7 +158,7 @@ There is no automatic functionality of e.g. putting these results in a tuple in 
 
 A special rule type is `char`, which matches exactly one utf-8 character.
 
-#### Fields
+### Fields
 
 Fields, parts of the generated Rule `struct`s are written as part of any expression:
 
@@ -169,23 +169,17 @@ field_name:RuleName
 This will create a field with `field_name`, and type `FieldType`. During parsing, the
 `FieldType` rule will be matched.
 
-To `Box` the field, prefix the type name with `*` (useful if there is a cycle in the types, or the matched field is rare
-and big):
-
-```ebnf
-boxed_field:*BigRule
-```
-
 If a field is optional in the grammar (e.g. it's part of an optional, or it
 does not exist on all choice alternatives), it will be encapsulated in an
 `Option`.
 
 If a field appears multiple times (in the same choice arm) or is part of a
-closure, it will be encapsulated in a `Vec`. In this case `Box`-ing it is not
-needed, and will not be done even if `*` is used.
+closure, it will be encapsulated in a `Vec`.
 
 If a field appears multiple times with different types, an `enum` type with the various
-choices will be created and automatically used.
+choices will be created and automatically used. If all choices appear exactly one time,
+a simple enum is created, if any of them can appear multiple times, a `Vec` of the enum
+is created (allowing for heterogeneous collections)
 
 Fields deep in the rule expressions will be flattened into the rule `struct` itself:
 
@@ -225,6 +219,19 @@ Overrides must appear exactly once on all arms of choice declarations, and canno
 part of optional or closure construct.
 
 `char` can be used as the type, in this case the rule will have the type `char`.
+
+#### Boxing
+
+To `Box` the field, prefix the type name with `*` (useful if there is a cycle in the types,
+or the matched field is rare and big):
+
+```ebnf
+boxed_field:*BigRule
+```
+
+In case of Vec fields, `Box`-ing it is not needed, and will not be done even if `*` is used.
+
+Overrides cannot be boxed.
 
 ### Directives
 
@@ -288,7 +295,7 @@ the rule parsing slower, because it will be evaluated at least twice.
 
 Its main use is building left-associative parse trees.
 
-Keep in mind that left recursion can be trickier than you think, and the interactions with other
+Keep in mind that left recursion can be trickier than they seem, and the interactions with other
 called left-recursive rules may be unintuitive (especially when combined with the `>` operator).
 In these cases, it might be better to rewrite the left-recursive rules to a list format (e.g.
 `num { '+' num }`, and create the associative tree in a post-processing step.
@@ -318,7 +325,7 @@ pub fn check_point(p: &Point) -> bool {
 }
 ```
 
-### `@extern(...)`
+#### `@extern(...)`
 
 Call an external parsing function. The rule must only have a name and no `=` and body.
 
