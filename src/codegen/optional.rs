@@ -26,6 +26,14 @@ impl Codegen for Optional {
                         state: state.record_error(err),
                     })
             )
+        } else if fields.len() == 1 {
+            quote!(
+                Ok(ok_result) => Ok(ok_result),
+                Err(err) => Ok(ParseOk{
+                    result: Default::default(),
+                    state: state.record_error(err),
+                })
+            )
         } else {
             let happy_case_fields: TokenStream = fields
                 .iter()

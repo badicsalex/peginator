@@ -192,6 +192,12 @@ fn generate_parsed_struct_type(
                 pub struct #type_ident;
             ),
         }
+    } else if fields.len() == 1
+        && record_position == RecordPosition::No
+        && public_type == PublicType::No
+    {
+        let field_type = generate_field_type(type_name, &fields[0], settings);
+        quote!(pub type #type_ident = #field_type;)
     } else {
         let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
         let field_types: Vec<TokenStream> = fields

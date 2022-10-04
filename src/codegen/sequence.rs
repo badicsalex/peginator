@@ -93,21 +93,26 @@ impl Sequence {
                 let mut field_assignments = TokenStream::new();
                 for field in &inner_fields {
                     let name = safe_ident(field.name);
+                    let source = if inner_fields.len() == 1 {
+                        quote!(__result)
+                    } else {
+                        quote!(__result.#name)
+                    };
                     let field_assignment = if !fields_seen.contains(field.name) {
                         fields_seen.insert(field.name);
                         if field.arity == Arity::Multiple {
-                            quote!(let mut #name = result.#name;)
+                            quote!(let mut #name = #source;)
                         } else {
-                            quote!(let #name = result.#name;)
+                            quote!(let #name = #source;)
                         }
                     } else {
                         assert_eq!(field.arity, Arity::Multiple);
-                        quote!(#name.extend(result.#name);)
+                        quote!(#name.extend(#source);)
                     };
                     field_assignments.extend(field_assignment);
                 }
                 quote!(
-                    let ParseOk{result, state, ..} = #part_mod::parse(state, tracer, cache)?;
+                    let ParseOk{result:__result, state, ..} = #part_mod::parse(state, tracer, cache)?;
                     #field_assignments
                 )
             };
@@ -116,6 +121,8 @@ impl Sequence {
         let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
         let parse_result = if field_names.is_empty() {
             quote!(())
+        } else if field_names.len() == 1 {
+            quote!(#( #field_names )* )
         } else {
             quote!(Parsed{ #( #field_names,)* })
         };

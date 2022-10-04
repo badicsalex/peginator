@@ -91,50 +91,17 @@ impl Choice {
             .map(|(num, choice)| {
                 let inner_fields = choice.get_fields(grammar).unwrap();
                 let choice_mod = format_ident!("choice_{}", num);
-                if fields.is_empty() {
-                    Ok(quote!(
-                        match #choice_mod::parse(state.clone(), tracer, cache) {
-                            Ok(ok_result) => return Ok(ok_result.map(|result| ())),
-                            Err(err) => state = state.record_error(err),
-                        }
-                    ))
-                } else {
-                    let field_assignments: TokenStream = fields
-                        .iter()
-                        .map(|field| {
-                            let name = safe_ident(field.name);
-                            let inner_exists = inner_fields
-                                .iter()
-                                .any(|inner_field| inner_field.name == field.name);
-                            let value = if inner_exists {
-                                quote!(result.#name)
-                            } else {
-                                match field.arity {
-                                    Arity::One => {
-                                        panic!("Outer field ({:?}) cannot be One if inner does not exist", field)
-                                    }
-                                    Arity::Optional => quote!(None),
-                                    Arity::Multiple => quote!(Vec::new()),
-                                }
-                            };
-                            quote!(#name: #value,)
-                        })
-                        .collect();
-                    Ok(quote!(
-                        match #choice_mod::parse(state.clone(), tracer, cache) {
-                            Ok(ok_result) => return Ok(
-                                    ok_result.map(|result|
-                                        Parsed{
-                                            #field_assignments
-                                        }
-                                    )
-                                ),
-                            Err(err) => state = state.record_error(err),
-                        }
-                    ))
-                }
+                let result_converter = Self::generate_result_converter(&fields, &inner_fields);
+                quote!(
+                    match #choice_mod::parse(state.clone(), tracer, cache) {
+                        Ok(ok_result) => return Ok(
+                                ok_result.map(|__result| #result_converter)
+                            ),
+                        Err(err) => state = state.record_error(err),
+                    }
+                )
             })
-            .collect::<Result<TokenStream>>()?;
+            .collect::<TokenStream>();
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(
@@ -147,6 +114,55 @@ impl Choice {
                 Err(state.report_farthest_error())
             }
         ))
+    }
+
+    fn generate_result_converter(
+        fields: &[FieldDescriptor],
+        inner_fields: &[FieldDescriptor],
+    ) -> TokenStream {
+        if fields.is_empty() {
+            quote!(())
+        } else if fields.len() == 1 {
+            if inner_fields.is_empty() {
+                Self::generate_default_field(&fields[0])
+            } else {
+                quote!(__result)
+            }
+        } else {
+            let field_assignments: TokenStream = fields
+                .iter()
+                .map(|field| {
+                    let name = safe_ident(field.name);
+                    let inner_exists = inner_fields
+                        .iter()
+                        .any(|inner_field| inner_field.name == field.name);
+                    let value = if inner_exists {
+                        if inner_fields.len() == 1 {
+                            quote!(__result)
+                        } else {
+                            quote!(__result.#name)
+                        }
+                    } else {
+                        Self::generate_default_field(field)
+                    };
+                    quote!(#name: #value,)
+                })
+                .collect();
+            quote!(Parsed{ #field_assignments })
+        }
+    }
+
+    fn generate_default_field(field: &FieldDescriptor) -> TokenStream {
+        match field.arity {
+            Arity::One => {
+                panic!(
+                    "Outer field ({:?}) cannot be One if inner does not exist",
+                    field
+                )
+            }
+            Arity::Optional => quote!(None),
+            Arity::Multiple => quote!(Vec::new()),
+        }
     }
 }
 

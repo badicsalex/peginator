@@ -20,11 +20,10 @@ impl Codegen for Field {
     ) -> Result<TokenStream> {
         let parser_name = format_ident!("parse_{}", self.typ);
         let parse_call = if let Some(field_name) = &self.name {
-            let field_ident = safe_ident(field_name);
             let field_conversion = generate_field_converter(field_name, &self.typ, rule_fields);
             quote!(
                 #parser_name (state, tracer, cache).map(|ok_result|
-                    ok_result.map(|result| Parsed{ #field_ident: #field_conversion })
+                    ok_result.map(|result| #field_conversion )
                 )
             )
         } else {
@@ -73,7 +72,7 @@ impl Codegen for OverrideField {
             settings,
             quote!(
                 #parser_name (state, tracer, cache).map(|ok_result|
-                    ok_result.map(|result| Parsed{ _override: #field_conversion })
+                    ok_result.map(|result| #field_conversion )
                 )
             ),
         );

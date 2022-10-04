@@ -32,18 +32,24 @@ impl Codegen for Closure {
             .iter()
             .map(|field| {
                 let name = safe_ident(field.name);
-                quote!(#name.extend(result.#name);)
+                if fields.len() == 1 {
+                    quote!(#name.extend(__result);)
+                } else {
+                    quote!(#name.extend(__result.#name);)
+                }
             })
             .collect();
         let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
         let parse_result = if field_names.is_empty() {
             quote!(())
+        } else if field_names.len() == 1 {
+            quote!(#( #field_names)*)
         } else {
             quote!(Parsed{ #( #field_names,)* })
         };
         let at_least_one_body = if self.at_least_one.is_some() {
             quote!(
-                let ParseOk{result, mut state, ..} = closure::parse(state, tracer, cache)?;
+                let ParseOk{result:__result, mut state, ..} = closure::parse(state, tracer, cache)?;
                 #assignments
             )
         } else {
@@ -67,7 +73,7 @@ impl Codegen for Closure {
                 #at_least_one_body
                 loop {
                     match closure::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk{result, state:new_state, ..}) => {
+                        Ok(ParseOk{result: __result, state:new_state, ..}) => {
                             #assignments
                             state = new_state;
                         },

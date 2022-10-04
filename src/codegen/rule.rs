@@ -206,9 +206,7 @@ impl Rule {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>
                 ) -> ParseResult<'a, super::#rule_type> {
-                    let result =
-                        parse(state, tracer, cache)?
-                        .map(|result| result._override);
+                    let result = parse(state, tracer, cache)?;
                     #check_calls
                     Ok(result)
                 }
@@ -236,9 +234,7 @@ impl Rule {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>
                 ) -> ParseResult<'a, super::#rule_type> {
-                    let result =
-                        parse(state, tracer, cache)?
-                        .map(|result| result._override);
+                    let result = parse(state, tracer, cache)?;
                     #check_calls
                     Ok(result)
                 }
@@ -277,6 +273,11 @@ impl Rule {
             })
             .collect();
         let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
+        let field_assignments = if field_names.len() == 1 {
+            quote!(#( #field_names:r, )*)
+        } else {
+            quote!(#( #field_names:r.#field_names, )*)
+        };
 
         let check_calls = self.generate_check_calls()?;
 
@@ -286,7 +287,7 @@ impl Rule {
                     parse(state.clone(), tracer, cache)?
                     .map_with_state(
                         |r, new_state| super::#rule_type{
-                            #( #field_names:r.#field_names,)*
+                            #field_assignments
                             position: state.range_until(new_state),
                         }
                     );
@@ -299,7 +300,7 @@ impl Rule {
                     parse(state, tracer, cache)?
                     .map(
                         |r| super::#rule_type{
-                            #( #field_names:r.#field_names,)*
+                            #field_assignments
                         }
                     );
                 #check_calls
