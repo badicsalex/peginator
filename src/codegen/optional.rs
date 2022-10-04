@@ -16,14 +16,13 @@ impl Codegen for Optional {
         grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let body = self.body.generate_code(rule_fields, grammar, settings)?;
         let fields = self.body.get_filtered_rule_fields(rule_fields, grammar)?;
         let match_body = if fields.is_empty() {
             quote!(
                 Ok(ok_result) => Ok(ok_result.map(|result| ())),
                 Err(err) => Ok(ParseOk{
                         result: (),
-                        state: state.record_error(err),
+                        state: old_state.record_error(err),
                     })
             )
         } else if fields.len() == 1 {
@@ -31,7 +30,7 @@ impl Codegen for Optional {
                 Ok(ok_result) => Ok(ok_result),
                 Err(err) => Ok(ParseOk{
                     result: Default::default(),
-                    state: state.record_error(err),
+                    state: old_state.record_error(err),
                 })
             )
         } else {
@@ -53,9 +52,18 @@ impl Codegen for Optional {
                 Ok(ok_result) => Ok(ok_result.map(|result| Parsed{#happy_case_fields})),
                 Err(err) => Ok(ParseOk{
                     result: Parsed{#unhappy_case_fields},
-                    state: state.record_error(err),
+                    state: old_state.record_error(err),
                 })
             )
+        };
+        let body;
+        let parse_call;
+        if let Some(inline_body) = self.body.generate_inline_body(rule_fields, settings)? {
+            body = TokenStream::new();
+            parse_call = inline_body;
+        } else {
+            body = self.body.generate_code(rule_fields, grammar, settings)?;
+            parse_call = quote!(optional::parse(state, tracer, cache));
         };
         Ok(quote!(
             mod optional{
@@ -68,7 +76,8 @@ impl Codegen for Optional {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
-                match optional::parse(state.clone(), tracer, cache) {
+                let old_state = state.clone();
+                match #parse_call {
                     #match_body
                 }
             }
