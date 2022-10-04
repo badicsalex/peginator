@@ -90,15 +90,7 @@ impl Sequence {
             let inner_fields = part.get_filtered_rule_fields(rule_fields, grammar)?;
             let call = if inner_fields.is_empty() {
                 quote!(
-                    match #part_mod::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk{
-                            state:new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                        },
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
+                    let ParseOk{state, ..} = #part_mod::parse(state.clone(), tracer, cache)?;
                 )
             } else {
                 let mut field_assignments = TokenStream::new();
@@ -118,17 +110,7 @@ impl Sequence {
                     field_assignments.extend(field_assignment);
                 }
                 quote!(
-                    let result = match #part_mod::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk{
-                            result,
-                            state:new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk{result, state, ..} = #part_mod::parse(state.clone(), tracer, cache)?;
                     #field_assignments
                 )
             };
