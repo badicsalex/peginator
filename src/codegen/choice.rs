@@ -70,7 +70,8 @@ impl Codegen for Choice {
                 .ok()
                 .flatten()
                 .is_some()
-        }) {
+        }) && self.get_filtered_rule_fields(rule_fields, grammar)?.len() <= 1
+        {
             Ok(Some(self.generate_parse_body(
                 rule_fields,
                 grammar,

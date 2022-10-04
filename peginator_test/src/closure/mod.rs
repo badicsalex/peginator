@@ -233,3 +233,15 @@ fn test_multi_field() {
         }
     );
 }
+
+#[test]
+fn test_multi_part() {
+    assert_eq!(
+        MultiPart::parse("ac").unwrap(),
+        MultiPart {
+            f1: Some(FieldA),
+            f2: None,
+            f3: FieldC
+        }
+    );
+}

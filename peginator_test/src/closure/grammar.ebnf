@@ -32,3 +32,6 @@ FieldA = 'a';
 FieldB = 'b';
 FieldC = 'c';
 FieldD = 'd';
+
+@export
+MultiPart = (f1:FieldA | f2:FieldB ) f3:FieldC;

@@ -60,11 +60,9 @@ impl Codegen for Closure {
             quote!(Parsed{ #( #field_names,)* })
         };
         let at_least_one_check = if self.at_least_one.is_some() {
-            quote!(
-                if iterations == 0 {
-                    return Err(state.report_farthest_error());
-                }
-            )
+            quote!(if iterations == 0 {
+                return Err(state.report_farthest_error());
+            })
         } else {
             quote!()
         };
