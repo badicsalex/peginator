@@ -41,10 +41,18 @@ impl Codegen for Choice {
                 ))
             })
             .collect::<Result<TokenStream>>()?;
-        let parse_function = self.generate_parse_function(rule_fields, grammar, settings)?;
+        let parse_body =
+            self.generate_parse_body(rule_fields, grammar, settings, CloneState::No)?;
         Ok(quote!(
             #choice_bodies
-            #parse_function
+            #[inline(always)]
+            pub fn parse<'a>(
+                mut state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
+                #parse_body
+            }
         ))
     }
 
@@ -57,6 +65,18 @@ impl Codegen for Choice {
     ) -> Result<Option<TokenStream>> {
         if self.choices.len() < 2 {
             self.choices[0].generate_inline_body(rule_fields, grammar, settings, clone_state)
+        } else if self.choices.iter().all(|c| {
+            c.generate_inline_body(rule_fields, grammar, settings, CloneState::No)
+                .ok()
+                .flatten()
+                .is_some()
+        }) {
+            Ok(Some(self.generate_parse_body(
+                rule_fields,
+                grammar,
+                settings,
+                clone_state,
+            )?))
         } else {
             Ok(None)
         }
@@ -98,11 +118,12 @@ impl Codegen for Choice {
 }
 
 impl Choice {
-    fn generate_parse_function(
+    fn generate_parse_body(
         &self,
         rule_fields: &[FieldDescriptor],
         grammar: &Grammar,
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<TokenStream> {
         let fields = self.get_filtered_rule_fields(rule_fields, grammar)?;
         let calls = self
@@ -111,7 +132,7 @@ impl Choice {
             .enumerate()
             .map(|(num, choice)| {
                 let parse_call = if let Some(inline_body) = choice
-                    .generate_inline_body(rule_fields, grammar, settings, CloneState::Yes)
+                    .generate_inline_body(rule_fields, grammar, settings, CloneState::No)
                     .unwrap()
                 {
                     inline_body
@@ -126,17 +147,14 @@ impl Choice {
                 )
             })
             .collect::<TokenStream>();
+        let state = match clone_state {
+            CloneState::No => quote!(state),
+            CloneState::Yes => quote!(state.clone()),
+        };
         Ok(quote!(
-            #[inline(always)]
-            pub fn parse<'a>(
-                mut state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                ChoiceHelper::new(state)
-                    #calls
-                    .end()
-            }
+            ChoiceHelper::new(#state)
+                #calls
+                .end()
         ))
     }
 
