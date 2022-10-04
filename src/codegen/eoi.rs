@@ -10,23 +10,15 @@ use super::common::{generate_skip_ws, Codegen, CodegenSettings, FieldDescriptor}
 use crate::grammar::{EndOfInput, Grammar};
 
 impl Codegen for EndOfInput {
-    fn generate_code_spec(
+    fn generate_inline_body(
         &self,
         _rule_fields: &[FieldDescriptor],
-        _grammar: &Grammar,
         settings: &CodegenSettings,
-    ) -> Result<TokenStream> {
-        let parse_body = generate_skip_ws(settings, quote!(parse_end_of_input(state)));
-        Ok(quote!(
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                #parse_body
-            }
-        ))
+    ) -> Result<Option<TokenStream>> {
+        Ok(Some(generate_skip_ws(
+            settings,
+            quote!(parse_end_of_input(state)),
+        )))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {

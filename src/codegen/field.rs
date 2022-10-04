@@ -12,12 +12,11 @@ use super::common::{
 use crate::grammar::{Field, Grammar, OverrideField};
 
 impl Codegen for Field {
-    fn generate_code_spec(
+    fn generate_inline_body(
         &self,
         rule_fields: &[FieldDescriptor],
-        _grammar: &Grammar,
         settings: &CodegenSettings,
-    ) -> Result<TokenStream> {
+    ) -> Result<Option<TokenStream>> {
         let parser_name = format_ident!("parse_{}", self.typ);
         let parse_call = if let Some(field_name) = &self.name {
             let field_conversion = generate_field_converter(field_name, &self.typ, rule_fields);
@@ -28,21 +27,10 @@ impl Codegen for Field {
             )
         } else {
             quote!(
-                    #parser_name (state, tracer, cache).into_empty()
+                #parser_name (state, tracer, cache).into_empty()
             )
         };
-        let parse_body = generate_skip_ws(settings, parse_call);
-        Ok(quote!(
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                #parse_body
-
-            }
-        ))
+        Ok(Some(generate_skip_ws(settings, parse_call)))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
@@ -60,32 +48,21 @@ impl Codegen for Field {
 }
 
 impl Codegen for OverrideField {
-    fn generate_code_spec(
+    fn generate_inline_body(
         &self,
         rule_fields: &[FieldDescriptor],
-        _grammar: &Grammar,
         settings: &CodegenSettings,
-    ) -> Result<TokenStream> {
+    ) -> Result<Option<TokenStream>> {
         let parser_name = format_ident!("parse_{}", self.typ);
         let field_conversion = generate_field_converter("_override", &self.typ, rule_fields);
-        let parse_body = generate_skip_ws(
+        Ok(Some(generate_skip_ws(
             settings,
             quote!(
                 #parser_name (state, tracer, cache).map(|ok_result|
                     ok_result.map(|result| #field_conversion )
                 )
             ),
-        );
-        Ok(quote!(
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                #parse_body
-            }
-        ))
+        )))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {

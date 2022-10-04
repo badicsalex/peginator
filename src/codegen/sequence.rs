@@ -37,6 +37,12 @@ impl Codegen for Sequence {
             .parts
             .iter()
             .enumerate()
+            .filter(|(_, part)| {
+                part.generate_inline_body(rule_fields, settings)
+                    .ok()
+                    .flatten()
+                    .is_none()
+            })
             .map(|(num, part)| -> Result<TokenStream> {
                 let part_mod = format_ident!("part_{}", num);
                 let part_body = part.generate_code(rule_fields, grammar, settings)?;
@@ -53,6 +59,20 @@ impl Codegen for Sequence {
             #part_bodies
             #parse_function
         ))
+    }
+
+    fn generate_inline_body(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<Option<TokenStream>> {
+        if self.parts.is_empty() {
+            Ok(Some(quote!(Ok(ParseOk { result: (), state }))))
+        } else if self.parts.len() < 2 {
+            self.parts[0].generate_inline_body(rule_fields, settings)
+        } else {
+            Ok(None)
+        }
     }
 
     fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
@@ -77,17 +97,23 @@ impl Sequence {
         &self,
         rule_fields: &[FieldDescriptor],
         grammar: &Grammar,
-        _settings: &CodegenSettings,
+        settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let fields = self.get_filtered_rule_fields(rule_fields, grammar)?;
         let mut calls = TokenStream::new();
         let mut fields_seen = HashSet::<&str>::new();
         for (num, part) in self.parts.iter().enumerate() {
-            let part_mod = format_ident!("part_{}", num);
             let inner_fields = part.get_filtered_rule_fields(rule_fields, grammar)?;
+            let parse_call =
+                if let Some(inline_body) = part.generate_inline_body(rule_fields, settings)? {
+                    inline_body
+                } else {
+                    let part_mod = format_ident!("part_{}", num);
+                    quote!(#part_mod::parse(state, tracer, cache))
+                };
             let call = if inner_fields.is_empty() {
                 quote!(
-                    let ParseOk{state, ..} = #part_mod::parse(state, tracer, cache)?;
+                    let ParseOk{state, ..} = #parse_call?;
                 )
             } else {
                 let mut field_assignments = TokenStream::new();
@@ -112,7 +138,7 @@ impl Sequence {
                     field_assignments.extend(field_assignment);
                 }
                 quote!(
-                    let ParseOk{result:__result, state, ..} = #part_mod::parse(state, tracer, cache)?;
+                    let ParseOk{result:__result, state, ..} = #parse_call?;
                     #field_assignments
                 )
             };

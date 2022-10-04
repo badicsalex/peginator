@@ -23,6 +23,13 @@ impl Codegen for Choice {
             .choices
             .iter()
             .enumerate()
+            .filter(|(_, choice)| {
+                choice
+                    .generate_inline_body(rule_fields, settings)
+                    .ok()
+                    .flatten()
+                    .is_none()
+            })
             .map(|(num, choice)| -> Result<TokenStream> {
                 let choice_mod = format_ident!("choice_{}", num);
                 let sequence_body = choice.generate_code(rule_fields, grammar, settings)?;
@@ -39,6 +46,18 @@ impl Codegen for Choice {
             #choice_bodies
             #parse_function
         ))
+    }
+
+    fn generate_inline_body(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<Option<TokenStream>> {
+        if self.choices.len() < 2 {
+            self.choices[0].generate_inline_body(rule_fields, settings)
+        } else {
+            Ok(None)
+        }
     }
 
     fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
@@ -81,7 +100,7 @@ impl Choice {
         &self,
         rule_fields: &[FieldDescriptor],
         grammar: &Grammar,
-        _settings: &CodegenSettings,
+        settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let fields = self.get_filtered_rule_fields(rule_fields, grammar)?;
         let calls = self
@@ -89,15 +108,23 @@ impl Choice {
             .iter()
             .enumerate()
             .map(|(num, choice)| {
+                let parse_call = if let Some(inline_body) =
+                    choice.generate_inline_body(rule_fields, settings).unwrap()
+                {
+                    inline_body
+                } else {
+                    let choice_mod = format_ident!("choice_{}", num);
+                    quote!(#choice_mod::parse(state, tracer, cache))
+                };
                 let inner_fields = choice.get_fields(grammar).unwrap();
-                let choice_mod = format_ident!("choice_{}", num);
                 let result_converter = Self::generate_result_converter(&fields, &inner_fields);
                 quote!(
-                    match #choice_mod::parse(state.clone(), tracer, cache) {
+                    let state = orig_state.clone();
+                    match #parse_call {
                         Ok(ok_result) => return Ok(
                                 ok_result.map(|__result| #result_converter)
                             ),
-                        Err(err) => state = state.record_error(err),
+                        Err(err) => orig_state = orig_state.record_error(err),
                     }
                 )
             })
@@ -109,9 +136,9 @@ impl Choice {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
+                let mut orig_state = state;
                 #calls
-                Err(state.report_farthest_error())
+                Err(orig_state.report_farthest_error())
             }
         ))
     }

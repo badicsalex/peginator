@@ -70,30 +70,19 @@ impl TryFrom<&Utf8Escape> for char {
 }
 
 impl Codegen for CharacterRange {
-    fn generate_code_spec(
+    fn generate_inline_body(
         &self,
         _rule_fields: &[FieldDescriptor],
-        _grammar: &Grammar,
         settings: &CodegenSettings,
-    ) -> Result<TokenStream> {
+    ) -> Result<Option<TokenStream>> {
         let from: char = (&self.from).try_into()?;
         let to: char = (&self.to).try_into()?;
-        let parse_body = generate_skip_ws(
+        Ok(Some(generate_skip_ws(
             settings,
             quote!(
                 parse_character_range(state, #from, #to).into_empty()
             ),
-        );
-        Ok(quote!(
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                #parse_body
-            }
-        ))
+        )))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
@@ -102,12 +91,11 @@ impl Codegen for CharacterRange {
 }
 
 impl Codegen for StringLiteral {
-    fn generate_code_spec(
+    fn generate_inline_body(
         &self,
         _rule_fields: &[FieldDescriptor],
-        _grammar: &Grammar,
         settings: &CodegenSettings,
-    ) -> Result<TokenStream> {
+    ) -> Result<Option<TokenStream>> {
         let literal = &self
             .body
             .iter()
@@ -133,17 +121,10 @@ impl Codegen for StringLiteral {
         } else {
             quote!(parse_string_literal(state, #literal))
         };
-        let parse_body = generate_skip_ws(settings, quote!(#parse_function.into_empty()));
-        Ok(quote!(
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                #parse_body
-            }
-        ))
+        Ok(Some(generate_skip_ws(
+            settings,
+            quote!(#parse_function.into_empty()),
+        )))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {

@@ -46,6 +46,30 @@ impl Codegen for DelimitedExpression {
         }
     }
 
+    fn generate_inline_body(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<Option<TokenStream>> {
+        match self {
+            DelimitedExpression::CharacterRange(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::Closure(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::EndOfInput(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::Field(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::Group(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::IncludeRule(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::NegativeLookahead(a) => {
+                a.generate_inline_body(rule_fields, settings)
+            }
+            DelimitedExpression::Optional(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::OverrideField(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::PositiveLookahead(a) => {
+                a.generate_inline_body(rule_fields, settings)
+            }
+            DelimitedExpression::StringLiteral(a) => a.generate_inline_body(rule_fields, settings),
+        }
+    }
+
     fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
         match self {
             DelimitedExpression::Group(a) => a.get_fields(grammar),
@@ -71,6 +95,14 @@ impl Codegen for Group {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         self.body.generate_code_spec(rule_fields, grammar, settings)
+    }
+
+    fn generate_inline_body(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        settings: &CodegenSettings,
+    ) -> Result<Option<TokenStream>> {
+        self.body.generate_inline_body(rule_fields, settings)
     }
 
     fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
