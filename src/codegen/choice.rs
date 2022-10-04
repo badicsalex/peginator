@@ -119,12 +119,10 @@ impl Choice {
                     quote!(#choice_mod::parse(state.clone(), tracer, cache))
                 };
                 let inner_fields = choice.get_fields(grammar).unwrap();
-                let result_converter = Self::generate_result_converter(&fields, &inner_fields);
+                let postprocess = Self::generate_result_converter(&fields, &inner_fields);
                 quote!(
                     match #parse_call {
-                        Ok(ok_result) => return Ok(
-                                ok_result.map(|__result| #result_converter)
-                            ),
+                        Ok(ok_result) => return Ok(ok_result #postprocess),
                         Err(err) => state = state.record_error(err),
                     }
                 )
@@ -148,12 +146,13 @@ impl Choice {
         inner_fields: &[FieldDescriptor],
     ) -> TokenStream {
         if fields.is_empty() {
-            quote!(())
+            TokenStream::new()
         } else if fields.len() == 1 {
             if inner_fields.is_empty() {
-                Self::generate_default_field(&fields[0])
+                let default = Self::generate_default_field(&fields[0]);
+                quote!(.map(|_| #default))
             } else {
-                quote!(__result)
+                TokenStream::new()
             }
         } else {
             let field_assignments: TokenStream = fields
@@ -165,9 +164,9 @@ impl Choice {
                         .any(|inner_field| inner_field.name == field.name);
                     let value = if inner_exists {
                         if inner_fields.len() == 1 {
-                            quote!(__result)
+                            quote!(r)
                         } else {
-                            quote!(__result.#name)
+                            quote!(r.#name)
                         }
                     } else {
                         Self::generate_default_field(field)
@@ -175,7 +174,7 @@ impl Choice {
                     quote!(#name: #value,)
                 })
                 .collect();
-            quote!(Parsed{ #field_assignments })
+            quote!(.map(|r| Parsed{ #field_assignments }))
         }
     }
 
