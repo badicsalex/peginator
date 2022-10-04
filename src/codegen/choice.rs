@@ -94,7 +94,7 @@ impl Choice {
                 if fields.is_empty() {
                     Ok(quote!(
                         match #choice_mod::parse(state.clone(), tracer, cache) {
-                            Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
+                            Ok(ok_result) => return Ok(ok_result.map(|result| ())),
                             Err(err) => state = state.record_error(err),
                         }
                     ))

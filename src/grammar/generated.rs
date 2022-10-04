@@ -349,27 +349,9 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    let result = match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
                     let mut rules = result.rules;
-                    match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
+                    let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
                     Ok(ParseOk {
                         result: Parsed { rules },
                         state,
@@ -438,27 +420,9 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let result = match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
             let mut rules = result.rules;
-            match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
+            let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
             Ok(ParseOk {
                 result: Parsed { rules },
                 state,
@@ -595,50 +559,12 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let result = match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
             let mut directives = result.directives;
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let name = result.name;
-            match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_3::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_2::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_3::parse(state, tracer, cache)?;
             let definition = result.definition;
             Ok(ParseOk {
                 result: Parsed {
@@ -890,26 +816,8 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
-                    let result = match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                    let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                     let mut choices = result.choices;
                     Ok(ParseOk {
                         result: Parsed { choices },
@@ -959,82 +867,17 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let result = match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
             let mut directives = result.directives;
-            match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
             directives.extend(result.directives);
-            let result = match part_3::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_3::parse(state, tracer, cache)?;
             let name = result.name;
-            match part_4::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_5::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_4::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_5::parse(state, tracer, cache)?;
             let mut choices = result.choices;
-            let result = match part_6::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_6::parse(state, tracer, cache)?;
             choices.extend(result.choices);
             Ok(ParseOk {
                 result: Parsed {
@@ -1227,30 +1070,9 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let result = match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
             let directive = result.directive;
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let name = result.name;
             Ok(ParseOk {
                 result: Parsed { directive, name },
@@ -1346,26 +1168,8 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
-                    let result = match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                    let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                     let mut choices = result.choices;
                     Ok(ParseOk {
                         result: Parsed { choices },
@@ -1415,30 +1219,9 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let result = match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
             let mut choices = result.choices;
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             choices.extend(result.choices);
             Ok(ParseOk {
                 result: Parsed { choices },
@@ -1592,35 +1375,10 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let body = result.body;
-            match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
+            let ParseOk { state, .. } = part_2::parse(state, tracer, cache)?;
             Ok(ParseOk {
                 result: Parsed { body },
                 state,
@@ -1701,35 +1459,10 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let body = result.body;
-            match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
+            let ParseOk { state, .. } = part_2::parse(state, tracer, cache)?;
             Ok(ParseOk {
                 result: Parsed { body },
                 state,
@@ -1852,46 +1585,11 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let body = result.body;
-            match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_3::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_2::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_3::parse(state, tracer, cache)?;
             let at_least_one = result.at_least_one;
             Ok(ParseOk {
                 result: Parsed { body, at_least_one },
@@ -1998,26 +1696,8 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let expr = result.expr;
             Ok(ParseOk {
                 result: Parsed { expr },
@@ -2088,26 +1768,8 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let expr = result.expr;
             Ok(ParseOk {
                 result: Parsed { expr },
@@ -2192,38 +1854,10 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let result = match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
             let from = result.from;
-            match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
             let to = result.to;
             Ok(ParseOk {
                 result: Parsed { from, to },
@@ -2306,35 +1940,10 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let _override = result._override;
-            match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
+            let ParseOk { state, .. } = part_2::parse(state, tracer, cache)?;
             Ok(ParseOk {
                 result: Parsed { _override },
                 state,
@@ -2482,30 +2091,9 @@ mod peginator_generated {
                             tracer: impl ParseTracer,
                             cache: &mut ParseCache<'a>,
                         ) -> ParseResult<'a, Parsed> {
-                            let mut state = state;
-                            match part_0::parse(state.clone(), tracer, cache) {
-                                Ok(ParseOk {
-                                    state: new_state, ..
-                                }) => {
-                                    state = new_state;
-                                }
-                                Err(err) => {
-                                    return Err(state.record_error(err).report_farthest_error())
-                                }
-                            }
-                            let result = match part_1::parse(state.clone(), tracer, cache) {
-                                Ok(ParseOk {
-                                    result,
-                                    state: new_state,
-                                    ..
-                                }) => {
-                                    state = new_state;
-                                    result
-                                }
-                                Err(err) => {
-                                    return Err(state.record_error(err).report_farthest_error())
-                                }
-                            };
+                            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                            let ParseOk { result, state, .. } =
+                                part_1::parse(state, tracer, cache)?;
                             let mut body = result.body;
                             Ok(ParseOk {
                                 result: Parsed { body },
@@ -2568,35 +2156,10 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
-                    let result = match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                    let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                     let mut body = result.body;
-                    match part_2::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
+                    let ParseOk { state, .. } = part_2::parse(state, tracer, cache)?;
                     Ok(ParseOk {
                         result: Parsed { body },
                         state,
@@ -2679,30 +2242,9 @@ mod peginator_generated {
                             tracer: impl ParseTracer,
                             cache: &mut ParseCache<'a>,
                         ) -> ParseResult<'a, Parsed> {
-                            let mut state = state;
-                            match part_0::parse(state.clone(), tracer, cache) {
-                                Ok(ParseOk {
-                                    state: new_state, ..
-                                }) => {
-                                    state = new_state;
-                                }
-                                Err(err) => {
-                                    return Err(state.record_error(err).report_farthest_error())
-                                }
-                            }
-                            let result = match part_1::parse(state.clone(), tracer, cache) {
-                                Ok(ParseOk {
-                                    result,
-                                    state: new_state,
-                                    ..
-                                }) => {
-                                    state = new_state;
-                                    result
-                                }
-                                Err(err) => {
-                                    return Err(state.record_error(err).report_farthest_error())
-                                }
-                            };
+                            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                            let ParseOk { result, state, .. } =
+                                part_1::parse(state, tracer, cache)?;
                             let mut body = result.body;
                             Ok(ParseOk {
                                 result: Parsed { body },
@@ -2765,35 +2307,10 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
-                    let result = match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                    let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                     let mut body = result.body;
-                    match part_2::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
+                    let ParseOk { state, .. } = part_2::parse(state, tracer, cache)?;
                     Ok(ParseOk {
                         result: Parsed { body },
                         state,
@@ -2834,30 +2351,9 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let result = match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
             let insensitive = result.insensitive;
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let mut body = result.body;
             Ok(ParseOk {
                 result: Parsed { insensitive, body },
@@ -3008,38 +2504,10 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    let result = match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
                     let name = result.name;
-                    match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
-                    let result = match part_2::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
+                    let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
                     let boxed = result.boxed;
                     Ok(ParseOk {
                         result: Parsed { name, boxed },
@@ -3098,31 +2566,10 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            let result = match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
             let name = result.name;
             let boxed = result.boxed;
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let typ = result.typ;
             Ok(ParseOk {
                 result: Parsed { name, boxed, typ },
@@ -3243,34 +2690,9 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
             let typ = result.typ;
             Ok(ParseOk {
                 result: Parsed { typ },
@@ -3338,26 +2760,8 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let rule = result.rule;
             Ok(ParseOk {
                 result: Parsed { rule },
@@ -3913,26 +3317,8 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
-                match part_0::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
-                let result = match part_1::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                 let _override = result._override;
                 Ok(ParseOk {
                     result: Parsed { _override },
@@ -4001,26 +3387,8 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
-                match part_0::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
-                let result = match part_1::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                 let _override = result._override;
                 Ok(ParseOk {
                     result: Parsed { _override },
@@ -4508,38 +3876,10 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
             let c1 = result.c1;
-            let result = match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
             let c2 = result.c2;
             Ok(ParseOk {
                 result: Parsed { c1, c2 },
@@ -4770,46 +4110,11 @@ mod peginator_generated {
                                                 cache: &mut ParseCache<'a>,
                                             ) -> ParseResult<'a, Parsed>
                                             {
-                                                let mut state = state;
-                                                let result = match part_0::parse(
-                                                    state.clone(),
-                                                    tracer,
-                                                    cache,
-                                                ) {
-                                                    Ok(ParseOk {
-                                                        result,
-                                                        state: new_state,
-                                                        ..
-                                                    }) => {
-                                                        state = new_state;
-                                                        result
-                                                    }
-                                                    Err(err) => {
-                                                        return Err(state
-                                                            .record_error(err)
-                                                            .report_farthest_error())
-                                                    }
-                                                };
+                                                let ParseOk { result, state, .. } =
+                                                    part_0::parse(state, tracer, cache)?;
                                                 let c5 = result.c5;
-                                                let result = match part_1::parse(
-                                                    state.clone(),
-                                                    tracer,
-                                                    cache,
-                                                ) {
-                                                    Ok(ParseOk {
-                                                        result,
-                                                        state: new_state,
-                                                        ..
-                                                    }) => {
-                                                        state = new_state;
-                                                        result
-                                                    }
-                                                    Err(err) => {
-                                                        return Err(state
-                                                            .record_error(err)
-                                                            .report_farthest_error())
-                                                    }
-                                                };
+                                                let ParseOk { result, state, .. } =
+                                                    part_1::parse(state, tracer, cache)?;
                                                 let c6 = result.c6;
                                                 Ok(ParseOk {
                                                     result: Parsed { c5, c6 },
@@ -4856,40 +4161,11 @@ mod peginator_generated {
                                         cache: &mut ParseCache<'a>,
                                     ) -> ParseResult<'a, Parsed>
                                     {
-                                        let mut state = state;
-                                        let result =
-                                            match part_0::parse(state.clone(), tracer, cache) {
-                                                Ok(ParseOk {
-                                                    result,
-                                                    state: new_state,
-                                                    ..
-                                                }) => {
-                                                    state = new_state;
-                                                    result
-                                                }
-                                                Err(err) => {
-                                                    return Err(state
-                                                        .record_error(err)
-                                                        .report_farthest_error())
-                                                }
-                                            };
+                                        let ParseOk { result, state, .. } =
+                                            part_0::parse(state, tracer, cache)?;
                                         let c4 = result.c4;
-                                        let result =
-                                            match part_1::parse(state.clone(), tracer, cache) {
-                                                Ok(ParseOk {
-                                                    result,
-                                                    state: new_state,
-                                                    ..
-                                                }) => {
-                                                    state = new_state;
-                                                    result
-                                                }
-                                                Err(err) => {
-                                                    return Err(state
-                                                        .record_error(err)
-                                                        .report_farthest_error())
-                                                }
-                                            };
+                                        let ParseOk { result, state, .. } =
+                                            part_1::parse(state, tracer, cache)?;
                                         let c5 = result.c5;
                                         let c6 = result.c6;
                                         Ok(ParseOk {
@@ -4937,34 +4213,11 @@ mod peginator_generated {
                                 tracer: impl ParseTracer,
                                 cache: &mut ParseCache<'a>,
                             ) -> ParseResult<'a, Parsed> {
-                                let mut state = state;
-                                let result = match part_0::parse(state.clone(), tracer, cache) {
-                                    Ok(ParseOk {
-                                        result,
-                                        state: new_state,
-                                        ..
-                                    }) => {
-                                        state = new_state;
-                                        result
-                                    }
-                                    Err(err) => {
-                                        return Err(state.record_error(err).report_farthest_error())
-                                    }
-                                };
+                                let ParseOk { result, state, .. } =
+                                    part_0::parse(state, tracer, cache)?;
                                 let c3 = result.c3;
-                                let result = match part_1::parse(state.clone(), tracer, cache) {
-                                    Ok(ParseOk {
-                                        result,
-                                        state: new_state,
-                                        ..
-                                    }) => {
-                                        state = new_state;
-                                        result
-                                    }
-                                    Err(err) => {
-                                        return Err(state.record_error(err).report_farthest_error())
-                                    }
-                                };
+                                let ParseOk { result, state, .. } =
+                                    part_1::parse(state, tracer, cache)?;
                                 let c4 = result.c4;
                                 let c5 = result.c5;
                                 let c6 = result.c6;
@@ -5017,34 +4270,9 @@ mod peginator_generated {
                         tracer: impl ParseTracer,
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
-                        let mut state = state;
-                        let result = match part_0::parse(state.clone(), tracer, cache) {
-                            Ok(ParseOk {
-                                result,
-                                state: new_state,
-                                ..
-                            }) => {
-                                state = new_state;
-                                result
-                            }
-                            Err(err) => {
-                                return Err(state.record_error(err).report_farthest_error())
-                            }
-                        };
+                        let ParseOk { result, state, .. } = part_0::parse(state, tracer, cache)?;
                         let c2 = result.c2;
-                        let result = match part_1::parse(state.clone(), tracer, cache) {
-                            Ok(ParseOk {
-                                result,
-                                state: new_state,
-                                ..
-                            }) => {
-                                state = new_state;
-                                result
-                            }
-                            Err(err) => {
-                                return Err(state.record_error(err).report_farthest_error())
-                            }
-                        };
+                        let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                         let c3 = result.c3;
                         let c4 = result.c4;
                         let c5 = result.c5;
@@ -5115,59 +4343,17 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
-                match part_0::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
-                match part_1::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
-                let result = match part_2::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
+                let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
                 let c1 = result.c1;
-                let result = match part_3::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { result, state, .. } = part_3::parse(state, tracer, cache)?;
                 let c2 = result.c2;
                 let c3 = result.c3;
                 let c4 = result.c4;
                 let c5 = result.c5;
                 let c6 = result.c6;
-                match part_4::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
+                let ParseOk { state, .. } = part_4::parse(state, tracer, cache)?;
                 Ok(ParseOk {
                     result: Parsed {
                         c1,
@@ -5270,62 +4456,14 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
-                match part_0::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
-                let result = match part_1::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                 let c1 = result.c1;
-                let result = match part_2::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
                 let c2 = result.c2;
-                let result = match part_3::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { result, state, .. } = part_3::parse(state, tracer, cache)?;
                 let c3 = result.c3;
-                let result = match part_4::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { result, state, .. } = part_4::parse(state, tracer, cache)?;
                 let c4 = result.c4;
                 Ok(ParseOk {
                     result: Parsed { c1, c2, c3, c4 },
@@ -5476,102 +4614,20 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
-                match part_0::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
-                match part_1::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
-                match part_2::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
-                let result = match part_3::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
+                let ParseOk { state, .. } = part_2::parse(state, tracer, cache)?;
+                let ParseOk { result, state, .. } = part_3::parse(state, tracer, cache)?;
                 let c1 = result.c1;
-                let result = match part_4::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { result, state, .. } = part_4::parse(state, tracer, cache)?;
                 let c2 = result.c2;
-                let result = match part_5::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { result, state, .. } = part_5::parse(state, tracer, cache)?;
                 let c3 = result.c3;
-                let result = match part_6::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { result, state, .. } = part_6::parse(state, tracer, cache)?;
                 let c4 = result.c4;
-                let result = match part_7::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { result, state, .. } = part_7::parse(state, tracer, cache)?;
                 let c5 = result.c5;
-                let result = match part_8::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        result,
-                        state: new_state,
-                        ..
-                    }) => {
-                        state = new_state;
-                        result
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                };
+                let ParseOk { result, state, .. } = part_8::parse(state, tracer, cache)?;
                 let c6 = result.c6;
                 Ok(ParseOk {
                     result: Parsed {
@@ -6215,26 +5271,8 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
-                    let result = match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                    let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                     let mut name_parts = result.name_parts;
                     Ok(ParseOk {
                         result: Parsed { name_parts },
@@ -6298,55 +5336,13 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
             let mut name_parts = result.name_parts;
-            let result = match part_3::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_3::parse(state, tracer, cache)?;
             name_parts.extend(result.name_parts);
-            match part_4::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
+            let ParseOk { state, .. } = part_4::parse(state, tracer, cache)?;
             Ok(ParseOk {
                 result: Parsed { name_parts },
                 state,
@@ -6467,26 +5463,8 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
-                    let result = match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                    let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                     let mut name_parts = result.name_parts;
                     Ok(ParseOk {
                         result: Parsed { name_parts },
@@ -6608,30 +5586,9 @@ mod peginator_generated {
                             tracer: impl ParseTracer,
                             cache: &mut ParseCache<'a>,
                         ) -> ParseResult<'a, Parsed> {
-                            let mut state = state;
-                            match part_0::parse(state.clone(), tracer, cache) {
-                                Ok(ParseOk {
-                                    state: new_state, ..
-                                }) => {
-                                    state = new_state;
-                                }
-                                Err(err) => {
-                                    return Err(state.record_error(err).report_farthest_error())
-                                }
-                            }
-                            let result = match part_1::parse(state.clone(), tracer, cache) {
-                                Ok(ParseOk {
-                                    result,
-                                    state: new_state,
-                                    ..
-                                }) => {
-                                    state = new_state;
-                                    result
-                                }
-                                Err(err) => {
-                                    return Err(state.record_error(err).report_farthest_error())
-                                }
-                            };
+                            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                            let ParseOk { result, state, .. } =
+                                part_1::parse(state, tracer, cache)?;
                             let mut type_parts = result.type_parts;
                             Ok(ParseOk {
                                 result: Parsed { type_parts },
@@ -6681,38 +5638,10 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
-                    let result = match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                    let ParseOk { result, state, .. } = part_1::parse(state, tracer, cache)?;
                     let mut type_parts = result.type_parts;
-                    let result = match part_2::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            result,
-                            state: new_state,
-                            ..
-                        }) => {
-                            state = new_state;
-                            result
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    };
+                    let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
                     type_parts.extend(result.type_parts);
                     Ok(ParseOk {
                         result: Parsed { type_parts },
@@ -6765,67 +5694,15 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            let result = match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
+            let ParseOk { result, state, .. } = part_2::parse(state, tracer, cache)?;
             let mut name_parts = result.name_parts;
-            let result = match part_3::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_3::parse(state, tracer, cache)?;
             name_parts.extend(result.name_parts);
-            let result = match part_4::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    result,
-                    state: new_state,
-                    ..
-                }) => {
-                    state = new_state;
-                    result
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            };
+            let ParseOk { result, state, .. } = part_4::parse(state, tracer, cache)?;
             let mut type_parts = result.type_parts;
-            match part_5::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
+            let ParseOk { state, .. } = part_5::parse(state, tracer, cache)?;
             Ok(ParseOk {
                 result: Parsed {
                     name_parts,
@@ -6972,23 +5849,8 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut state = state;
-                match part_0::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
-                match part_1::parse(state.clone(), tracer, cache) {
-                    Ok(ParseOk {
-                        state: new_state, ..
-                    }) => {
-                        state = new_state;
-                    }
-                    Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                }
+                let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
                 Ok(ParseOk {
                     result: Parsed {},
                     state,
@@ -7319,23 +6181,8 @@ mod peginator_generated {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    let mut state = state;
-                    match part_0::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
-                    match part_1::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk {
-                            state: new_state, ..
-                        }) => {
-                            state = new_state;
-                        }
-                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
-                    }
+                    let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+                    let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
                     Ok(ParseOk {
                         result: Parsed {},
                         state,
@@ -7391,31 +6238,9 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut state = state;
-            match part_0::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            match part_1::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
-            match part_2::parse(state.clone(), tracer, cache) {
-                Ok(ParseOk {
-                    state: new_state, ..
-                }) => {
-                    state = new_state;
-                }
-                Err(err) => return Err(state.record_error(err).report_farthest_error()),
-            }
+            let ParseOk { state, .. } = part_0::parse(state, tracer, cache)?;
+            let ParseOk { state, .. } = part_1::parse(state, tracer, cache)?;
+            let ParseOk { state, .. } = part_2::parse(state, tracer, cache)?;
             Ok(ParseOk {
                 result: Parsed {},
                 state,

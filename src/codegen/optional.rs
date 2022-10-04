@@ -18,20 +18,37 @@ impl Codegen for Optional {
     ) -> Result<TokenStream> {
         let body = self.body.generate_code(rule_fields, grammar, settings)?;
         let fields = self.body.get_filtered_rule_fields(rule_fields, grammar)?;
-        let happy_case_fields: TokenStream = fields
-            .iter()
-            .map(|field| {
-                let name = safe_ident(field.name);
-                quote!(#name: result.#name,)
-            })
-            .collect();
-        let unhappy_case_fields: TokenStream = fields
-            .iter()
-            .map(|field| {
-                let name = safe_ident(field.name);
-                quote!(#name: Default::default(),)
-            })
-            .collect();
+        let match_body = if fields.is_empty() {
+            quote!(
+                Ok(ok_result) => Ok(ok_result.map(|result| ())),
+                Err(err) => Ok(ParseOk{
+                        result: (),
+                        state: state.record_error(err),
+                    })
+            )
+        } else {
+            let happy_case_fields: TokenStream = fields
+                .iter()
+                .map(|field| {
+                    let name = safe_ident(field.name);
+                    quote!(#name: result.#name,)
+                })
+                .collect();
+            let unhappy_case_fields: TokenStream = fields
+                .iter()
+                .map(|field| {
+                    let name = safe_ident(field.name);
+                    quote!(#name: Default::default(),)
+                })
+                .collect();
+            quote!(
+                Ok(ok_result) => Ok(ok_result.map(|result| Parsed{#happy_case_fields})),
+                Err(err) => Ok(ParseOk{
+                    result: Parsed{#unhappy_case_fields},
+                    state: state.record_error(err),
+                })
+            )
+        };
         Ok(quote!(
             mod optional{
                 use super::*;
@@ -44,11 +61,7 @@ impl Codegen for Optional {
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
                 match optional::parse(state.clone(), tracer, cache) {
-                Ok(ok_result) => Ok(ok_result.map(|result| Parsed{#happy_case_fields})),
-                Err(err) => Ok(ParseOk{
-                        result: Parsed{#unhappy_case_fields},
-                        state,
-                    })
+                    #match_body
                 }
             }
         ))

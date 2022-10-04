@@ -30,7 +30,7 @@ impl Codegen for NegativeLookahead {
             ) -> ParseResult<'a, Parsed> {
                 match negative_lookahead::parse (state.clone(), tracer, cache) {
                     Ok(_) => Err(state.report_error(ParseErrorSpecifics::NegativeLookaheadFailed)),
-                    Err(_) => Ok(ParseOk{result:Parsed, state}),
+                    Err(_) => Ok(ParseOk{result:(), state}),
                 }
             }
         ))
@@ -64,7 +64,7 @@ impl Codegen for PositiveLookahead {
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
                 positive_lookahead::parse (state.clone(), tracer, cache)?;
-                Ok(ParseOk{result:Parsed, state})
+                Ok(ParseOk{result:(), state})
             }
         ))
     }

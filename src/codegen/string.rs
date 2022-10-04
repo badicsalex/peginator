@@ -92,7 +92,7 @@ impl Codegen for CharacterRange {
             ) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 let ok_result = parse_character_range(state, #from, #to)?;
-                Ok(ok_result.map(|_| Parsed))
+                Ok(ok_result.map(|_| ()))
             }
         ))
     }
@@ -148,7 +148,7 @@ impl Codegen for StringLiteral {
             ) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 let ok_result = #parse_function?;
-                Ok(ok_result.map(|_| Parsed))
+                Ok(ok_result.map(|_| ()))
             }
         ))
     }

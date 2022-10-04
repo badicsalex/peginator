@@ -174,10 +174,13 @@ fn generate_parsed_struct_type(
     };
 
     if fields.is_empty() && record_position == RecordPosition::No {
-        quote!(
-            #derives
-            pub struct #type_ident;
-        )
+        match public_type {
+            PublicType::No => quote!(pub type #type_ident = ();),
+            PublicType::Yes => quote!(
+                #derives
+                pub struct #type_ident;
+            ),
+        }
     } else {
         let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
         let field_types: Vec<TokenStream> = fields

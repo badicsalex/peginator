@@ -47,7 +47,7 @@ impl Codegen for Field {
                 ) -> ParseResult<'a, Parsed> {
                     #skip_ws
                     let ok_result = #parser_name (state, tracer, cache)?;
-                    Ok(ok_result.map(|_| Parsed))
+                    Ok(ok_result.map(|_| ()))
                 }
             ))
         }

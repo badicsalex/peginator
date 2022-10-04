@@ -36,7 +36,11 @@ impl Codegen for Closure {
             })
             .collect();
         let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
-        let parse_result = quote!(Parsed{ #( #field_names,)* });
+        let parse_result = if field_names.is_empty() {
+            quote!(())
+        } else {
+            quote!(Parsed{ #( #field_names,)* })
+        };
         let at_least_one_body = if self.at_least_one.is_some() {
             quote!(
                 let ParseOk{result, mut state, ..} = closure::parse(state, tracer, cache)?;

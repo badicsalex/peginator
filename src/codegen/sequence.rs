@@ -27,7 +27,7 @@ impl Codegen for Sequence {
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
                     Ok(ParseOk {
-                        result: Parsed,
+                        result: (),
                         state,
                     })
                 }
@@ -117,7 +117,11 @@ impl Sequence {
             calls.extend(call);
         }
         let field_names: Vec<Ident> = fields.iter().map(|f| safe_ident(f.name)).collect();
-        let parse_result = quote!(Parsed{ #( #field_names,)* });
+        let parse_result = if field_names.is_empty() {
+            quote!(())
+        } else {
+            quote!(Parsed{ #( #field_names,)* })
+        };
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(
