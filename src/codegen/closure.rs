@@ -59,15 +59,14 @@ impl Codegen for Closure {
         } else {
             quote!(Parsed{ #( #field_names,)* })
         };
-        let at_least_one_body = if self.at_least_one.is_some() {
+        let at_least_one_check = if self.at_least_one.is_some() {
             quote!(
-                let ParseOk{result:__result, mut state, ..} = #parse_call?;
-                #assignments
+                if iterations == 0 {
+                    return Err(state.report_farthest_error());
+                }
             )
         } else {
-            quote!(
-                let mut state = state;
-            )
+            quote!()
         };
 
         Ok(quote!(
@@ -81,8 +80,9 @@ impl Codegen for Closure {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
+                let mut iterations:usize = 0;
+                let mut state = state;
                 #declarations
-                #at_least_one_body
                 loop {
                     match #parse_call {
                         Ok(ParseOk{result: __result, state:new_state, ..}) => {
@@ -94,7 +94,9 @@ impl Codegen for Closure {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
+                #at_least_one_check
                 Ok(ParseOk{result:#parse_result, state})
             }
         ))
