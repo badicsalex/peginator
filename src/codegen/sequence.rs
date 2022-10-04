@@ -104,11 +104,11 @@ impl Sequence {
         let mut fields_seen = HashSet::<&str>::new();
         for (num, part) in self.parts.iter().enumerate() {
             let inner_fields = part.get_filtered_rule_fields(rule_fields, grammar)?;
+            let part_mod = format_ident!("part_{}", num);
             let parse_call =
                 if let Some(inline_body) = part.generate_inline_body(rule_fields, settings)? {
                     inline_body
                 } else {
-                    let part_mod = format_ident!("part_{}", num);
                     quote!(#part_mod::parse(state, tracer, cache))
                 };
             let call = if inner_fields.is_empty() {
@@ -117,29 +117,45 @@ impl Sequence {
                 )
             } else {
                 let mut field_assignments = TokenStream::new();
-                for field in &inner_fields {
+                let mut extend_calls = TokenStream::new();
+                if inner_fields.len() == 1 {
+                    let field = &inner_fields[0];
                     let name = safe_ident(field.name);
-                    let source = if inner_fields.len() == 1 {
-                        quote!(__result)
-                    } else {
-                        quote!(__result.#name)
-                    };
-                    let field_assignment = if !fields_seen.contains(field.name) {
+                    if !fields_seen.contains(field.name) {
                         fields_seen.insert(field.name);
                         if field.arity == Arity::Multiple {
-                            quote!(let mut #name = #source;)
+                            field_assignments.extend(quote!(mut #name))
                         } else {
-                            quote!(let #name = #source;)
+                            field_assignments.extend(quote!(#name))
                         }
                     } else {
                         assert_eq!(field.arity, Arity::Multiple);
-                        quote!(#name.extend(#source);)
-                    };
-                    field_assignments.extend(field_assignment);
+                        let extend_name = safe_ident(format!("extend_{}_with", field.name));
+                        field_assignments.extend(quote!(#extend_name));
+                        extend_calls.extend(quote!(#name.extend(#extend_name);));
+                    }
+                } else {
+                    for field in &inner_fields {
+                        let name = safe_ident(field.name);
+                        if !fields_seen.contains(field.name) {
+                            fields_seen.insert(field.name);
+                            if field.arity == Arity::Multiple {
+                                field_assignments.extend(quote!(mut #name,))
+                            } else {
+                                field_assignments.extend(quote!(#name,))
+                            }
+                        } else {
+                            assert_eq!(field.arity, Arity::Multiple);
+                            let extend_name = safe_ident(format!("extend_{}_with", field.name));
+                            field_assignments.extend(quote!(#name: #extend_name,));
+                            extend_calls.extend(quote!(#name.extend(#extend_name);));
+                        }
+                    }
+                    field_assignments = quote!( #part_mod::Parsed { #field_assignments } )
                 }
                 quote!(
-                    let ParseOk{result:__result, state, ..} = #parse_call?;
-                    #field_assignments
+                    let ParseOk{result: #field_assignments, state} = #parse_call?;
+                    #extend_calls
                 )
             };
             calls.extend(call);
