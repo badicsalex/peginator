@@ -1038,29 +1038,6 @@ mod peginator_generated {
     }
     mod Closure_impl {
         use super::*;
-        mod part_3 {
-            use super::*;
-            mod optional {
-                use super::*;
-            }
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>,
-            ) -> ParseResult<'a, Parsed> {
-                parse_Whitespace(state.clone(), tracer, cache)
-                    .and_then(|ParseOk { state, .. }| parse_AtLeastOneMarker(state, tracer, cache))
-                    .map_inner(Some)
-                    .or_else(|err| {
-                        Ok(ParseOk {
-                            result: Default::default(),
-                            state: state.record_error(err),
-                        })
-                    })
-            }
-            pub type Parsed = Option<AtLeastOneMarker>;
-        }
         #[inline(always)]
         pub fn parse<'a>(
             state: ParseState<'a>,
@@ -1081,7 +1058,15 @@ mod peginator_generated {
             let ParseOk {
                 result: at_least_one,
                 state,
-            } = part_3::parse(state, tracer, cache)?;
+            } = parse_Whitespace(state.clone(), tracer, cache)
+                .and_then(|ParseOk { state, .. }| parse_AtLeastOneMarker(state, tracer, cache))
+                .map_inner(Some)
+                .or_else(|err| {
+                    Ok(ParseOk {
+                        result: Default::default(),
+                        state: state.record_error(err),
+                    })
+                })?;
             Ok(ParseOk {
                 result: Parsed { body, at_least_one },
                 state,
@@ -1163,7 +1148,7 @@ mod peginator_generated {
                 state,
             } = parse_Whitespace(state, tracer, cache)
                 .and_then(|ParseOk { state, .. }| parse_DelimitedExpression(state, tracer, cache))
-                .map_inner(|result| Box::new(result))?;
+                .map_inner(Box::new)?;
             Ok(ParseOk {
                 result: expr,
                 state,
@@ -1206,7 +1191,7 @@ mod peginator_generated {
                 state,
             } = parse_Whitespace(state, tracer, cache)
                 .and_then(|ParseOk { state, .. }| parse_DelimitedExpression(state, tracer, cache))
-                .map_inner(|result| Box::new(result))?;
+                .map_inner(Box::new)?;
             Ok(ParseOk {
                 result: expr,
                 state,
@@ -1326,28 +1311,6 @@ mod peginator_generated {
     }
     mod StringLiteral_impl {
         use super::*;
-        mod part_0 {
-            use super::*;
-            mod optional {
-                use super::*;
-            }
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>,
-            ) -> ParseResult<'a, Parsed> {
-                parse_CaseInsensitiveMarker(state.clone(), tracer, cache)
-                    .map_inner(Some)
-                    .or_else(|err| {
-                        Ok(ParseOk {
-                            result: Default::default(),
-                            state: state.record_error(err),
-                        })
-                    })
-            }
-            pub type Parsed = Option<CaseInsensitiveMarker>;
-        }
         mod part_1 {
             use super::*;
             mod choice_0 {
@@ -1589,7 +1552,14 @@ mod peginator_generated {
             let ParseOk {
                 result: insensitive,
                 state,
-            } = part_0::parse(state, tracer, cache)?;
+            } = parse_CaseInsensitiveMarker(state.clone(), tracer, cache)
+                .map_inner(Some)
+                .or_else(|err| {
+                    Ok(ParseOk {
+                        result: Default::default(),
+                        state: state.record_error(err),
+                    })
+                })?;
             let ParseOk {
                 result: mut body,
                 state,
@@ -1665,29 +1635,6 @@ mod peginator_generated {
             use super::*;
             mod optional {
                 use super::*;
-                mod part_2 {
-                    use super::*;
-                    mod optional {
-                        use super::*;
-                    }
-                    #[inline(always)]
-                    pub fn parse<'a>(
-                        state: ParseState<'a>,
-                        tracer: impl ParseTracer,
-                        cache: &mut ParseCache<'a>,
-                    ) -> ParseResult<'a, Parsed> {
-                        parse_Whitespace(state.clone(), tracer, cache)
-                            .and_then(|ParseOk { state, .. }| parse_BoxMarker(state, tracer, cache))
-                            .map_inner(Some)
-                            .or_else(|err| {
-                                Ok(ParseOk {
-                                    result: Default::default(),
-                                    state: state.record_error(err),
-                                })
-                            })
-                    }
-                    pub type Parsed = Option<BoxMarker>;
-                }
                 #[inline(always)]
                 pub fn parse<'a>(
                     state: ParseState<'a>,
@@ -1706,7 +1653,15 @@ mod peginator_generated {
                     let ParseOk {
                         result: boxed,
                         state,
-                    } = part_2::parse(state, tracer, cache)?;
+                    } = parse_Whitespace(state.clone(), tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_BoxMarker(state, tracer, cache))
+                        .map_inner(Some)
+                        .or_else(|err| {
+                            Ok(ParseOk {
+                                result: Default::default(),
+                                state: state.record_error(err),
+                            })
+                        })?;
                     Ok(ParseOk {
                         result: Parsed { name, boxed },
                         state,
@@ -2565,29 +2520,6 @@ mod peginator_generated {
                                         use super::*;
                                         mod optional {
                                             use super::*;
-                                            mod part_1 {
-                                                use super::*;
-                                                mod optional {
-                                                    use super::*;
-                                                }
-                                                #[inline(always)]
-                                                pub fn parse<'a>(
-                                                    state: ParseState<'a>,
-                                                    tracer: impl ParseTracer,
-                                                    cache: &mut ParseCache<'a>,
-                                                ) -> ParseResult<'a, Parsed>
-                                                {
-                                                    parse_HexChar(state.clone(), tracer, cache)
-                                                        .map_inner(Some)
-                                                        .or_else(|err| {
-                                                            Ok(ParseOk {
-                                                                result: Default::default(),
-                                                                state: state.record_error(err),
-                                                            })
-                                                        })
-                                                }
-                                                pub type Parsed = Option<HexChar>;
-                                            }
                                             #[inline(always)]
                                             pub fn parse<'a>(
                                                 state: ParseState<'a>,
@@ -2599,7 +2531,14 @@ mod peginator_generated {
                                                     parse_HexChar(state, tracer, cache)
                                                         .map_inner(Some)?;
                                                 let ParseOk { result: c6, state } =
-                                                    part_1::parse(state, tracer, cache)?;
+                                                    parse_HexChar(state.clone(), tracer, cache)
+                                                        .map_inner(Some)
+                                                        .or_else(|err| {
+                                                            Ok(ParseOk {
+                                                                result: Default::default(),
+                                                                state: state.record_error(err),
+                                                            })
+                                                        })?;
                                                 Ok(ParseOk {
                                                     result: Parsed { c5, c6 },
                                                     state,

@@ -98,6 +98,8 @@ fn generate_postprocess_calls(
         if field.type_names.len() == 1 && field.arity == Arity::Optional {
             return quote!(.map_inner(Some));
         }
+    } else if field.type_names.len() == 1 && field.arity == Arity::One {
+        return quote!(.map_inner(Box::new));
     }
 
     let enumified_field = if field.type_names.len() > 1 {
