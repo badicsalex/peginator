@@ -18,7 +18,7 @@ pub use builtin_parsers::{
     parse_character_range, parse_string_literal, parse_string_literal_insensitive,
 };
 pub use error::{combine_errors, ParseError, ParseErrorSpecifics, PrettyParseError};
-pub use parse_result::{ParseOk, ParseResult};
+pub use parse_result::{ParseOk, ParseResult, ParseResultIntoEmpty};
 pub use peg_parser::{ParseSettings, PegParser};
 pub use state::ParseState;
 pub use trace::{IndentedTracer, NoopTracer, ParseTracer};

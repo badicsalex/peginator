@@ -91,8 +91,7 @@ impl Codegen for CharacterRange {
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                let ok_result = parse_character_range(state, #from, #to)?;
-                Ok(ok_result.map(|_| ()))
+                parse_character_range(state, #from, #to).into_empty()
             }
         ))
     }
@@ -147,8 +146,7 @@ impl Codegen for StringLiteral {
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                let ok_result = #parse_function?;
-                Ok(ok_result.map(|_| ()))
+                #parse_function.into_empty()
             }
         ))
     }
