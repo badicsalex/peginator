@@ -236,41 +236,6 @@ mod peginator_generated {
             use super::*;
             mod closure {
                 use super::*;
-                mod part_0 {
-                    use super::*;
-                    #[inline(always)]
-                    pub fn parse<'a>(
-                        mut state: ParseState<'a>,
-                        tracer: impl ParseTracer,
-                        cache: &mut ParseCache<'a>,
-                    ) -> ParseResult<'a, Parsed> {
-                        match parse_Whitespace(state.clone(), tracer, cache)
-                            .and_then(|ParseOk { state, .. }| parse_Rule(state, tracer, cache))
-                            .map_inner(|result| vec![Parsed_rules::Rule(result)])
-                        {
-                            Ok(ok_result) => return Ok(ok_result),
-                            Err(err) => state = state.record_error(err),
-                        }
-                        match parse_Whitespace(state.clone(), tracer, cache)
-                            .and_then(|ParseOk { state, .. }| parse_CharRule(state, tracer, cache))
-                            .map_inner(|result| vec![Parsed_rules::CharRule(result)])
-                        {
-                            Ok(ok_result) => return Ok(ok_result),
-                            Err(err) => state = state.record_error(err),
-                        }
-                        match parse_Whitespace(state.clone(), tracer, cache)
-                            .and_then(|ParseOk { state, .. }| {
-                                parse_ExternRule(state, tracer, cache)
-                            })
-                            .map_inner(|result| vec![Parsed_rules::ExternRule(result)])
-                        {
-                            Ok(ok_result) => return Ok(ok_result),
-                            Err(err) => state = state.record_error(err),
-                        }
-                        Err(state.report_farthest_error())
-                    }
-                    pub type Parsed = Vec<Parsed_rules>;
-                }
                 #[inline(always)]
                 pub fn parse<'a>(
                     state: ParseState<'a>,
@@ -280,7 +245,27 @@ mod peginator_generated {
                     let ParseOk {
                         result: mut rules,
                         state,
-                    } = part_0::parse(state, tracer, cache)?;
+                    } = ChoiceHelper::new(state)
+                        .choice(|state| {
+                            parse_Whitespace(state, tracer, cache)
+                                .and_then(|ParseOk { state, .. }| parse_Rule(state, tracer, cache))
+                                .map_inner(|result| vec![Parsed_rules::Rule(result)])
+                        })
+                        .choice(|state| {
+                            parse_Whitespace(state, tracer, cache)
+                                .and_then(|ParseOk { state, .. }| {
+                                    parse_CharRule(state, tracer, cache)
+                                })
+                                .map_inner(|result| vec![Parsed_rules::CharRule(result)])
+                        })
+                        .choice(|state| {
+                            parse_Whitespace(state, tracer, cache)
+                                .and_then(|ParseOk { state, .. }| {
+                                    parse_ExternRule(state, tracer, cache)
+                                })
+                                .map_inner(|result| vec![Parsed_rules::ExternRule(result)])
+                        })
+                        .end()?;
                     let ParseOk { state, .. } = parse_Whitespace(state, tracer, cache)
                         .and_then(|ParseOk { state, .. }| parse_character_literal(state, ';'))
                         .discard_result()?;
@@ -297,8 +282,9 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut rules: Vec<Parsed_rules> = Vec::new();
+                let mut iterations: usize = 0;
                 let mut state = state;
+                let mut rules: Vec<Parsed_rules> = Vec::new();
                 loop {
                     match closure::parse(state.clone(), tracer, cache) {
                         Ok(ParseOk {
@@ -314,6 +300,7 @@ mod peginator_generated {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
                 Ok(ParseOk {
                     result: rules,
@@ -374,8 +361,9 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut directives: Vec<DirectiveExpression> = Vec::new();
+                let mut iterations: usize = 0;
                 let mut state = state;
+                let mut directives: Vec<DirectiveExpression> = Vec::new();
                 loop {
                     match parse_Whitespace(state.clone(), tracer, cache)
                         .and_then(|ParseOk { state, .. }| {
@@ -396,6 +384,7 @@ mod peginator_generated {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
                 Ok(ParseOk {
                     result: directives,
@@ -478,8 +467,9 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut directives: Vec<CheckDirective> = Vec::new();
+                let mut iterations: usize = 0;
                 let mut state = state;
+                let mut directives: Vec<CheckDirective> = Vec::new();
                 loop {
                     match parse_Whitespace(state.clone(), tracer, cache)
                         .and_then(|ParseOk { state, .. }| {
@@ -500,6 +490,7 @@ mod peginator_generated {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
                 Ok(ParseOk {
                     result: directives,
@@ -519,8 +510,9 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut directives: Vec<CheckDirective> = Vec::new();
+                let mut iterations: usize = 0;
                 let mut state = state;
+                let mut directives: Vec<CheckDirective> = Vec::new();
                 loop {
                     match parse_Whitespace(state.clone(), tracer, cache)
                         .and_then(|ParseOk { state, .. }| {
@@ -541,6 +533,7 @@ mod peginator_generated {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
                 Ok(ParseOk {
                     result: directives,
@@ -581,8 +574,9 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut choices: Vec<CharRulePart> = Vec::new();
+                let mut iterations: usize = 0;
                 let mut state = state;
+                let mut choices: Vec<CharRulePart> = Vec::new();
                 loop {
                     match closure::parse(state.clone(), tracer, cache) {
                         Ok(ParseOk {
@@ -598,6 +592,7 @@ mod peginator_generated {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
                 Ok(ParseOk {
                     result: choices,
@@ -689,28 +684,25 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_CharacterRange(state, tracer, cache))
-                .map_inner(Parsed__override::CharacterRange)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_CharRangePart(state, tracer, cache))
-                .map_inner(Parsed__override::CharRangePart)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_Identifier(state, tracer, cache))
-                .map_inner(Parsed__override::Identifier)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            Err(state.report_farthest_error())
+            ChoiceHelper::new(state)
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_CharacterRange(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::CharacterRange)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_CharRangePart(state, tracer, cache))
+                        .map_inner(Parsed__override::CharRangePart)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_Identifier(state, tracer, cache))
+                        .map_inner(Parsed__override::Identifier)
+                })
+                .end()
         }
         pub type Parsed = Parsed__override;
         use super::CharRulePart as Parsed__override;
@@ -818,8 +810,9 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut choices: Vec<Sequence> = Vec::new();
+                let mut iterations: usize = 0;
                 let mut state = state;
+                let mut choices: Vec<Sequence> = Vec::new();
                 loop {
                     match closure::parse(state.clone(), tracer, cache) {
                         Ok(ParseOk {
@@ -835,6 +828,7 @@ mod peginator_generated {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
                 Ok(ParseOk {
                     result: choices,
@@ -897,8 +891,9 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let mut parts: Vec<DelimitedExpression> = Vec::new();
+            let mut iterations: usize = 0;
             let mut state = state;
+            let mut parts: Vec<DelimitedExpression> = Vec::new();
             loop {
                 match parse_Whitespace(state.clone(), tracer, cache)
                     .and_then(|ParseOk { state, .. }| {
@@ -919,6 +914,7 @@ mod peginator_generated {
                         break;
                     }
                 }
+                iterations += 1;
             }
             Ok(ParseOk {
                 result: parts,
@@ -1373,8 +1369,9 @@ mod peginator_generated {
                         tracer: impl ParseTracer,
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
-                        let mut body: Vec<StringItem> = Vec::new();
+                        let mut iterations: usize = 0;
                         let mut state = state;
+                        let mut body: Vec<StringItem> = Vec::new();
                         loop {
                             match closure::parse(state.clone(), tracer, cache) {
                                 Ok(ParseOk {
@@ -1390,6 +1387,7 @@ mod peginator_generated {
                                     break;
                                 }
                             }
+                            iterations += 1;
                         }
                         Ok(ParseOk {
                             result: body,
@@ -1479,8 +1477,9 @@ mod peginator_generated {
                         tracer: impl ParseTracer,
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
-                        let mut body: Vec<StringItem> = Vec::new();
+                        let mut iterations: usize = 0;
                         let mut state = state;
+                        let mut body: Vec<StringItem> = Vec::new();
                         loop {
                             match closure::parse(state.clone(), tracer, cache) {
                                 Ok(ParseOk {
@@ -1496,6 +1495,7 @@ mod peginator_generated {
                                     break;
                                 }
                             }
+                            iterations += 1;
                         }
                         Ok(ParseOk {
                             result: body,
@@ -1531,15 +1531,10 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                match choice_0::parse(state.clone(), tracer, cache) {
-                    Ok(ok_result) => return Ok(ok_result),
-                    Err(err) => state = state.record_error(err),
-                }
-                match choice_1::parse(state.clone(), tracer, cache) {
-                    Ok(ok_result) => return Ok(ok_result),
-                    Err(err) => state = state.record_error(err),
-                }
-                Err(state.report_farthest_error())
+                ChoiceHelper::new(state)
+                    .choice(|state| choice_0::parse(state.clone(), tracer, cache))
+                    .choice(|state| choice_1::parse(state.clone(), tracer, cache))
+                    .end()
             }
             pub type Parsed = Vec<StringItem>;
         }
@@ -1866,84 +1861,69 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_Group(state, tracer, cache))
-                .map_inner(Parsed__override::Group)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_Optional(state, tracer, cache))
-                .map_inner(Parsed__override::Optional)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_Closure(state, tracer, cache))
-                .map_inner(Parsed__override::Closure)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_NegativeLookahead(state, tracer, cache))
-                .map_inner(Parsed__override::NegativeLookahead)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_PositiveLookahead(state, tracer, cache))
-                .map_inner(Parsed__override::PositiveLookahead)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_CharacterRange(state, tracer, cache))
-                .map_inner(Parsed__override::CharacterRange)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_StringLiteral(state, tracer, cache))
-                .map_inner(Parsed__override::StringLiteral)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_EndOfInput(state, tracer, cache))
-                .map_inner(Parsed__override::EndOfInput)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_OverrideField(state, tracer, cache))
-                .map_inner(Parsed__override::OverrideField)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_IncludeRule(state, tracer, cache))
-                .map_inner(Parsed__override::IncludeRule)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_Field(state, tracer, cache))
-                .map_inner(Parsed__override::Field)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            Err(state.report_farthest_error())
+            ChoiceHelper::new(state)
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_Group(state, tracer, cache))
+                        .map_inner(Parsed__override::Group)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_Optional(state, tracer, cache))
+                        .map_inner(Parsed__override::Optional)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_Closure(state, tracer, cache))
+                        .map_inner(Parsed__override::Closure)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_NegativeLookahead(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::NegativeLookahead)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_PositiveLookahead(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::PositiveLookahead)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_CharacterRange(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::CharacterRange)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_StringLiteral(state, tracer, cache))
+                        .map_inner(Parsed__override::StringLiteral)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_EndOfInput(state, tracer, cache))
+                        .map_inner(Parsed__override::EndOfInput)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_OverrideField(state, tracer, cache))
+                        .map_inner(Parsed__override::OverrideField)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_IncludeRule(state, tracer, cache))
+                        .map_inner(Parsed__override::IncludeRule)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| parse_Field(state, tracer, cache))
+                        .map_inner(Parsed__override::Field)
+                })
+                .end()
         }
         pub type Parsed = Parsed__override;
         use super::DelimitedExpression as Parsed__override;
@@ -1978,11 +1958,8 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let ParseOk {
-                result: __result,
-                mut state,
-                ..
-            } = parse_IdentifierChar(state.clone(), tracer, cache).discard_result()?;
+            let mut iterations: usize = 0;
+            let mut state = state;
             loop {
                 match parse_IdentifierChar(state.clone(), tracer, cache).discard_result() {
                     Ok(ParseOk {
@@ -1997,6 +1974,10 @@ mod peginator_generated {
                         break;
                     }
                 }
+                iterations += 1;
+            }
+            if iterations == 0 {
+                return Err(state.report_farthest_error());
             }
             Ok(ParseOk { result: (), state })
         }
@@ -2052,36 +2033,6 @@ mod peginator_generated {
         use super::*;
         mod choice_0 {
             use super::*;
-            mod part_1 {
-                use super::*;
-                #[inline(always)]
-                pub fn parse<'a>(
-                    mut state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>,
-                ) -> ParseResult<'a, Parsed> {
-                    match parse_SimpleEscape(state.clone(), tracer, cache)
-                        .map_inner(Parsed__override::SimpleEscape)
-                    {
-                        Ok(ok_result) => return Ok(ok_result),
-                        Err(err) => state = state.record_error(err),
-                    }
-                    match parse_HexaEscape(state.clone(), tracer, cache)
-                        .map_inner(Parsed__override::HexaEscape)
-                    {
-                        Ok(ok_result) => return Ok(ok_result),
-                        Err(err) => state = state.record_error(err),
-                    }
-                    match parse_Utf8Escape(state.clone(), tracer, cache)
-                        .map_inner(Parsed__override::Utf8Escape)
-                    {
-                        Ok(ok_result) => return Ok(ok_result),
-                        Err(err) => state = state.record_error(err),
-                    }
-                    Err(state.report_farthest_error())
-                }
-                pub type Parsed = Parsed__override;
-            }
             #[inline(always)]
             pub fn parse<'a>(
                 state: ParseState<'a>,
@@ -2093,7 +2044,20 @@ mod peginator_generated {
                 let ParseOk {
                     result: _override,
                     state,
-                } = part_1::parse(state, tracer, cache)?;
+                } = ChoiceHelper::new(state)
+                    .choice(|state| {
+                        parse_SimpleEscape(state, tracer, cache)
+                            .map_inner(Parsed__override::SimpleEscape)
+                    })
+                    .choice(|state| {
+                        parse_HexaEscape(state, tracer, cache)
+                            .map_inner(Parsed__override::HexaEscape)
+                    })
+                    .choice(|state| {
+                        parse_Utf8Escape(state, tracer, cache)
+                            .map_inner(Parsed__override::Utf8Escape)
+                    })
+                    .end()?;
                 Ok(ParseOk {
                     result: _override,
                     state,
@@ -2156,15 +2120,10 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            match choice_0::parse(state.clone(), tracer, cache) {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match choice_1::parse(state.clone(), tracer, cache) {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            Err(state.report_farthest_error())
+            ChoiceHelper::new(state)
+                .choice(|state| choice_0::parse(state.clone(), tracer, cache))
+                .choice(|state| choice_1::parse(state.clone(), tracer, cache))
+                .end()
         }
         pub type Parsed = Parsed__override;
         use super::StringItem as Parsed__override;
@@ -2196,43 +2155,32 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            match parse_SimpleEscapeNewline(state.clone(), tracer, cache)
-                .map_inner(Parsed__override::SimpleEscapeNewline)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_SimpleEscapeCarriageReturn(state.clone(), tracer, cache)
-                .map_inner(Parsed__override::SimpleEscapeCarriageReturn)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_SimpleEscapeTab(state.clone(), tracer, cache)
-                .map_inner(Parsed__override::SimpleEscapeTab)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_SimpleEscapeBackslash(state.clone(), tracer, cache)
-                .map_inner(Parsed__override::SimpleEscapeBackslash)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_SimpleEscapeQuote(state.clone(), tracer, cache)
-                .map_inner(Parsed__override::SimpleEscapeQuote)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_SimpleEscapeDQuote(state.clone(), tracer, cache)
-                .map_inner(Parsed__override::SimpleEscapeDQuote)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            Err(state.report_farthest_error())
+            ChoiceHelper::new(state)
+                .choice(|state| {
+                    parse_SimpleEscapeNewline(state, tracer, cache)
+                        .map_inner(Parsed__override::SimpleEscapeNewline)
+                })
+                .choice(|state| {
+                    parse_SimpleEscapeCarriageReturn(state, tracer, cache)
+                        .map_inner(Parsed__override::SimpleEscapeCarriageReturn)
+                })
+                .choice(|state| {
+                    parse_SimpleEscapeTab(state, tracer, cache)
+                        .map_inner(Parsed__override::SimpleEscapeTab)
+                })
+                .choice(|state| {
+                    parse_SimpleEscapeBackslash(state, tracer, cache)
+                        .map_inner(Parsed__override::SimpleEscapeBackslash)
+                })
+                .choice(|state| {
+                    parse_SimpleEscapeQuote(state, tracer, cache)
+                        .map_inner(Parsed__override::SimpleEscapeQuote)
+                })
+                .choice(|state| {
+                    parse_SimpleEscapeDQuote(state, tracer, cache)
+                        .map_inner(Parsed__override::SimpleEscapeDQuote)
+                })
+                .end()
         }
         pub type Parsed = Parsed__override;
         use super::SimpleEscape as Parsed__override;
@@ -2857,46 +2805,38 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            match choice_0::parse(state.clone(), tracer, cache) {
-                Ok(ok_result) => {
-                    return Ok(ok_result.map(|r| Parsed {
+            ChoiceHelper::new(state)
+                .choice(|state| {
+                    choice_0::parse(state.clone(), tracer, cache).map_inner(|r| Parsed {
                         c1: r.c1,
                         c2: r.c2,
                         c3: r.c3,
                         c4: r.c4,
                         c5: r.c5,
                         c6: r.c6,
-                    }))
-                }
-                Err(err) => state = state.record_error(err),
-            }
-            match choice_1::parse(state.clone(), tracer, cache) {
-                Ok(ok_result) => {
-                    return Ok(ok_result.map(|r| Parsed {
+                    })
+                })
+                .choice(|state| {
+                    choice_1::parse(state.clone(), tracer, cache).map_inner(|r| Parsed {
                         c1: r.c1,
                         c2: r.c2,
                         c3: r.c3,
                         c4: r.c4,
                         c5: None,
                         c6: None,
-                    }))
-                }
-                Err(err) => state = state.record_error(err),
-            }
-            match choice_2::parse(state.clone(), tracer, cache) {
-                Ok(ok_result) => {
-                    return Ok(ok_result.map(|r| Parsed {
+                    })
+                })
+                .choice(|state| {
+                    choice_2::parse(state.clone(), tracer, cache).map_inner(|r| Parsed {
                         c1: r.c1,
                         c2: r.c2,
                         c3: r.c3,
                         c4: r.c4,
                         c5: r.c5,
                         c6: r.c6,
-                    }))
-                }
-                Err(err) => state = state.record_error(err),
-            }
-            Err(state.report_farthest_error())
+                    })
+                })
+                .end()
         }
         pub struct Parsed {
             pub c1: HexChar,
@@ -2941,56 +2881,57 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_StringDirective(state, tracer, cache))
-                .map_inner(Parsed__override::StringDirective)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_NoSkipWsDirective(state, tracer, cache))
-                .map_inner(Parsed__override::NoSkipWsDirective)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_ExportDirective(state, tracer, cache))
-                .map_inner(Parsed__override::ExportDirective)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_PositionDirective(state, tracer, cache))
-                .map_inner(Parsed__override::PositionDirective)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_MemoizeDirective(state, tracer, cache))
-                .map_inner(Parsed__override::MemoizeDirective)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_LeftrecDirective(state, tracer, cache))
-                .map_inner(Parsed__override::LeftrecDirective)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            match parse_Whitespace(state.clone(), tracer, cache)
-                .and_then(|ParseOk { state, .. }| parse_CheckDirective(state, tracer, cache))
-                .map_inner(Parsed__override::CheckDirective)
-            {
-                Ok(ok_result) => return Ok(ok_result),
-                Err(err) => state = state.record_error(err),
-            }
-            Err(state.report_farthest_error())
+            ChoiceHelper::new(state)
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_StringDirective(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::StringDirective)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_NoSkipWsDirective(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::NoSkipWsDirective)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_ExportDirective(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::ExportDirective)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_PositionDirective(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::PositionDirective)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_MemoizeDirective(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::MemoizeDirective)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_LeftrecDirective(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::LeftrecDirective)
+                })
+                .choice(|state| {
+                    parse_Whitespace(state, tracer, cache)
+                        .and_then(|ParseOk { state, .. }| {
+                            parse_CheckDirective(state, tracer, cache)
+                        })
+                        .map_inner(Parsed__override::CheckDirective)
+                })
+                .end()
         }
         pub type Parsed = Parsed__override;
         use super::DirectiveExpression as Parsed__override;
@@ -3279,8 +3220,9 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut name_parts: Vec<RustNamePart> = Vec::new();
+                let mut iterations: usize = 0;
                 let mut state = state;
+                let mut name_parts: Vec<RustNamePart> = Vec::new();
                 loop {
                     match closure::parse(state.clone(), tracer, cache) {
                         Ok(ParseOk {
@@ -3296,6 +3238,7 @@ mod peginator_generated {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
                 Ok(ParseOk {
                     result: name_parts,
@@ -3391,8 +3334,9 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
-                let mut name_parts: Vec<RustNamePart> = Vec::new();
+                let mut iterations: usize = 0;
                 let mut state = state;
+                let mut name_parts: Vec<RustNamePart> = Vec::new();
                 loop {
                     match closure::parse(state.clone(), tracer, cache) {
                         Ok(ParseOk {
@@ -3408,6 +3352,7 @@ mod peginator_generated {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
                 Ok(ParseOk {
                     result: name_parts,
@@ -3454,8 +3399,9 @@ mod peginator_generated {
                         tracer: impl ParseTracer,
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
-                        let mut type_parts: Vec<RustNamePart> = Vec::new();
+                        let mut iterations: usize = 0;
                         let mut state = state;
+                        let mut type_parts: Vec<RustNamePart> = Vec::new();
                         loop {
                             match closure::parse(state.clone(), tracer, cache) {
                                 Ok(ParseOk {
@@ -3471,6 +3417,7 @@ mod peginator_generated {
                                     break;
                                 }
                             }
+                            iterations += 1;
                         }
                         Ok(ParseOk {
                             result: type_parts,
@@ -3600,28 +3547,29 @@ mod peginator_generated {
                         tracer: impl ParseTracer,
                         cache: &mut ParseCache<'a>,
                     ) -> ParseResult<'a, Parsed> {
-                        match parse_Whitespace(state.clone(), tracer, cache)
-                            .and_then(|ParseOk { state, .. }| parse_character_literal(state, '-'))
-                            .discard_result()
-                        {
-                            Ok(ok_result) => return Ok(ok_result),
-                            Err(err) => state = state.record_error(err),
-                        }
-                        match parse_Whitespace(state.clone(), tracer, cache)
-                            .and_then(|ParseOk { state, .. }| parse_character_literal(state, ')'))
-                            .discard_result()
-                        {
-                            Ok(ok_result) => return Ok(ok_result),
-                            Err(err) => state = state.record_error(err),
-                        }
-                        match parse_Whitespace(state.clone(), tracer, cache)
-                            .and_then(|ParseOk { state, .. }| parse_character_literal(state, ':'))
-                            .discard_result()
-                        {
-                            Ok(ok_result) => return Ok(ok_result),
-                            Err(err) => state = state.record_error(err),
-                        }
-                        Err(state.report_farthest_error())
+                        ChoiceHelper::new(state)
+                            .choice(|state| {
+                                parse_Whitespace(state, tracer, cache)
+                                    .and_then(|ParseOk { state, .. }| {
+                                        parse_character_literal(state, '-')
+                                    })
+                                    .discard_result()
+                            })
+                            .choice(|state| {
+                                parse_Whitespace(state, tracer, cache)
+                                    .and_then(|ParseOk { state, .. }| {
+                                        parse_character_literal(state, ')')
+                                    })
+                                    .discard_result()
+                            })
+                            .choice(|state| {
+                                parse_Whitespace(state, tracer, cache)
+                                    .and_then(|ParseOk { state, .. }| {
+                                        parse_character_literal(state, ':')
+                                    })
+                                    .discard_result()
+                            })
+                            .end()
                     }
                     pub type Parsed = ();
                 }
@@ -3660,11 +3608,8 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
-            let ParseOk {
-                result: __result,
-                mut state,
-                ..
-            } = closure::parse(state.clone(), tracer, cache)?;
+            let mut iterations: usize = 0;
+            let mut state = state;
             loop {
                 match closure::parse(state.clone(), tracer, cache) {
                     Ok(ParseOk {
@@ -3679,6 +3624,10 @@ mod peginator_generated {
                         break;
                     }
                 }
+                iterations += 1;
+            }
+            if iterations == 0 {
+                return Err(state.report_farthest_error());
             }
             Ok(ParseOk { result: (), state })
         }
@@ -3743,39 +3692,6 @@ mod peginator_generated {
         use super::*;
         mod closure {
             use super::*;
-            #[inline(always)]
-            pub fn parse<'a>(
-                mut state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>,
-            ) -> ParseResult<'a, Parsed> {
-                match parse_Comment(state.clone(), tracer, cache).discard_result() {
-                    Ok(ok_result) => return Ok(ok_result),
-                    Err(err) => state = state.record_error(err),
-                }
-                match parse_character_literal(state.clone(), '\t').discard_result() {
-                    Ok(ok_result) => return Ok(ok_result),
-                    Err(err) => state = state.record_error(err),
-                }
-                match parse_character_literal(state.clone(), '\n').discard_result() {
-                    Ok(ok_result) => return Ok(ok_result),
-                    Err(err) => state = state.record_error(err),
-                }
-                match parse_character_literal(state.clone(), '\u{c}').discard_result() {
-                    Ok(ok_result) => return Ok(ok_result),
-                    Err(err) => state = state.record_error(err),
-                }
-                match parse_character_literal(state.clone(), '\r').discard_result() {
-                    Ok(ok_result) => return Ok(ok_result),
-                    Err(err) => state = state.record_error(err),
-                }
-                match parse_character_literal(state.clone(), ' ').discard_result() {
-                    Ok(ok_result) => return Ok(ok_result),
-                    Err(err) => state = state.record_error(err),
-                }
-                Err(state.report_farthest_error())
-            }
-            pub type Parsed = ();
         }
         #[inline(always)]
         pub fn parse<'a>(
@@ -3783,9 +3699,18 @@ mod peginator_generated {
             tracer: impl ParseTracer,
             cache: &mut ParseCache<'a>,
         ) -> ParseResult<'a, Parsed> {
+            let mut iterations: usize = 0;
             let mut state = state;
             loop {
-                match closure::parse(state.clone(), tracer, cache) {
+                match ChoiceHelper::new(state.clone())
+                    .choice(|state| parse_Comment(state, tracer, cache).discard_result())
+                    .choice(|state| parse_character_literal(state, '\t').discard_result())
+                    .choice(|state| parse_character_literal(state, '\n').discard_result())
+                    .choice(|state| parse_character_literal(state, '\u{c}').discard_result())
+                    .choice(|state| parse_character_literal(state, '\r').discard_result())
+                    .choice(|state| parse_character_literal(state, ' ').discard_result())
+                    .end()
+                {
                     Ok(ParseOk {
                         result: __result,
                         state: new_state,
@@ -3798,6 +3723,7 @@ mod peginator_generated {
                         break;
                     }
                 }
+                iterations += 1;
             }
             Ok(ParseOk { result: (), state })
         }
@@ -3877,6 +3803,7 @@ mod peginator_generated {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>,
             ) -> ParseResult<'a, Parsed> {
+                let mut iterations: usize = 0;
                 let mut state = state;
                 loop {
                     match closure::parse(state.clone(), tracer, cache) {
@@ -3892,6 +3819,7 @@ mod peginator_generated {
                             break;
                         }
                     }
+                    iterations += 1;
                 }
                 Ok(ParseOk { result: (), state })
             }
