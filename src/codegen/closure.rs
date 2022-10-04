@@ -18,7 +18,16 @@ impl Codegen for Closure {
         grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let closure_body = self.body.generate_code(rule_fields, grammar, settings)?;
+        let closure_body;
+        let parse_call;
+        if let Some(inline_body) = self.body.generate_inline_body(rule_fields, settings)? {
+            closure_body = TokenStream::new();
+            parse_call = inline_body;
+        } else {
+            closure_body = self.body.generate_code(rule_fields, grammar, settings)?;
+            parse_call = quote!(closure::parse(state, tracer, cache));
+        };
+
         let fields = self.body.get_filtered_rule_fields(rule_fields, grammar)?;
         let declarations: TokenStream = fields
             .iter()
@@ -49,7 +58,7 @@ impl Codegen for Closure {
         };
         let at_least_one_body = if self.at_least_one.is_some() {
             quote!(
-                let ParseOk{result:__result, mut state, ..} = closure::parse(state, tracer, cache)?;
+                let ParseOk{result:__result, mut state, ..} = #parse_call?;
                 #assignments
             )
         } else {
@@ -72,13 +81,14 @@ impl Codegen for Closure {
                 #declarations
                 #at_least_one_body
                 loop {
-                    match closure::parse(state.clone(), tracer, cache) {
+                    let old_state = state.clone();
+                    match #parse_call {
                         Ok(ParseOk{result: __result, state:new_state, ..}) => {
                             #assignments
                             state = new_state;
                         },
                         Err(err) => {
-                            state = state.record_error(err);
+                            state = old_state.record_error(err);
                             break;
                         }
                     }
