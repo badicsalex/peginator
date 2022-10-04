@@ -39,13 +39,12 @@ impl Codegen for Closure {
         let parse_result = quote!(Parsed{ #( #field_names,)* });
         let at_least_one_body = if self.at_least_one.is_some() {
             quote!(
-                let ParseOk{result, mut state, mut farthest_error} = closure::parse(state, tracer, cache)?;
+                let ParseOk{result, mut state, ..} = closure::parse(state, tracer, cache)?;
                 #assignments
             )
         } else {
             quote!(
                 let mut state = state;
-                let mut farthest_error: Option<ParseError> = None;
             )
         };
 
@@ -64,18 +63,17 @@ impl Codegen for Closure {
                 #at_least_one_body
                 loop {
                     match closure::parse(state.clone(), tracer, cache) {
-                        Ok(ParseOk{result, state:new_state, farthest_error:new_farthest_error}) => {
+                        Ok(ParseOk{result, state:new_state, ..}) => {
                             #assignments
                             state = new_state;
-                            farthest_error = combine_errors(farthest_error, new_farthest_error);
                         },
                         Err(err) => {
-                            farthest_error = combine_errors(farthest_error, Some(err));
+                            state = state.record_error(err);
                             break;
                         }
                     }
                 }
-                Ok(ParseOk{result:#parse_result, state, farthest_error})
+                Ok(ParseOk{result:#parse_result, state, farthest_error: None})
             }
         ))
     }

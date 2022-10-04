@@ -95,7 +95,7 @@ impl Choice {
                     Ok(quote!(
                         match #choice_mod::parse(state.clone(), tracer, cache) {
                             Ok(ok_result) => return Ok(ok_result.map(|result| Parsed)),
-                            Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+                            Err(err) => state = state.record_error(err),
                         }
                     ))
                 } else {
@@ -129,7 +129,7 @@ impl Choice {
                                         }
                                     )
                                 ),
-                            Err(err) => farthest_error = combine_errors(farthest_error, Some(err)),
+                            Err(err) => state = state.record_error(err),
                         }
                     ))
                 }
@@ -143,9 +143,8 @@ impl Choice {
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
-                let mut farthest_error: Option<ParseError> = None;
                 #calls
-                Err(farthest_error.unwrap_or_else(|| state.report_error(ParseErrorSpecifics::Other)))
+                Err(state.report_farthest_error())
             }
         ))
     }

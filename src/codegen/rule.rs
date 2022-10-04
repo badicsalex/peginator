@@ -342,14 +342,9 @@ impl Rule {
         Ok(quote!(
             #(
                 if !#check_idents(&result.result) {
-                    let check_function_error = result.state.report_error(
+                    return Err(result.state.report_error(
                         ParseErrorSpecifics::CheckFunctionFailed{function_name: #check_names}
-                    );
-                    let farthest_error = combine_errors(
-                        result.farthest_error,
-                        Some(check_function_error)
-                    ).unwrap();
-                    return Err(farthest_error);
+                    ));
                 }
             )*
         ))

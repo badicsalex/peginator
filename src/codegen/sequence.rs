@@ -91,16 +91,14 @@ impl Sequence {
             let inner_fields = part.get_filtered_rule_fields(rule_fields, grammar)?;
             let call = if inner_fields.is_empty() {
                 quote!(
-                    match #part_mod::parse(state, tracer, cache) {
+                    match #part_mod::parse(state.clone(), tracer, cache) {
                         Ok(ParseOk{
-                            result:_,
                             state:new_state,
-                            farthest_error:new_farthest_error
+                            ..
                         }) => {
-                            farthest_error = combine_errors(farthest_error, new_farthest_error);
                             state = new_state;
                         },
-                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
                     }
                 )
             } else {
@@ -121,17 +119,16 @@ impl Sequence {
                     field_assignments.extend(field_assignment);
                 }
                 quote!(
-                    let result = match #part_mod::parse(state, tracer, cache) {
+                    let result = match #part_mod::parse(state.clone(), tracer, cache) {
                         Ok(ParseOk{
                             result,
                             state:new_state,
-                            farthest_error:new_farthest_error
+                            ..
                         }) => {
-                            farthest_error = combine_errors(farthest_error, new_farthest_error);
                             state = new_state;
                             result
                         }
-                        Err(err) => return Err(combine_errors(farthest_error, Some(err)).unwrap()),
+                        Err(err) => return Err(state.record_error(err).report_farthest_error()),
                     };
                     #field_assignments
                 )
@@ -148,9 +145,8 @@ impl Sequence {
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
-                let mut farthest_error: Option<ParseError> = None;
                 #calls
-                Ok(ParseOk{result:#parse_result, state, farthest_error})
+                Ok(ParseOk{result:#parse_result, state, farthest_error: None})
             }
         ))
     }

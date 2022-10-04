@@ -2,12 +2,17 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+use crate::runtime::combine_errors;
+
 use super::{ParseError, ParseErrorSpecifics, ParseSettings};
 
 #[derive(Debug, Clone)]
 pub struct ParseState<'a> {
     partial_string: &'a str,
     start_index: usize,
+    // Unfortunately this needs to be boxed, because State is passed around as a value
+    // all the time, and it makes no sense to always copy this somewhat large (32+ bytes I think) struct.
+    farthest_error: Option<Box<ParseError>>,
 }
 
 impl<'a> ParseState<'a> {
@@ -16,6 +21,7 @@ impl<'a> ParseState<'a> {
         Self {
             partial_string: s,
             start_index: 0,
+            farthest_error: None,
         }
     }
 
@@ -52,6 +58,7 @@ impl<'a> ParseState<'a> {
             //    The starting index must not exceed the ending index;
             //    Indexes must be within bounds of the original slice;
             partial_string: unsafe { self.partial_string.get_unchecked(length..) },
+            ..self
         }
     }
 
@@ -65,6 +72,7 @@ impl<'a> ParseState<'a> {
         Self {
             start_index: self.start_index + length,
             partial_string: &self.partial_string[length..],
+            ..self
         }
     }
 
@@ -85,11 +93,31 @@ impl<'a> ParseState<'a> {
 
     #[inline]
     pub fn report_error(self, specifics: ParseErrorSpecifics) -> ParseError {
-        ParseError {
-            position: self.start_index,
+        let position = self.start_index;
+        self.record_error(ParseError {
+            position,
             specifics,
+        })
+        .report_farthest_error()
+    }
+
+    #[inline]
+    pub fn record_error(self, error: ParseError) -> Self {
+        Self {
+            farthest_error: combine_errors(self.farthest_error.map(|e| *e), Some(error))
+                .map(Box::new),
+            ..self
         }
     }
+
+    #[inline]
+    pub fn report_farthest_error(self) -> ParseError {
+        self.farthest_error.map(|e| *e).unwrap_or(ParseError {
+            position: self.start_index,
+            specifics: ParseErrorSpecifics::Other,
+        })
+    }
+
     pub fn first_n_chars(&self, n: usize) -> String {
         self.s().chars().take(n).collect()
     }
