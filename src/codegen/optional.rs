@@ -17,21 +17,23 @@ impl Codegen for Optional {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let fields = self.body.get_filtered_rule_fields(rule_fields, grammar)?;
-        let match_body = if fields.is_empty() {
+        let postprocess = if fields.is_empty() {
             quote!(
-                Ok(ok_result) => Ok(ok_result.map(|result| ())),
-                Err(err) => Ok(ParseOk{
+                .or_else(|err|
+                    Ok(ParseOk{
                         result: (),
                         state: old_state.record_error(err),
                     })
+                )
             )
         } else if fields.len() == 1 {
             quote!(
-                Ok(ok_result) => Ok(ok_result),
-                Err(err) => Ok(ParseOk{
-                    result: Default::default(),
-                    state: old_state.record_error(err),
-                })
+                .or_else(|err|
+                    Ok(ParseOk{
+                        result: Default::default(),
+                        state: old_state.record_error(err),
+                    })
+                )
             )
         } else {
             let happy_case_fields: TokenStream = fields
@@ -49,11 +51,13 @@ impl Codegen for Optional {
                 })
                 .collect();
             quote!(
-                Ok(ok_result) => Ok(ok_result.map(|result| Parsed{#happy_case_fields})),
-                Err(err) => Ok(ParseOk{
-                    result: Parsed{#unhappy_case_fields},
-                    state: old_state.record_error(err),
-                })
+                .map(|ok_result| ok_result.map(|result| Parsed{#happy_case_fields}))
+                .or_else(|err|
+                    Ok(ParseOk{
+                        result: Parsed{#unhappy_case_fields},
+                        state: old_state.record_error(err),
+                    })
+                )
             )
         };
         let body;
@@ -77,9 +81,7 @@ impl Codegen for Optional {
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
                 let old_state = state.clone();
-                match #parse_call {
-                    #match_body
-                }
+                #parse_call #postprocess
             }
         ))
     }
