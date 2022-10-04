@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use nohash_hasher::BuildNoHashHasher;
 
 mod builtin_parsers;
+mod choice_helper;
 mod error;
 mod parse_result;
 mod peg_parser;
@@ -18,6 +19,7 @@ pub use builtin_parsers::{
     parse_character_range, parse_end_of_input, parse_string_literal,
     parse_string_literal_insensitive,
 };
+pub use choice_helper::ChoiceHelper;
 pub use error::{combine_errors, ParseError, ParseErrorSpecifics, PrettyParseError};
 pub use parse_result::{ParseOk, ParseResult, ParseResultExtras};
 pub use peg_parser::{ParseSettings, PegParser};

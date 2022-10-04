@@ -122,10 +122,7 @@ impl Choice {
                 let inner_fields = choice.get_fields(grammar).unwrap();
                 let postprocess = Self::generate_result_converter(&fields, &inner_fields);
                 quote!(
-                    match #parse_call {
-                        Ok(ok_result) => return Ok(ok_result #postprocess),
-                        Err(err) => state = state.record_error(err),
-                    }
+                    .choice(|state| #parse_call #postprocess)
                 )
             })
             .collect::<TokenStream>();
@@ -136,8 +133,9 @@ impl Choice {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
-                #calls
-                Err(state.report_farthest_error())
+                ChoiceHelper::new(state)
+                    #calls
+                    .end()
             }
         ))
     }
@@ -151,7 +149,7 @@ impl Choice {
         } else if fields.len() == 1 {
             if inner_fields.is_empty() {
                 let default = Self::generate_default_field(&fields[0]);
-                quote!(.map(|_| #default))
+                quote!(.map_inner(|_| #default))
             } else {
                 TokenStream::new()
             }
@@ -175,7 +173,7 @@ impl Choice {
                     quote!(#name: #value,)
                 })
                 .collect();
-            quote!(.map(|r| Parsed{ #field_assignments }))
+            quote!(.map_inner(|r| Parsed{ #field_assignments }))
         }
     }
 
