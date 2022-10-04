@@ -6,7 +6,7 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::common::{Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{generate_skip_ws, Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{EndOfInput, Grammar};
 
 impl Codegen for EndOfInput {
@@ -16,11 +16,7 @@ impl Codegen for EndOfInput {
         _grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
-        let skip_ws = if settings.skip_whitespace {
-            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
-        } else {
-            quote!()
-        };
+        let parse_body = generate_skip_ws(settings, quote!(parse_end_of_input(state)));
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(
@@ -28,8 +24,7 @@ impl Codegen for EndOfInput {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
-                #skip_ws
-                parse_end_of_input(state)
+                #parse_body
             }
         ))
     }

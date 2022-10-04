@@ -36,7 +36,7 @@ impl<'a, T> ParseOk<'a, T> {
 
 pub type ParseResult<'a, T> = Result<ParseOk<'a, T>, ParseError>;
 
-pub trait ParseResultIntoEmpty<'a>{
+pub trait ParseResultIntoEmpty<'a> {
     fn into_empty(self) -> ParseResult<'a, ()>;
 }
 

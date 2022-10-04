@@ -147,6 +147,17 @@ pub trait Codegen {
     }
 }
 
+pub fn generate_skip_ws(settings: &CodegenSettings, original_call: TokenStream) -> TokenStream {
+    if settings.skip_whitespace {
+        quote!(
+            parse_Whitespace(state, tracer, cache).and_then(|ParseOk{state, ..}| {
+                #original_call
+            })
+        )
+    } else {
+        original_call
+    }
+}
 pub fn generate_derives(settings: &CodegenSettings) -> TokenStream {
     if settings.derives.is_empty() {
         return quote!();

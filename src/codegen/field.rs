@@ -6,7 +6,9 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{
+    generate_skip_ws, safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor,
+};
 use crate::grammar::{Field, Grammar, OverrideField};
 
 impl Codegen for Field {
@@ -17,39 +19,31 @@ impl Codegen for Field {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let parser_name = format_ident!("parse_{}", self.typ);
-        let skip_ws = if settings.skip_whitespace {
-            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
-        } else {
-            quote!()
-        };
-        if let Some(field_name) = &self.name {
+        let parse_call = if let Some(field_name) = &self.name {
             let field_ident = safe_ident(field_name);
             let field_conversion = generate_field_converter(field_name, &self.typ, rule_fields);
-            Ok(quote!(
-                #[inline(always)]
-                pub fn parse<'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>
-                ) -> ParseResult<'a, Parsed> {
-                    #skip_ws
-                    let ok_result = #parser_name (state, tracer, cache)?;
-                    Ok(ok_result.map(|result| Parsed{ #field_ident: #field_conversion }))
-                }
-            ))
+            quote!(
+                #parser_name (state, tracer, cache).map(|ok_result|
+                    ok_result.map(|result| Parsed{ #field_ident: #field_conversion })
+                )
+            )
         } else {
-            Ok(quote!(
-                #[inline(always)]
-                pub fn parse<'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>
-                ) -> ParseResult<'a, Parsed> {
-                    #skip_ws
+            quote!(
                     #parser_name (state, tracer, cache).into_empty()
-                }
-            ))
-        }
+            )
+        };
+        let parse_body = generate_skip_ws(settings, parse_call);
+        Ok(quote!(
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
+                #parse_body
+
+            }
+        ))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
@@ -74,12 +68,15 @@ impl Codegen for OverrideField {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let parser_name = format_ident!("parse_{}", self.typ);
-        let skip_ws = if settings.skip_whitespace {
-            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
-        } else {
-            quote!()
-        };
         let field_conversion = generate_field_converter("_override", &self.typ, rule_fields);
+        let parse_body = generate_skip_ws(
+            settings,
+            quote!(
+                #parser_name (state, tracer, cache).map(|ok_result|
+                    ok_result.map(|result| Parsed{ _override: #field_conversion })
+                )
+            ),
+        );
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(
@@ -87,9 +84,7 @@ impl Codegen for OverrideField {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
-                #skip_ws
-                let ok_result = #parser_name (state, tracer, cache)?;
-                Ok(ok_result.map(|result| Parsed{ _override: #field_conversion }))
+                #parse_body
             }
         ))
     }

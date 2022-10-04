@@ -26,10 +26,7 @@ impl Codegen for Sequence {
                     tracer: impl ParseTracer,
                     cache: &mut ParseCache<'a>,
                 ) -> ParseResult<'a, Parsed> {
-                    Ok(ParseOk {
-                        result: (),
-                        state,
-                    })
+                    Ok(ParseOk { result: (), state })
                 }
             ));
         }

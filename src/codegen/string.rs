@@ -6,7 +6,7 @@ use anyhow::{anyhow, bail, Result};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::common::{Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{generate_skip_ws, Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{
     CharacterRange, Grammar, HexaEscape, SimpleEscape, StringItem, StringLiteral, Utf8Escape,
 };
@@ -78,11 +78,12 @@ impl Codegen for CharacterRange {
     ) -> Result<TokenStream> {
         let from: char = (&self.from).try_into()?;
         let to: char = (&self.to).try_into()?;
-        let skip_ws = if settings.skip_whitespace {
-            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
-        } else {
-            quote!()
-        };
+        let parse_body = generate_skip_ws(
+            settings,
+            quote!(
+                parse_character_range(state, #from, #to).into_empty()
+            ),
+        );
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(
@@ -90,8 +91,7 @@ impl Codegen for CharacterRange {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
-                #skip_ws
-                parse_character_range(state, #from, #to).into_empty()
+                #parse_body
             }
         ))
     }
@@ -113,11 +113,6 @@ impl Codegen for StringLiteral {
             .iter()
             .map(|item| -> Result<char> { item.try_into() })
             .collect::<Result<String>>()?;
-        let skip_ws = if settings.skip_whitespace {
-            quote!(let ParseOk{state, ..} = parse_Whitespace(state, tracer, cache)?;)
-        } else {
-            quote!()
-        };
         let parse_function = if self.insensitive.is_some() {
             if !literal.is_ascii() {
                 bail!(
@@ -138,6 +133,7 @@ impl Codegen for StringLiteral {
         } else {
             quote!(parse_string_literal(state, #literal))
         };
+        let parse_body = generate_skip_ws(settings, quote!(#parse_function.into_empty()));
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(
@@ -145,8 +141,7 @@ impl Codegen for StringLiteral {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
-                #skip_ws
-                #parse_function.into_empty()
+                #parse_body
             }
         ))
     }
