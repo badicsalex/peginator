@@ -29,7 +29,6 @@ impl Codegen for Sequence {
                     Ok(ParseOk {
                         result: Parsed,
                         state,
-                        farthest_error: None,
                     })
                 }
             ));
@@ -146,7 +145,7 @@ impl Sequence {
             ) -> ParseResult<'a, Parsed> {
                 let mut state = state;
                 #calls
-                Ok(ParseOk{result:#parse_result, state, farthest_error: None})
+                Ok(ParseOk{result:#parse_result, state})
             }
         ))
     }

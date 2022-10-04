@@ -30,7 +30,7 @@ impl Codegen for EndOfInput {
             ) -> ParseResult<'a, Parsed> {
                 #skip_ws
                 if state.is_empty() {
-                    Ok(ParseOk{result:Parsed, state, farthest_error:None})
+                    Ok(ParseOk{result:Parsed, state})
                 } else {
                     Err(state.report_error(ParseErrorSpecifics::ExpectedEoi))
                 }

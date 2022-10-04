@@ -24,11 +24,7 @@ pub fn parse_char<'a, _CT>(
     //
     // We are skipping a full character, so we should be OK.
     let state = unsafe { state.advance(result.len_utf8()) };
-    Ok(ParseOk {
-        result,
-        state,
-        farthest_error: None,
-    })
+    Ok(ParseOk { result, state })
 }
 
 /// Hand-written 'rule parser' for skipping whitespace. Shadowed by grammar-generated implementations, if there is one.
@@ -54,11 +50,7 @@ pub fn parse_Whitespace<'a, _CT>(
             break;
         }
     }
-    Ok(ParseOk {
-        result: (),
-        state,
-        farthest_error: None,
-    })
+    Ok(ParseOk { result: (), state })
 }
 
 #[inline(always)]
@@ -75,11 +67,7 @@ pub fn parse_string_literal<'a>(
         //
         // We are skipping a correct string's length, so we should be OK.
         let state = unsafe { state.advance(s.len()) };
-        Ok(ParseOk {
-            result: s,
-            state,
-            farthest_error: None,
-        })
+        Ok(ParseOk { result: s, state })
     }
 }
 
@@ -96,11 +84,7 @@ pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<char> 
             //
             // The byte we are skipping is ASCII, so we are OK.
             let state = unsafe { state.advance(1) };
-            Ok(ParseOk {
-                result: c,
-                state,
-                farthest_error: None,
-            })
+            Ok(ParseOk { result: c, state })
         }
     } else if !state.s().starts_with(c) {
         // utf-8 path
@@ -112,11 +96,7 @@ pub fn parse_character_literal(state: ParseState, c: char) -> ParseResult<char> 
         //
         // We are skipping a full character, so we should be OK.
         let state = unsafe { state.advance(c.len_utf8()) };
-        Ok(ParseOk {
-            result: c,
-            state,
-            farthest_error: None,
-        })
+        Ok(ParseOk { result: c, state })
     }
 }
 
@@ -145,7 +125,6 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
         Ok(ParseOk {
             result: first_byte as char,
             state,
-            farthest_error: None,
         })
     } else {
         // utf-8 path
@@ -163,11 +142,7 @@ pub fn parse_character_range(state: ParseState, from: char, to: char) -> ParseRe
             //
             // We are skipping a full character, so we should be OK.
             let state = unsafe { state.advance(c.len_utf8()) };
-            Ok(ParseOk {
-                result: c,
-                state,
-                farthest_error: None,
-            })
+            Ok(ParseOk { result: c, state })
         }
     }
 }
@@ -191,11 +166,7 @@ pub fn parse_string_literal_insensitive<'a>(
         //
         // We are skipping a correct string's length, so we should be OK.
         let state = unsafe { state.advance(s.len()) };
-        Ok(ParseOk {
-            result: s,
-            state,
-            farthest_error: None,
-        })
+        Ok(ParseOk { result: s, state })
     }
 }
 
@@ -211,10 +182,6 @@ pub fn parse_character_literal_insensitive(state: ParseState, c: char) -> ParseR
         //
         // The byte we are skipping is ASCII, so we are OK.
         let state = unsafe { state.advance(1) };
-        Ok(ParseOk {
-            result: c,
-            state,
-            farthest_error: None,
-        })
+        Ok(ParseOk { result: c, state })
     }
 }

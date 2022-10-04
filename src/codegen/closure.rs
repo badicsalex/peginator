@@ -73,7 +73,7 @@ impl Codegen for Closure {
                         }
                     }
                 }
-                Ok(ParseOk{result:#parse_result, state, farthest_error: None})
+                Ok(ParseOk{result:#parse_result, state})
             }
         ))
     }

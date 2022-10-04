@@ -8,7 +8,6 @@ use super::{ParseError, ParseState};
 pub struct ParseOk<'a, T> {
     pub result: T,
     pub state: ParseState<'a>,
-    pub farthest_error: Option<ParseError>,
 }
 
 impl<'a, T> ParseOk<'a, T> {
@@ -20,7 +19,6 @@ impl<'a, T> ParseOk<'a, T> {
         ParseOk::<T2> {
             result: f(self.result),
             state: self.state,
-            farthest_error: self.farthest_error,
         }
     }
 
@@ -32,7 +30,6 @@ impl<'a, T> ParseOk<'a, T> {
         ParseOk::<T2> {
             result: f(self.result, &self.state),
             state: self.state,
-            farthest_error: self.farthest_error,
         }
     }
 }

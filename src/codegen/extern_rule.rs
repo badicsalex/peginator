@@ -38,7 +38,6 @@ impl ExternRule {
                             Ok(ParseOk {
                                 result: result.into(),
                                 state: state.advance_safe(advance),
-                                farthest_error: None,
                             })
                         },
                         Err(error_string) => {

@@ -48,7 +48,6 @@ impl Codegen for Optional {
                 Err(err) => Ok(ParseOk{
                         result: Parsed{#unhappy_case_fields},
                         state,
-                        farthest_error:Some(err),
                     })
                 }
             }
