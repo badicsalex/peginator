@@ -113,7 +113,7 @@ pub fn combine_errors(first: Option<ParseError>, second: Option<ParseError>) -> 
         (None, None) => None,
         (None, Some(x)) => Some(x),
         (Some(x), None) => Some(x),
-        (Some(a), Some(b)) => Some(if b.farther_than(&a) { b } else { a }),
+        (Some(a), Some(b)) => Some(if a.farther_than(&b) { a } else { b }),
     }
 }
 
