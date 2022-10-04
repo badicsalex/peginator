@@ -185,3 +185,12 @@ pub fn parse_character_literal_insensitive(state: ParseState, c: char) -> ParseR
         Ok(ParseOk { result: c, state })
     }
 }
+
+#[inline(always)]
+pub fn parse_end_of_input(state: ParseState) -> ParseResult<()> {
+    if state.is_empty() {
+        Ok(ParseOk { result: (), state })
+    } else {
+        Err(state.report_error(ParseErrorSpecifics::ExpectedEoi))
+    }
+}

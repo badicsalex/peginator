@@ -15,7 +15,8 @@ mod trace;
 
 pub use builtin_parsers::{
     parse_Whitespace, parse_char, parse_character_literal, parse_character_literal_insensitive,
-    parse_character_range, parse_string_literal, parse_string_literal_insensitive,
+    parse_character_range, parse_end_of_input, parse_string_literal,
+    parse_string_literal_insensitive,
 };
 pub use error::{combine_errors, ParseError, ParseErrorSpecifics, PrettyParseError};
 pub use parse_result::{ParseOk, ParseResult, ParseResultIntoEmpty};

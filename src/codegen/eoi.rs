@@ -29,11 +29,7 @@ impl Codegen for EndOfInput {
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
                 #skip_ws
-                if state.is_empty() {
-                    Ok(ParseOk{result:(), state})
-                } else {
-                    Err(state.report_error(ParseErrorSpecifics::ExpectedEoi))
-                }
+                parse_end_of_input(state)
             }
         ))
     }
