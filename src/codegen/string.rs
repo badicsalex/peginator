@@ -84,7 +84,7 @@ impl Codegen for CharacterRange {
             quote!(#from, #to),
             clone_state,
         );
-        Ok(Some(quote!(#parse_call .into_empty())))
+        Ok(Some(quote!(#parse_call .discard_result())))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
@@ -131,7 +131,7 @@ impl Codegen for StringLiteral {
             additional_params = quote!(#literal);
         };
         let parse_call = generate_skip_ws(settings, parser_name, additional_params, clone_state);
-        Ok(Some(quote!(#parse_call .into_empty())))
+        Ok(Some(quote!(#parse_call .discard_result())))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {

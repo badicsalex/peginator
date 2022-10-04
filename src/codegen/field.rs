@@ -21,7 +21,7 @@ impl Codegen for Field {
         let postprocess = if let Some(field_name) = &self.name {
             generate_postprocess_calls(field_name, &self.typ, rule_fields)
         } else {
-            quote!(.into_empty())
+            quote!(.discard_result())
         };
         let parser_call = generate_skip_ws(
             settings,
