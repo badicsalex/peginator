@@ -6,7 +6,7 @@ use anyhow::{anyhow, bail, Result};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::common::{generate_skip_ws, Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{generate_skip_ws, CloneState, Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{
     CharacterRange, Grammar, HexaEscape, SimpleEscape, StringItem, StringLiteral, Utf8Escape,
 };
@@ -74,15 +74,17 @@ impl Codegen for CharacterRange {
         &self,
         _rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
         let from: char = (&self.from).try_into()?;
         let to: char = (&self.to).try_into()?;
-        Ok(Some(generate_skip_ws(
+        let parse_call = generate_skip_ws(
             settings,
-            quote!(
-                parse_character_range(state, #from, #to).into_empty()
-            ),
-        )))
+            "parse_character_range",
+            quote!(#from, #to),
+            clone_state,
+        );
+        Ok(Some(quote!(#parse_call .into_empty())))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
@@ -95,13 +97,16 @@ impl Codegen for StringLiteral {
         &self,
         _rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
+        let parser_name;
+        let additional_params;
         let literal = &self
             .body
             .iter()
             .map(|item| -> Result<char> { item.try_into() })
             .collect::<Result<String>>()?;
-        let parse_function = if self.insensitive.is_some() {
+        if self.insensitive.is_some() {
             if !literal.is_ascii() {
                 bail!(
                     "Case insensitive matching only works for ascii strings. ({:?} was not ascii)",
@@ -111,20 +116,22 @@ impl Codegen for StringLiteral {
             let literal = literal.to_ascii_lowercase();
             if literal.chars().count() == 1 {
                 let char_literal = literal.chars().next().unwrap();
-                quote!(parse_character_literal_insensitive(state, #char_literal))
+                parser_name = "parse_character_literal_insensitive";
+                additional_params = quote!(#char_literal);
             } else {
-                quote!(parse_string_literal_insensitive(state, #literal))
+                parser_name = "parse_string_literal_insensitive";
+                additional_params = quote!(#literal);
             }
         } else if literal.chars().count() == 1 {
             let char_literal = literal.chars().next().unwrap();
-            quote!(parse_character_literal(state, #char_literal))
+            parser_name = "parse_character_literal";
+            additional_params = quote!(#char_literal);
         } else {
-            quote!(parse_string_literal(state, #literal))
+            parser_name = "parse_string_literal";
+            additional_params = quote!(#literal);
         };
-        Ok(Some(generate_skip_ws(
-            settings,
-            quote!(#parse_function.into_empty()),
-        )))
+        let parse_call = generate_skip_ws(settings, parser_name, additional_params, clone_state);
+        Ok(Some(quote!(#parse_call .into_empty())))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {

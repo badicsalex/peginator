@@ -6,7 +6,7 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{Choice, Grammar};
 
 impl Codegen for Choice {
@@ -25,7 +25,7 @@ impl Codegen for Choice {
             .enumerate()
             .filter(|(_, choice)| {
                 choice
-                    .generate_inline_body(rule_fields, settings)
+                    .generate_inline_body(rule_fields, settings, CloneState::Yes)
                     .ok()
                     .flatten()
                     .is_none()
@@ -52,9 +52,10 @@ impl Codegen for Choice {
         &self,
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
         if self.choices.len() < 2 {
-            self.choices[0].generate_inline_body(rule_fields, settings)
+            self.choices[0].generate_inline_body(rule_fields, settings, clone_state)
         } else {
             Ok(None)
         }
@@ -108,23 +109,23 @@ impl Choice {
             .iter()
             .enumerate()
             .map(|(num, choice)| {
-                let parse_call = if let Some(inline_body) =
-                    choice.generate_inline_body(rule_fields, settings).unwrap()
+                let parse_call = if let Some(inline_body) = choice
+                    .generate_inline_body(rule_fields, settings, CloneState::Yes)
+                    .unwrap()
                 {
                     inline_body
                 } else {
                     let choice_mod = format_ident!("choice_{}", num);
-                    quote!(#choice_mod::parse(state, tracer, cache))
+                    quote!(#choice_mod::parse(state.clone(), tracer, cache))
                 };
                 let inner_fields = choice.get_fields(grammar).unwrap();
                 let result_converter = Self::generate_result_converter(&fields, &inner_fields);
                 quote!(
-                    let state = orig_state.clone();
                     match #parse_call {
                         Ok(ok_result) => return Ok(
                                 ok_result.map(|__result| #result_converter)
                             ),
-                        Err(err) => orig_state = orig_state.record_error(err),
+                        Err(err) => state = state.record_error(err),
                     }
                 )
             })
@@ -132,13 +133,12 @@ impl Choice {
         Ok(quote!(
             #[inline(always)]
             pub fn parse<'a>(
-                state: ParseState<'a>,
+                mut state: ParseState<'a>,
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
-                let mut orig_state = state;
                 #calls
-                Err(orig_state.report_farthest_error())
+                Err(state.report_farthest_error())
             }
         ))
     }

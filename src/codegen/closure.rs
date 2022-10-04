@@ -7,7 +7,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
 use super::common::{
-    generate_field_type, safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor,
+    generate_field_type, safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor,
 };
 use crate::grammar::{Closure, Grammar};
 
@@ -20,12 +20,15 @@ impl Codegen for Closure {
     ) -> Result<TokenStream> {
         let closure_body;
         let parse_call;
-        if let Some(inline_body) = self.body.generate_inline_body(rule_fields, settings)? {
+        if let Some(inline_body) =
+            self.body
+                .generate_inline_body(rule_fields, settings, CloneState::Yes)?
+        {
             closure_body = TokenStream::new();
             parse_call = inline_body;
         } else {
             closure_body = self.body.generate_code(rule_fields, grammar, settings)?;
-            parse_call = quote!(closure::parse(state, tracer, cache));
+            parse_call = quote!(closure::parse(state.clone(), tracer, cache));
         };
 
         let fields = self.body.get_filtered_rule_fields(rule_fields, grammar)?;
@@ -81,14 +84,13 @@ impl Codegen for Closure {
                 #declarations
                 #at_least_one_body
                 loop {
-                    let old_state = state.clone();
                     match #parse_call {
                         Ok(ParseOk{result: __result, state:new_state, ..}) => {
                             #assignments
                             state = new_state;
                         },
                         Err(err) => {
-                            state = old_state.record_error(err);
+                            state = state.record_error(err);
                             break;
                         }
                     }

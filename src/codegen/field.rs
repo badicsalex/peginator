@@ -7,7 +7,7 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use super::common::{
-    generate_skip_ws, safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor,
+    generate_skip_ws, safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor,
 };
 use crate::grammar::{Field, Grammar, OverrideField};
 
@@ -16,21 +16,20 @@ impl Codegen for Field {
         &self,
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
-        let parser_name = format_ident!("parse_{}", self.typ);
-        let parse_call = if let Some(field_name) = &self.name {
-            let field_conversion = generate_field_converter(field_name, &self.typ, rule_fields);
-            quote!(
-                #parser_name (state, tracer, cache).map(|ok_result|
-                    ok_result.map(|result| #field_conversion )
-                )
-            )
+        let postprocess = if let Some(field_name) = &self.name {
+            generate_postprocess_calls(field_name, &self.typ, rule_fields)
         } else {
-            quote!(
-                #parser_name (state, tracer, cache).into_empty()
-            )
+            quote!(.into_empty())
         };
-        Ok(Some(generate_skip_ws(settings, parse_call)))
+        let parser_call = generate_skip_ws(
+            settings,
+            &format!("parse_{}", self.typ),
+            quote!(tracer, cache),
+            clone_state,
+        );
+        Ok(Some(quote!(#parser_call #postprocess)))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
@@ -52,17 +51,16 @@ impl Codegen for OverrideField {
         &self,
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
-        let parser_name = format_ident!("parse_{}", self.typ);
-        let field_conversion = generate_field_converter("_override", &self.typ, rule_fields);
-        Ok(Some(generate_skip_ws(
+        let postprocess = generate_postprocess_calls("_override", &self.typ, rule_fields);
+        let parser_call = generate_skip_ws(
             settings,
-            quote!(
-                #parser_name (state, tracer, cache).map(|ok_result|
-                    ok_result.map(|result| #field_conversion )
-                )
-            ),
-        )))
+            &format!("parse_{}", self.typ),
+            quote!(tracer, cache),
+            clone_state,
+        );
+        Ok(Some(quote!(#parser_call #postprocess)))
     }
 
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
@@ -75,7 +73,7 @@ impl Codegen for OverrideField {
     }
 }
 
-fn generate_field_converter(
+fn generate_postprocess_calls(
     field_name: &str,
     field_type_name: &str,
     rule_fields: &[FieldDescriptor],
@@ -84,6 +82,10 @@ fn generate_field_converter(
         .iter()
         .find(|f| f.name == field_name)
         .expect("Field not found in rule_fields");
+    if field.type_names.len() == 1 && field.arity == Arity::One && !field.boxed {
+        return TokenStream::new();
+    }
+
     let enumified_field = if field.type_names.len() > 1 {
         let enum_type_name = format_ident!("Parsed_{}", field_name);
         let field_type_ident = safe_ident(field_type_name);
@@ -91,7 +93,7 @@ fn generate_field_converter(
     } else {
         quote!(result)
     };
-    match field.arity {
+    let field_conversion = match field.arity {
         Arity::One => {
             if field.boxed {
                 quote!(Box::new(#enumified_field))
@@ -107,5 +109,10 @@ fn generate_field_converter(
             }
         }
         Arity::Multiple => quote!(vec![#enumified_field]),
-    }
+    };
+    quote!(
+        .map(|ok_result|
+            ok_result.map(|result| #field_conversion )
+        )
+    )
 }

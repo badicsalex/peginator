@@ -4,9 +4,8 @@
 
 use anyhow::Result;
 use proc_macro2::TokenStream;
-use quote::quote;
 
-use super::common::{generate_skip_ws, Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{generate_skip_ws, CloneState, Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{EndOfInput, Grammar};
 
 impl Codegen for EndOfInput {
@@ -14,10 +13,13 @@ impl Codegen for EndOfInput {
         &self,
         _rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
         Ok(Some(generate_skip_ws(
             settings,
-            quote!(parse_end_of_input(state)),
+            "parse_end_of_input",
+            TokenStream::new(),
+            clone_state,
         )))
     }
 

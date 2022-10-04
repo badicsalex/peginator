@@ -5,7 +5,7 @@
 use anyhow::Result;
 use proc_macro2::TokenStream;
 
-use super::common::{Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{CloneState, Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{DelimitedExpression, Grammar, Group};
 
 impl Codegen for DelimitedExpression {
@@ -50,23 +50,42 @@ impl Codegen for DelimitedExpression {
         &self,
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
         match self {
-            DelimitedExpression::CharacterRange(a) => a.generate_inline_body(rule_fields, settings),
-            DelimitedExpression::Closure(a) => a.generate_inline_body(rule_fields, settings),
-            DelimitedExpression::EndOfInput(a) => a.generate_inline_body(rule_fields, settings),
-            DelimitedExpression::Field(a) => a.generate_inline_body(rule_fields, settings),
-            DelimitedExpression::Group(a) => a.generate_inline_body(rule_fields, settings),
-            DelimitedExpression::IncludeRule(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::CharacterRange(a) => {
+                a.generate_inline_body(rule_fields, settings, clone_state)
+            }
+            DelimitedExpression::Closure(a) => {
+                a.generate_inline_body(rule_fields, settings, clone_state)
+            }
+            DelimitedExpression::EndOfInput(a) => {
+                a.generate_inline_body(rule_fields, settings, clone_state)
+            }
+            DelimitedExpression::Field(a) => {
+                a.generate_inline_body(rule_fields, settings, clone_state)
+            }
+            DelimitedExpression::Group(a) => {
+                a.generate_inline_body(rule_fields, settings, clone_state)
+            }
+            DelimitedExpression::IncludeRule(a) => {
+                a.generate_inline_body(rule_fields, settings, clone_state)
+            }
             DelimitedExpression::NegativeLookahead(a) => {
-                a.generate_inline_body(rule_fields, settings)
+                a.generate_inline_body(rule_fields, settings, clone_state)
             }
-            DelimitedExpression::Optional(a) => a.generate_inline_body(rule_fields, settings),
-            DelimitedExpression::OverrideField(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::Optional(a) => {
+                a.generate_inline_body(rule_fields, settings, clone_state)
+            }
+            DelimitedExpression::OverrideField(a) => {
+                a.generate_inline_body(rule_fields, settings, clone_state)
+            }
             DelimitedExpression::PositiveLookahead(a) => {
-                a.generate_inline_body(rule_fields, settings)
+                a.generate_inline_body(rule_fields, settings, clone_state)
             }
-            DelimitedExpression::StringLiteral(a) => a.generate_inline_body(rule_fields, settings),
+            DelimitedExpression::StringLiteral(a) => {
+                a.generate_inline_body(rule_fields, settings, clone_state)
+            }
         }
     }
 
@@ -101,8 +120,10 @@ impl Codegen for Group {
         &self,
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
-        self.body.generate_inline_body(rule_fields, settings)
+        self.body
+            .generate_inline_body(rule_fields, settings, clone_state)
     }
 
     fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {

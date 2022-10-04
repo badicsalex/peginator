@@ -8,7 +8,7 @@ use anyhow::Result;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
-use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{Grammar, Sequence};
 
 impl Codegen for Sequence {
@@ -38,7 +38,7 @@ impl Codegen for Sequence {
             .iter()
             .enumerate()
             .filter(|(_, part)| {
-                part.generate_inline_body(rule_fields, settings)
+                part.generate_inline_body(rule_fields, settings, CloneState::No)
                     .ok()
                     .flatten()
                     .is_none()
@@ -65,11 +65,16 @@ impl Codegen for Sequence {
         &self,
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
         if self.parts.is_empty() {
-            Ok(Some(quote!(Ok(ParseOk { result: (), state }))))
+            let state = match clone_state {
+                CloneState::No => quote!(state),
+                CloneState::Yes => quote!(state: state.clone()),
+            };
+            Ok(Some(quote!(Ok(ParseOk { result: (), #state }))))
         } else if self.parts.len() < 2 {
-            self.parts[0].generate_inline_body(rule_fields, settings)
+            self.parts[0].generate_inline_body(rule_fields, settings, clone_state)
         } else {
             Ok(None)
         }
@@ -105,12 +110,13 @@ impl Sequence {
         for (num, part) in self.parts.iter().enumerate() {
             let inner_fields = part.get_filtered_rule_fields(rule_fields, grammar)?;
             let part_mod = format_ident!("part_{}", num);
-            let parse_call =
-                if let Some(inline_body) = part.generate_inline_body(rule_fields, settings)? {
-                    inline_body
-                } else {
-                    quote!(#part_mod::parse(state, tracer, cache))
-                };
+            let parse_call = if let Some(inline_body) =
+                part.generate_inline_body(rule_fields, settings, CloneState::No)?
+            {
+                inline_body
+            } else {
+                quote!(#part_mod::parse(state, tracer, cache))
+            };
             let call = if inner_fields.is_empty() {
                 quote!(
                     let ParseOk{state, ..} = #parse_call?;

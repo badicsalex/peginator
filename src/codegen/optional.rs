@@ -6,7 +6,7 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::common::{safe_ident, Arity, Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{Grammar, Optional};
 
 impl Codegen for Optional {
@@ -22,7 +22,7 @@ impl Codegen for Optional {
                 .or_else(|err|
                     Ok(ParseOk{
                         result: (),
-                        state: old_state.record_error(err),
+                        state: state.record_error(err),
                     })
                 )
             )
@@ -31,7 +31,7 @@ impl Codegen for Optional {
                 .or_else(|err|
                     Ok(ParseOk{
                         result: Default::default(),
-                        state: old_state.record_error(err),
+                        state: state.record_error(err),
                     })
                 )
             )
@@ -55,19 +55,22 @@ impl Codegen for Optional {
                 .or_else(|err|
                     Ok(ParseOk{
                         result: Parsed{#unhappy_case_fields},
-                        state: old_state.record_error(err),
+                        state: state.record_error(err),
                     })
                 )
             )
         };
         let body;
         let parse_call;
-        if let Some(inline_body) = self.body.generate_inline_body(rule_fields, settings)? {
+        if let Some(inline_body) =
+            self.body
+                .generate_inline_body(rule_fields, settings, CloneState::Yes)?
+        {
             body = TokenStream::new();
             parse_call = inline_body;
         } else {
             body = self.body.generate_code(rule_fields, grammar, settings)?;
-            parse_call = quote!(optional::parse(state, tracer, cache));
+            parse_call = quote!(optional::parse(state.clone(), tracer, cache));
         };
         Ok(quote!(
             mod optional{
@@ -80,7 +83,6 @@ impl Codegen for Optional {
                 tracer: impl ParseTracer,
                 cache: &mut ParseCache<'a>
             ) -> ParseResult<'a, Parsed> {
-                let old_state = state.clone();
                 #parse_call #postprocess
             }
         ))

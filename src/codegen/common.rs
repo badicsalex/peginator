@@ -76,6 +76,12 @@ pub enum PublicType {
     Yes,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CloneState {
+    No,
+    Yes,
+}
+
 pub trait Codegen {
     /// Generate code that's related to the parse function and the child parsers and types.
     ///
@@ -87,7 +93,9 @@ pub trait Codegen {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let _ = grammar;
-        if let Some(parse_body) = self.generate_inline_body(rule_fields, settings)? {
+        if let Some(parse_body) =
+            self.generate_inline_body(rule_fields, settings, CloneState::No)?
+        {
             Ok(quote!(
                 #[inline(always)]
                 pub fn parse<'a>(
@@ -138,9 +146,11 @@ pub trait Codegen {
         &self,
         rule_fields: &[FieldDescriptor],
         settings: &CodegenSettings,
+        clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
         let _ = rule_fields;
         let _ = settings;
+        let _ = clone_state;
         Ok(None)
     }
 
@@ -177,15 +187,25 @@ pub trait Codegen {
     }
 }
 
-pub fn generate_skip_ws(settings: &CodegenSettings, original_call: TokenStream) -> TokenStream {
+pub fn generate_skip_ws(
+    settings: &CodegenSettings,
+    parse_fn_name: &str,
+    additional_params: TokenStream,
+    clone_state: CloneState,
+) -> TokenStream {
+    let parse_fn_ident = safe_ident(parse_fn_name);
+    let state = match clone_state {
+        CloneState::No => quote!(state),
+        CloneState::Yes => quote!(state.clone()),
+    };
     if settings.skip_whitespace {
         quote!(
-            parse_Whitespace(state, tracer, cache).and_then(|ParseOk{state, ..}| {
-                #original_call
+            parse_Whitespace( #state, tracer, cache).and_then(|ParseOk{state, ..}| {
+                #parse_fn_ident (state, #additional_params)
             })
         )
     } else {
-        original_call
+        quote!( #parse_fn_ident (#state, #additional_params))
     }
 }
 pub fn generate_derives(settings: &CodegenSettings) -> TokenStream {
