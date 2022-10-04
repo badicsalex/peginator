@@ -73,6 +73,7 @@ impl Codegen for CharacterRange {
     fn generate_inline_body(
         &self,
         _rule_fields: &[FieldDescriptor],
+        _grammar: &Grammar,
         settings: &CodegenSettings,
         clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
@@ -96,6 +97,7 @@ impl Codegen for StringLiteral {
     fn generate_inline_body(
         &self,
         _rule_fields: &[FieldDescriptor],
+        _grammar: &Grammar,
         settings: &CodegenSettings,
         clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {

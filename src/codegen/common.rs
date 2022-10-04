@@ -94,7 +94,7 @@ pub trait Codegen {
     ) -> Result<TokenStream> {
         let _ = grammar;
         if let Some(parse_body) =
-            self.generate_inline_body(rule_fields, settings, CloneState::No)?
+            self.generate_inline_body(rule_fields, grammar, settings, CloneState::No)?
         {
             Ok(quote!(
                 #[inline(always)]
@@ -145,12 +145,11 @@ pub trait Codegen {
     fn generate_inline_body(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
         clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
-        let _ = rule_fields;
-        let _ = settings;
-        let _ = clone_state;
+        let _ = (rule_fields, grammar, settings, clone_state);
         Ok(None)
     }
 

@@ -38,7 +38,7 @@ impl Codegen for Sequence {
             .iter()
             .enumerate()
             .filter(|(_, part)| {
-                part.generate_inline_body(rule_fields, settings, CloneState::No)
+                part.generate_inline_body(rule_fields, grammar, settings, CloneState::No)
                     .ok()
                     .flatten()
                     .is_none()
@@ -64,6 +64,7 @@ impl Codegen for Sequence {
     fn generate_inline_body(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
         clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
@@ -74,7 +75,7 @@ impl Codegen for Sequence {
             };
             Ok(Some(quote!(Ok(ParseOk { result: (), #state }))))
         } else if self.parts.len() < 2 {
-            self.parts[0].generate_inline_body(rule_fields, settings, clone_state)
+            self.parts[0].generate_inline_body(rule_fields, grammar, settings, clone_state)
         } else {
             Ok(None)
         }
@@ -111,7 +112,7 @@ impl Sequence {
             let inner_fields = part.get_filtered_rule_fields(rule_fields, grammar)?;
             let part_mod = format_ident!("part_{}", num);
             let parse_call = if let Some(inline_body) =
-                part.generate_inline_body(rule_fields, settings, CloneState::No)?
+                part.generate_inline_body(rule_fields, grammar, settings, CloneState::No)?
             {
                 inline_body
             } else {

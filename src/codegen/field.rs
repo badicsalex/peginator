@@ -15,6 +15,7 @@ impl Codegen for Field {
     fn generate_inline_body(
         &self,
         rule_fields: &[FieldDescriptor],
+        _grammar: &Grammar,
         settings: &CodegenSettings,
         clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
@@ -50,6 +51,7 @@ impl Codegen for OverrideField {
     fn generate_inline_body(
         &self,
         rule_fields: &[FieldDescriptor],
+        _grammar: &Grammar,
         settings: &CodegenSettings,
         clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {

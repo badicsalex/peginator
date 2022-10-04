@@ -25,7 +25,7 @@ impl Codegen for Choice {
             .enumerate()
             .filter(|(_, choice)| {
                 choice
-                    .generate_inline_body(rule_fields, settings, CloneState::Yes)
+                    .generate_inline_body(rule_fields, grammar, settings, CloneState::Yes)
                     .ok()
                     .flatten()
                     .is_none()
@@ -51,11 +51,12 @@ impl Codegen for Choice {
     fn generate_inline_body(
         &self,
         rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
         settings: &CodegenSettings,
         clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
         if self.choices.len() < 2 {
-            self.choices[0].generate_inline_body(rule_fields, settings, clone_state)
+            self.choices[0].generate_inline_body(rule_fields, grammar, settings, clone_state)
         } else {
             Ok(None)
         }
@@ -110,7 +111,7 @@ impl Choice {
             .enumerate()
             .map(|(num, choice)| {
                 let parse_call = if let Some(inline_body) = choice
-                    .generate_inline_body(rule_fields, settings, CloneState::Yes)
+                    .generate_inline_body(rule_fields, grammar, settings, CloneState::Yes)
                     .unwrap()
                 {
                     inline_body

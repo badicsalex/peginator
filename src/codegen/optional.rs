@@ -16,8 +16,69 @@ impl Codegen for Optional {
         grammar: &Grammar,
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
+        let postprocess = self.generate_postprocess_calls(rule_fields, grammar)?;
+        let body;
+        let parse_call;
+        if let Some(inline_body) =
+            self.body
+                .generate_inline_body(rule_fields, grammar, settings, CloneState::Yes)?
+        {
+            body = TokenStream::new();
+            parse_call = inline_body;
+        } else {
+            let inner_body = self.body.generate_code(rule_fields, grammar, settings)?;
+            body = quote!(mod optional{
+                use super::*;
+                #inner_body
+            });
+            parse_call = quote!(optional::parse(state.clone(), tracer, cache));
+        };
+        Ok(quote!(
+            #body
+            #[inline(always)]
+            pub fn parse<'a>(
+                state: ParseState<'a>,
+                tracer: impl ParseTracer,
+                cache: &mut ParseCache<'a>
+            ) -> ParseResult<'a, Parsed> {
+                #parse_call #postprocess
+            }
+        ))
+    }
+
+    fn generate_inline_body(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
+        settings: &CodegenSettings,
+        clone_state: CloneState,
+    ) -> Result<Option<TokenStream>> {
+        if clone_state == CloneState::Yes {
+            Ok(None)
+        } else if let Some(inline_body) =
+            self.body
+                .generate_inline_body(rule_fields, grammar, settings, CloneState::Yes)?
+        {
+            let postprocess = self.generate_postprocess_calls(rule_fields, grammar)?;
+            Ok(Some(quote!(#inline_body #postprocess)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
+        Ok(set_arity_to_optional(self.body.get_fields(grammar)?))
+    }
+}
+
+impl Optional {
+    fn generate_postprocess_calls(
+        &self,
+        rule_fields: &[FieldDescriptor],
+        grammar: &Grammar,
+    ) -> Result<TokenStream> {
         let fields = self.body.get_filtered_rule_fields(rule_fields, grammar)?;
-        let postprocess = if fields.is_empty() {
+        let result = if fields.is_empty() {
             quote!(
                 .or_else(|err|
                     Ok(ParseOk{
@@ -60,37 +121,7 @@ impl Codegen for Optional {
                 )
             )
         };
-        let body;
-        let parse_call;
-        if let Some(inline_body) =
-            self.body
-                .generate_inline_body(rule_fields, settings, CloneState::Yes)?
-        {
-            body = TokenStream::new();
-            parse_call = inline_body;
-        } else {
-            let inner_body = self.body.generate_code(rule_fields, grammar, settings)?;
-            body = quote!(mod optional{
-                use super::*;
-                #inner_body
-            });
-            parse_call = quote!(optional::parse(state.clone(), tracer, cache));
-        };
-        Ok(quote!(
-            #body
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                #parse_call #postprocess
-            }
-        ))
-    }
-
-    fn get_fields<'a>(&'a self, grammar: &'a Grammar) -> Result<Vec<FieldDescriptor<'a>>> {
-        Ok(set_arity_to_optional(self.body.get_fields(grammar)?))
+        Ok(result)
     }
 }
 

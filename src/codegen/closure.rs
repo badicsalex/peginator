@@ -22,7 +22,7 @@ impl Codegen for Closure {
         let parse_call;
         if let Some(inline_body) =
             self.body
-                .generate_inline_body(rule_fields, settings, CloneState::Yes)?
+                .generate_inline_body(rule_fields, grammar, settings, CloneState::Yes)?
         {
             closure_body = TokenStream::new();
             parse_call = inline_body;
