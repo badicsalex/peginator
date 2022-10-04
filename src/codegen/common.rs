@@ -255,7 +255,7 @@ pub fn generate_enum_type(
 pub fn safe_ident(name: impl AsRef<str>) -> Ident {
     let name = name.as_ref();
     if RUST_KEYWORDS.contains(&name) {
-        return format_ident!("r#{}", name);
+        format_ident!("r#{}", name)
     } else {
         format_ident!("{}", name)
     }

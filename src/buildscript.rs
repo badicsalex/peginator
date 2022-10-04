@@ -158,7 +158,7 @@ impl Compile {
         );
         if let Ok(f) = File::open(destination) {
             let mut existing_header = String::new();
-            if f.take(source_header.bytes().count() as u64)
+            if f.take(source_header.len() as u64)
                 .read_to_string(&mut existing_header)
                 .is_ok()
                 && source_header == existing_header
