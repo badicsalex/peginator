@@ -69,14 +69,15 @@ impl Codegen for Optional {
             body = TokenStream::new();
             parse_call = inline_body;
         } else {
-            body = self.body.generate_code(rule_fields, grammar, settings)?;
+            let inner_body = self.body.generate_code(rule_fields, grammar, settings)?;
+            body = quote!(mod optional{
+                use super::*;
+                #inner_body
+            });
             parse_call = quote!(optional::parse(state.clone(), tracer, cache));
         };
         Ok(quote!(
-            mod optional{
-                use super::*;
-                #body
-            }
+            #body
             #[inline(always)]
             pub fn parse<'a>(
                 state: ParseState<'a>,
