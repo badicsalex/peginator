@@ -51,7 +51,7 @@ impl Codegen for Optional {
                 })
                 .collect();
             quote!(
-                .map(|ok_result| ok_result.map(|result| Parsed{#happy_case_fields}))
+                .map_inner(|result| Parsed{#happy_case_fields})
                 .or_else(|err|
                     Ok(ParseOk{
                         result: Parsed{#unhappy_case_fields},

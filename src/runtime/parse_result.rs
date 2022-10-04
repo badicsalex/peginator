@@ -36,12 +36,24 @@ impl<'a, T> ParseOk<'a, T> {
 
 pub type ParseResult<'a, T> = Result<ParseOk<'a, T>, ParseError>;
 
-pub trait ParseResultIntoEmpty<'a> {
+pub trait ParseResultExtras<'a, T> {
     fn into_empty(self) -> ParseResult<'a, ()>;
+    fn map_inner<T2, F>(self, f: F) -> ParseResult<'a, T2>
+    where
+        F: Fn(T) -> T2;
 }
 
-impl<'a, T> ParseResultIntoEmpty<'a> for ParseResult<'a, T> {
+impl<'a, T> ParseResultExtras<'a, T> for ParseResult<'a, T> {
+    #[inline]
     fn into_empty(self) -> ParseResult<'a, ()> {
-        self.map(|ok| ok.map(|_| ()))
+        self.map_inner(|_| ())
+    }
+
+    #[inline]
+    fn map_inner<T2, F>(self, f: F) -> ParseResult<'a, T2>
+    where
+        F: Fn(T) -> T2,
+    {
+        self.map(|ok| ok.map(f))
     }
 }

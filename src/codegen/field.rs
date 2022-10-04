@@ -82,13 +82,23 @@ fn generate_postprocess_calls(
         .iter()
         .find(|f| f.name == field_name)
         .expect("Field not found in rule_fields");
-    if field.type_names.len() == 1 && field.arity == Arity::One && !field.boxed {
-        return TokenStream::new();
+    let enum_type_name = format_ident!("Parsed_{}", field_name);
+    let field_type_ident = safe_ident(field_type_name);
+
+    // Special cases for the most common cases
+    if !field.boxed {
+        if field.type_names.len() == 1 && field.arity == Arity::One {
+            return TokenStream::new();
+        }
+        if field.type_names.len() > 1 && field.arity == Arity::One {
+            return quote!(.map_inner(#enum_type_name::#field_type_ident));
+        }
+        if field.type_names.len() == 1 && field.arity == Arity::Optional {
+            return quote!(.map_inner(Some));
+        }
     }
 
     let enumified_field = if field.type_names.len() > 1 {
-        let enum_type_name = format_ident!("Parsed_{}", field_name);
-        let field_type_ident = safe_ident(field_type_name);
         quote!(#enum_type_name::#field_type_ident(result))
     } else {
         quote!(result)
@@ -111,8 +121,6 @@ fn generate_postprocess_calls(
         Arity::Multiple => quote!(vec![#enumified_field]),
     };
     quote!(
-        .map(|ok_result|
-            ok_result.map(|result| #field_conversion )
-        )
+        .map_inner(|result| #field_conversion )
     )
 }
