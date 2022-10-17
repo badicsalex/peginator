@@ -38,7 +38,6 @@ pub enum ParseErrorSpecifics {
     },
     /// A custom extern rule failed
     ExternRuleFailed {
-        function_name: &'static str,
         error_string: &'static str,
     },
     LeftRecursionSentinel,
@@ -68,14 +67,8 @@ impl ToString for ParseErrorSpecifics {
             ParseErrorSpecifics::CheckFunctionFailed { function_name } => {
                 format!("check function '{}' failed", function_name)
             }
-            ParseErrorSpecifics::ExternRuleFailed {
-                function_name,
-                error_string,
-            } => {
-                format!(
-                    "extern function '{}' failed with '{}'",
-                    function_name, error_string
-                )
+            ParseErrorSpecifics::ExternRuleFailed { error_string } => {
+                format!("extern function failed with '{}'", error_string)
             }
             ParseErrorSpecifics::LeftRecursionSentinel => {
                 "Left recursion sentinel reached, will probably retry.".to_string()

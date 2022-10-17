@@ -19,7 +19,6 @@ impl ExternRule {
         };
         let name_idents = self.directive.name_parts.iter().map(safe_ident);
         let function_ident = quote!(#(#name_idents)::*);
-        let function_name = self.directive.name_parts.join("::");
 
         let rule_ident = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
@@ -42,7 +41,6 @@ impl ExternRule {
                         },
                         Err(error_string) => {
                             Err(state.report_error(ParseErrorSpecifics::ExternRuleFailed {
-                                function_name: #function_name,
                                 error_string,
                             }))
                         }
