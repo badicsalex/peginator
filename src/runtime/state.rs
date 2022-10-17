@@ -8,9 +8,7 @@ use super::{ParseError, ParseErrorSpecifics, ParseSettings};
 pub struct ParseState<'a> {
     partial_string: &'a str,
     start_index: usize,
-    // Unfortunately this needs to be boxed, because State is passed around as a value
-    // all the time, and it makes no sense to always copy this somewhat large (32+ bytes I think) struct.
-    farthest_error: Option<Box<ParseError>>,
+    farthest_error: Option<ParseError>,
 }
 
 impl<'a> ParseState<'a> {
@@ -102,19 +100,19 @@ impl<'a> ParseState<'a> {
     #[inline]
     pub fn record_error(mut self, error: ParseError) -> Self {
         match &mut self.farthest_error {
-            Some(error_box) => {
-                if error_box.position <= error.position {
-                    **error_box = error
+            Some(farthest_error) => {
+                if farthest_error.position <= error.position {
+                    *farthest_error = error
                 }
             }
-            None => self.farthest_error = Some(Box::new(error)),
+            None => self.farthest_error = Some(error),
         }
         self
     }
 
     #[inline]
     pub fn report_farthest_error(self) -> ParseError {
-        self.farthest_error.map(|e| *e).unwrap_or(ParseError {
+        self.farthest_error.unwrap_or(ParseError {
             position: self.start_index,
             specifics: ParseErrorSpecifics::Other,
         })
