@@ -139,7 +139,7 @@ impl Choice {
                     inline_body
                 } else {
                     let choice_mod = format_ident!("choice_{}", num);
-                    quote!(#choice_mod::parse(state.clone(), tracer, cache))
+                    quote!(#choice_mod::parse(state, tracer, cache))
                 };
                 let inner_fields = choice.get_fields(grammar).unwrap();
                 let postprocess = Self::generate_result_converter(&fields, &inner_fields);
