@@ -2,8 +2,6 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use crate::runtime::combine_errors;
-
 use super::{ParseError, ParseErrorSpecifics, ParseSettings};
 
 #[derive(Debug, Clone)]
@@ -102,12 +100,16 @@ impl<'a> ParseState<'a> {
     }
 
     #[inline]
-    pub fn record_error(self, error: ParseError) -> Self {
-        Self {
-            farthest_error: combine_errors(self.farthest_error.map(|e| *e), Some(error))
-                .map(Box::new),
-            ..self
+    pub fn record_error(mut self, error: ParseError) -> Self {
+        match &mut self.farthest_error {
+            Some(error_box) => {
+                if error_box.position <= error.position {
+                    **error_box = error
+                }
+            }
+            None => self.farthest_error = Some(Box::new(error)),
         }
+        self
     }
 
     #[inline]

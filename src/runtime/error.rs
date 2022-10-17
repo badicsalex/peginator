@@ -100,23 +100,6 @@ pub struct ParseError {
     pub specifics: ParseErrorSpecifics,
 }
 
-impl ParseError {
-    #[inline]
-    fn farther_than(&self, other: &Self) -> bool {
-        self.position > other.position
-    }
-}
-
-#[inline]
-pub fn combine_errors(first: Option<ParseError>, second: Option<ParseError>) -> Option<ParseError> {
-    match (first, second) {
-        (None, None) => None,
-        (None, Some(x)) => Some(x),
-        (Some(x), None) => Some(x),
-        (Some(a), Some(b)) => Some(if a.farther_than(&b) { a } else { b }),
-    }
-}
-
 impl std::fmt::Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let specifics = self.specifics.to_string();

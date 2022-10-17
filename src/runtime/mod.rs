@@ -20,7 +20,7 @@ pub use builtin_parsers::{
     parse_string_literal_insensitive,
 };
 pub use choice_helper::ChoiceHelper;
-pub use error::{combine_errors, ParseError, ParseErrorSpecifics, PrettyParseError};
+pub use error::{ParseError, ParseErrorSpecifics, PrettyParseError};
 pub use parse_result::{ParseOk, ParseResult, ParseResultExtras};
 pub use peg_parser::{ParseSettings, PegParser};
 pub use state::ParseState;
