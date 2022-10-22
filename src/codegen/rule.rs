@@ -31,7 +31,7 @@ impl CodegenRule for Rule {
         let name = &self.name;
         let rule_mod = self.rule_module_ident();
         let rule_type = safe_ident(&self.name);
-        let parser_name = format_ident!("parse_{}", self.name);
+        let parser_name = format_ident!("parse_{name}");
         let choice_body = self.definition.generate_code(&fields, grammar, &settings)?;
 
         let (types, inner_code) = if flags.string {

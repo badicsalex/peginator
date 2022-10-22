@@ -36,8 +36,8 @@ impl IndentedTracer {
     #[inline]
     pub fn print_trace_start(&self, state: &ParseState, name: &str) {
         let indentation = "    ".repeat(self.indentation_level);
-        eprintln!("{}{:?}", indentation, state.first_n_chars(50));
-        eprintln!("{}{}?", indentation, name.yellow());
+        eprintln!("{indentation}{:?}", state.first_n_chars(50));
+        eprintln!("{indentation}{}?", name.yellow());
     }
 
     #[inline]
@@ -45,12 +45,11 @@ impl IndentedTracer {
         let indentation = "    ".repeat(self.indentation_level);
         match &result {
             Ok(ok_result) => {
-                eprintln!("{}{:?}", indentation, ok_result.state.first_n_chars(50));
-                eprintln!("{}{}", indentation, "Ok".green());
+                eprintln!("{indentation}{:?}", ok_result.state.first_n_chars(50));
+                eprintln!("{indentation}{}", "Ok".green());
             }
             Err(err) => eprintln!(
-                "{}{} {}",
-                indentation,
+                "{indentation}{} {}",
                 "Error:".red(),
                 err.specifics.to_string()
             ),
@@ -78,7 +77,7 @@ impl ParseTracer for IndentedTracer {
     #[inline]
     fn print_informative(&self, s: &str) {
         let indentation = "    ".repeat(self.indentation_level);
-        eprintln!("{}{}", indentation, s.cyan());
+        eprintln!("{indentation}{}", s.cyan());
     }
 
     #[inline]

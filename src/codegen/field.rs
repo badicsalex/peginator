@@ -84,7 +84,7 @@ fn generate_postprocess_calls(
         .iter()
         .find(|f| f.name == field_name)
         .expect("Field not found in rule_fields");
-    let enum_type_name = format_ident!("Parsed_{}", field_name);
+    let enum_type_name = format_ident!("Parsed_{field_name}");
     let field_type_ident = safe_ident(field_type_name);
 
     // Special cases for the most common cases

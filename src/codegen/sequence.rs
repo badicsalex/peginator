@@ -44,7 +44,7 @@ impl Codegen for Sequence {
                     .is_none()
             })
             .map(|(num, part)| -> Result<TokenStream> {
-                let part_mod = format_ident!("part_{}", num);
+                let part_mod = format_ident!("part_{num}");
                 let part_body = part.generate_code(rule_fields, grammar, settings)?;
                 Ok(quote!(
                     mod #part_mod{
@@ -110,7 +110,7 @@ impl Sequence {
         let mut fields_seen = HashSet::<&str>::new();
         for (num, part) in self.parts.iter().enumerate() {
             let inner_fields = part.get_filtered_rule_fields(rule_fields, grammar)?;
-            let part_mod = format_ident!("part_{}", num);
+            let part_mod = format_ident!("part_{num}");
             let parse_call = if let Some(inline_body) =
                 part.generate_inline_body(rule_fields, grammar, settings, CloneState::No)?
             {
@@ -127,9 +127,10 @@ impl Sequence {
                 let mut extend_calls = TokenStream::new();
                 if inner_fields.len() == 1 {
                     let field = &inner_fields[0];
-                    let name = safe_ident(field.name);
-                    if !fields_seen.contains(field.name) {
-                        fields_seen.insert(field.name);
+                    let field_name = &field.name;
+                    let name = safe_ident(field_name);
+                    if !fields_seen.contains(field_name) {
+                        fields_seen.insert(field_name);
                         if field.arity == Arity::Multiple {
                             field_assignments.extend(quote!(mut #name))
                         } else {
@@ -137,15 +138,16 @@ impl Sequence {
                         }
                     } else {
                         assert_eq!(field.arity, Arity::Multiple);
-                        let extend_name = safe_ident(format!("extend_{}_with", field.name));
+                        let extend_name = format_ident!("extend_{field_name}_with");
                         field_assignments.extend(quote!(#extend_name));
                         extend_calls.extend(quote!(#name.extend(#extend_name);));
                     }
                 } else {
                     for field in &inner_fields {
-                        let name = safe_ident(field.name);
-                        if !fields_seen.contains(field.name) {
-                            fields_seen.insert(field.name);
+                        let field_name = &field.name;
+                        let name = safe_ident(field_name);
+                        if !fields_seen.contains(field_name) {
+                            fields_seen.insert(field_name);
                             if field.arity == Arity::Multiple {
                                 field_assignments.extend(quote!(mut #name,))
                             } else {
@@ -153,7 +155,7 @@ impl Sequence {
                             }
                         } else {
                             assert_eq!(field.arity, Arity::Multiple);
-                            let extend_name = safe_ident(format!("extend_{}_with", field.name));
+                            let extend_name = format_ident!("extend_{field_name}_with");
                             field_assignments.extend(quote!(#name: #extend_name,));
                             extend_calls.extend(quote!(#name.extend(#extend_name);));
                         }

@@ -52,23 +52,23 @@ impl ToString for ParseErrorSpecifics {
             ParseErrorSpecifics::ExpectedAnyCharacter => {
                 "expected any character (found end of input)".to_string()
             }
-            ParseErrorSpecifics::ExpectedCharacter { c } => format!("expected character '{}'", c),
+            ParseErrorSpecifics::ExpectedCharacter { c } => format!("expected character '{c}'"),
             ParseErrorSpecifics::ExpectedCharacterRange { from, to } => {
-                format!("expected character from range '{}'-'{}'", from, to)
+                format!("expected character from range '{from}'-'{to}'")
             }
             ParseErrorSpecifics::ExpectedCharacterClass { name } => {
-                format!("expected character from character class {}", name)
+                format!("expected character from character class {name}")
             }
-            ParseErrorSpecifics::ExpectedString { s } => format!("expected string \"{}\"", s),
+            ParseErrorSpecifics::ExpectedString { s } => format!("expected string \"{s}\""),
             ParseErrorSpecifics::ExpectedEoi => "expected end of input".to_string(),
             ParseErrorSpecifics::NegativeLookaheadFailed => {
                 "negative lookahead condition failed".to_string()
             }
             ParseErrorSpecifics::CheckFunctionFailed { function_name } => {
-                format!("check function '{}' failed", function_name)
+                format!("check function '{function_name}' failed")
             }
             ParseErrorSpecifics::ExternRuleFailed { error_string } => {
-                format!("extern function failed with '{}'", error_string)
+                format!("extern function failed with '{error_string}'")
             }
             ParseErrorSpecifics::LeftRecursionSentinel => {
                 "Left recursion sentinel reached, will probably retry.".to_string()

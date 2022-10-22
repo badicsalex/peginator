@@ -65,7 +65,7 @@ impl TryFrom<&Utf8Escape> for char {
         if let Some(v) = &value.c6 {
             result = result * 16 + v.to_digit(16).unwrap();
         };
-        char::from_u32(result).ok_or_else(|| anyhow!("Invalid utf-8 codepoint {:#x}", result))
+        char::from_u32(result).ok_or_else(|| anyhow!("Invalid utf-8 codepoint {result:#x}"))
     }
 }
 
@@ -110,10 +110,7 @@ impl Codegen for StringLiteral {
             .collect::<Result<String>>()?;
         if self.insensitive.is_some() {
             if !literal.is_ascii() {
-                bail!(
-                    "Case insensitive matching only works for ascii strings. ({:?} was not ascii)",
-                    literal
-                );
+                bail!("Case insensitive matching only works for ascii strings. ({literal:?} was not ascii)");
             }
             let literal = literal.to_ascii_lowercase();
             if literal.chars().count() == 1 {

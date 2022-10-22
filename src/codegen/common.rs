@@ -274,7 +274,8 @@ pub fn generate_field_type(
     _settings: &CodegenSettings,
 ) -> TokenStream {
     let field_inner_type_ident: TokenStream = if field.type_names.len() > 1 {
-        let ident = format_ident!("{}_{}", parent_type, field.name);
+        let field_name = &field.name;
+        let ident = format_ident!("{parent_type}_{field_name}");
         quote!(#ident)
     } else {
         let type_name = field.type_names.iter().next().unwrap();
@@ -324,9 +325,9 @@ pub fn generate_enum_type(
 pub fn safe_ident(name: impl AsRef<str>) -> Ident {
     let name = name.as_ref();
     if RUST_KEYWORDS.contains(&name) {
-        format_ident!("r#{}", name)
+        format_ident!("r#{name}")
     } else {
-        format_ident!("{}", name)
+        format_ident!("{name}")
     }
 }
 

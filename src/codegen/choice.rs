@@ -31,7 +31,7 @@ impl Codegen for Choice {
                     .is_none()
             })
             .map(|(num, choice)| -> Result<TokenStream> {
-                let choice_mod = format_ident!("choice_{}", num);
+                let choice_mod = format_ident!("choice_{num}");
                 let sequence_body = choice.generate_code(rule_fields, grammar, settings)?;
                 Ok(quote!(
                     mod #choice_mod{
@@ -138,7 +138,7 @@ impl Choice {
                 {
                     inline_body
                 } else {
-                    let choice_mod = format_ident!("choice_{}", num);
+                    let choice_mod = format_ident!("choice_{num}");
                     quote!(#choice_mod::parse(state, tracer, cache))
                 };
                 let inner_fields = choice.get_fields(grammar).unwrap();
@@ -199,10 +199,7 @@ impl Choice {
     fn generate_default_field(field: &FieldDescriptor) -> TokenStream {
         match field.arity {
             Arity::One => {
-                panic!(
-                    "Outer field ({:?}) cannot be One if inner does not exist",
-                    field
-                )
+                panic!("Outer field ({field:?}) cannot be One if inner does not exist",)
             }
             Arity::Optional => quote!(None),
             Arity::Multiple => quote!(Vec::new()),
