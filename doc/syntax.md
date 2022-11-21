@@ -282,6 +282,8 @@ Hexadecimal = 'a'..'f' | 'A'..'F' | '0'..'9';
 IdentifierChar =  Hexadecimal | '_';
 ```
 
+Cannot be combined with other directives except `@check`.
+
 #### `@memoize`
 
 Enable memoization for the rule. It has a non-trivial performance impact (good or bad), so only use
@@ -376,6 +378,17 @@ impl Point {
         ...
     }
 }
+```
+
+Cannot be combined with other directives. To use other directives anyway, wrap it into a normal rule:
+
+```ebnf
+@extern(crate::parse_hungarian_word)
+HungarianWordExt;
+
+@position
+@memoize
+HungarianWord = word:HungarianWordExt;
 ```
 
 ## Whitespace skipping
