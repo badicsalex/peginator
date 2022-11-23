@@ -6,7 +6,10 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::common::{safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{
+    generate_inner_parse_function, safe_ident, Arity, CloneState, Codegen, CodegenSettings,
+    FieldDescriptor,
+};
 use crate::grammar::{Choice, Grammar};
 
 impl Codegen for Choice {
@@ -43,16 +46,10 @@ impl Codegen for Choice {
             .collect::<Result<TokenStream>>()?;
         let parse_body =
             self.generate_parse_body(rule_fields, grammar, settings, CloneState::No)?;
+        let parse_function = generate_inner_parse_function(parse_body);
         Ok(quote!(
             #choice_bodies
-            #[inline(always)]
-            pub fn parse<'a>(
-                mut state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                #parse_body
-            }
+            #parse_function
         ))
     }
 
@@ -139,7 +136,7 @@ impl Choice {
                     inline_body
                 } else {
                     let choice_mod = format_ident!("choice_{num}");
-                    quote!(#choice_mod::parse(state, tracer, cache))
+                    quote!(#choice_mod::parse(state, global))
                 };
                 let inner_fields = choice.get_fields(grammar).unwrap();
                 let postprocess = Self::generate_result_converter(&fields, &inner_fields);

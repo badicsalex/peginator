@@ -6,7 +6,7 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::common::safe_ident;
+use super::common::{generate_rule_parse_function, safe_ident};
 use crate::grammar::{CharRule, CharRulePart};
 
 impl CharRulePart {
@@ -23,7 +23,7 @@ impl CharRulePart {
             }
             CharRulePart::Identifier(ident) => {
                 let parser_name = format_ident!("parse_{}", ident);
-                Ok(quote!(#parser_name(state.clone(), tracer, cache)))
+                Ok(quote!(#parser_name(state.clone(), global)))
             }
         }
     }
@@ -41,17 +41,15 @@ impl CharRule {
             .collect::<Result<Vec<TokenStream>>>()?;
         let check_calls = self.generate_check_calls()?;
 
-        Ok(quote!(
-            #[inline]
-            pub(super) fn #parser_name <'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, #rule_type> {
-                #check_calls
-                #(if let Ok(result) = #parser_calls { return Ok(result)})*
-                Err(state.report_error(ParseErrorSpecifics::ExpectedCharacterClass { name: #name }))
-            }
+        let parse_body = quote!(
+            #check_calls
+            #(if let Ok(result) = #parser_calls { return Ok(result)})*
+            Err(state.report_error(ParseErrorSpecifics::ExpectedCharacterClass { name: #name }))
+        );
+        Ok(generate_rule_parse_function(
+            parser_name,
+            rule_type,
+            parse_body,
         ))
     }
 

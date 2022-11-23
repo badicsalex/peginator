@@ -6,7 +6,7 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::common::safe_ident;
+use super::common::{generate_rule_parse_function, safe_ident};
 use crate::grammar::ExternRule;
 
 impl ExternRule {
@@ -20,33 +20,27 @@ impl ExternRule {
         let name_idents = self.directive.name_parts.iter().map(safe_ident);
         let function_ident = quote!(#(#name_idents)::*);
 
-        let rule_ident = safe_ident(&self.name);
+        let rule_type = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
 
-        Ok((
-            quote!(pub type #rule_ident = #result_type;),
-            quote!(
-            #[inline]
-                pub(super) fn #parser_name <'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>
-                ) -> ParseResult<'a, #rule_ident> {
-                    match #function_ident(state.s()) {
-                        Ok((result, advance)) => {
-                            Ok(ParseOk {
-                                result: result.into(),
-                                state: state.advance_safe(advance),
-                            })
-                        },
-                        Err(error_string) => {
-                            Err(state.report_error(ParseErrorSpecifics::ExternRuleFailed {
-                                error_string,
-                            }))
-                        }
-                    }
+        let parse_body = quote!(
+            match #function_ident(state.s()) {
+                Ok((result, advance)) => {
+                    Ok(ParseOk {
+                        result: result.into(),
+                        state: state.advance_safe(advance),
+                    })
+                },
+                Err(error_string) => {
+                    Err(state.report_error(ParseErrorSpecifics::ExternRuleFailed {
+                        error_string,
+                    }))
                 }
-            ),
+            }
+        );
+        Ok((
+            quote!(pub type #rule_type = #result_type;),
+            generate_rule_parse_function(parser_name, rule_type, parse_body),
         ))
     }
 }

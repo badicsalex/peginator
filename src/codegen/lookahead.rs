@@ -6,7 +6,7 @@ use anyhow::{bail, Result};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::common::{Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{generate_inner_parse_function, Codegen, CodegenSettings, FieldDescriptor};
 use crate::grammar::{Grammar, NegativeLookahead, PositiveLookahead};
 
 impl Codegen for NegativeLookahead {
@@ -17,22 +17,17 @@ impl Codegen for NegativeLookahead {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let body = self.expr.generate_code(rule_fields, grammar, settings)?;
+        let parse_body = quote!(match negative_lookahead::parse(state.clone(), global) {
+            Ok(_) => Err(state.report_error(ParseErrorSpecifics::NegativeLookaheadFailed)),
+            Err(_) => Ok(ParseOk { result: (), state }),
+        });
+        let parse_function = generate_inner_parse_function(parse_body);
         Ok(quote!(
             mod negative_lookahead{
                 use super::*;
                 #body
             }
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                match negative_lookahead::parse (state.clone(), tracer, cache) {
-                    Ok(_) => Err(state.report_error(ParseErrorSpecifics::NegativeLookaheadFailed)),
-                    Err(_) => Ok(ParseOk{result:(), state}),
-                }
-            }
+            #parse_function
         ))
     }
 
@@ -52,20 +47,17 @@ impl Codegen for PositiveLookahead {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         let body = self.expr.generate_code(rule_fields, grammar, settings)?;
+        let parse_body = quote!(
+            positive_lookahead::parse (state.clone(), global)?;
+            Ok(ParseOk{result:(), state})
+        );
+        let parse_function = generate_inner_parse_function(parse_body);
         Ok(quote!(
             mod positive_lookahead{
                 use super::*;
                 #body
             }
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                positive_lookahead::parse (state.clone(), tracer, cache)?;
-                Ok(ParseOk{result:(), state})
-            }
+            #parse_function
         ))
     }
 

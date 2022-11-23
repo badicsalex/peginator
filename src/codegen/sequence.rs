@@ -8,7 +8,10 @@ use anyhow::Result;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
-use super::common::{safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{
+    generate_inner_parse_function, safe_ident, Arity, CloneState, Codegen, CodegenSettings,
+    FieldDescriptor,
+};
 use crate::grammar::{Grammar, Sequence};
 
 impl Codegen for Sequence {
@@ -19,16 +22,10 @@ impl Codegen for Sequence {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         if self.parts.is_empty() {
-            return Ok(quote!(
-                #[inline(always)]
-                pub fn parse<'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>,
-                ) -> ParseResult<'a, Parsed> {
-                    Ok(ParseOk { result: (), state })
-                }
-            ));
+            return Ok(generate_inner_parse_function(quote!(Ok(ParseOk {
+                result: (),
+                state
+            }))));
         }
         if self.parts.len() < 2 {
             return self.parts[0].generate_code_spec(rule_fields, grammar, settings);
@@ -116,7 +113,7 @@ impl Sequence {
             {
                 inline_body
             } else {
-                quote!(#part_mod::parse(state, tracer, cache))
+                quote!(#part_mod::parse(state, global))
             };
             let call = if inner_fields.is_empty() {
                 quote!(
@@ -177,16 +174,10 @@ impl Sequence {
         } else {
             quote!(Parsed{ #( #field_names,)* })
         };
-        Ok(quote!(
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                #calls
-                Ok(ParseOk{result:#parse_result, state})
-            }
-        ))
+        let parse_body = quote!(
+            #calls
+            Ok(ParseOk{result:#parse_result, state})
+        );
+        Ok(generate_inner_parse_function(parse_body))
     }
 }

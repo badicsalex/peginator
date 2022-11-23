@@ -2,17 +2,13 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use super::{ParseErrorSpecifics, ParseOk, ParseResult, ParseState, ParseTracer};
+use super::{ParseErrorSpecifics, ParseOk, ParseResult, ParseState};
 
 /// Hand-written 'rule parser' for parsing a single cahracter.
 ///
 /// Should always look just like all the other generated parse functions.
 #[inline(always)]
-pub fn parse_char<'a, _CT>(
-    state: ParseState<'a>,
-    _tracer: impl ParseTracer,
-    _cache: &_CT,
-) -> ParseResult<'a, char> {
+pub fn parse_char<_GT>(state: ParseState, _global: _GT) -> ParseResult<char> {
     let result = state.s().chars().next().ok_or_else(|| {
         state
             .clone()
@@ -32,11 +28,7 @@ pub fn parse_char<'a, _CT>(
 /// Should always look just like all the other generated parse functions.
 #[inline]
 #[allow(non_snake_case)]
-pub fn parse_Whitespace<'a, _CT>(
-    state: ParseState<'a>,
-    _tracer: impl ParseTracer,
-    _cache: &_CT,
-) -> ParseResult<'a, ()> {
+pub fn parse_Whitespace<_GT>(state: ParseState, _global: _GT) -> ParseResult<()> {
     let mut state = state;
     while !state.is_empty() {
         if state.s().as_bytes()[0].is_ascii_whitespace() {

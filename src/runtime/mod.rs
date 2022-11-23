@@ -9,6 +9,7 @@ use nohash_hasher::BuildNoHashHasher;
 mod builtin_parsers;
 mod choice_helper;
 mod error;
+mod global;
 mod parse_result;
 mod peg_parser;
 mod state;
@@ -21,6 +22,7 @@ pub use builtin_parsers::{
 };
 pub use choice_helper::ChoiceHelper;
 pub use error::{ParseError, ParseErrorSpecifics, PrettyParseError};
+pub use global::ParseGlobal;
 pub use parse_result::{ParseOk, ParseResult, ParseResultExtras};
 pub use peg_parser::{ParseSettings, PegParser};
 pub use state::ParseState;

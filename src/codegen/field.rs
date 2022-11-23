@@ -27,7 +27,7 @@ impl Codegen for Field {
         let parser_call = generate_skip_ws(
             settings,
             &format!("parse_{}", self.typ),
-            quote!(tracer, cache),
+            quote!(&mut *global),
             clone_state,
         );
         Ok(Some(quote!(#parser_call #postprocess)))
@@ -59,7 +59,7 @@ impl Codegen for OverrideField {
         let parser_call = generate_skip_ws(
             settings,
             &format!("parse_{}", self.typ),
-            quote!(tracer, cache),
+            quote!(global),
             clone_state,
         );
         Ok(Some(quote!(#parser_call #postprocess)))

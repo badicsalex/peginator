@@ -6,7 +6,10 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::common::{safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor};
+use super::common::{
+    generate_inner_parse_function, safe_ident, Arity, CloneState, Codegen, CodegenSettings,
+    FieldDescriptor,
+};
 use crate::grammar::{Grammar, Optional};
 
 impl Codegen for Optional {
@@ -31,18 +34,13 @@ impl Codegen for Optional {
                 use super::*;
                 #inner_body
             });
-            parse_call = quote!(optional::parse(state.clone(), tracer, cache));
+            parse_call = quote!(optional::parse(state.clone(), global));
         };
+        let parse_body = quote!(#parse_call #postprocess);
+        let parse_function = generate_inner_parse_function(parse_body);
         Ok(quote!(
             #body
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                #parse_call #postprocess
-            }
+            #parse_function
         ))
     }
 

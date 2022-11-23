@@ -96,16 +96,7 @@ pub trait Codegen {
         if let Some(parse_body) =
             self.generate_inline_body(rule_fields, grammar, settings, CloneState::No)?
         {
-            Ok(quote!(
-                #[inline(always)]
-                pub fn parse<'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>
-                ) -> ParseResult<'a, Parsed> {
-                    #parse_body
-                }
-            ))
+            Ok(generate_inner_parse_function(parse_body))
         } else {
             panic!(
                 "Neither generate_code_spec, nor generate_inline_body was implemented for {}",
@@ -199,7 +190,7 @@ pub fn generate_skip_ws(
     };
     if settings.skip_whitespace {
         quote!(
-            parse_Whitespace( #state, tracer, cache).and_then(|ParseOk{state, ..}| {
+            parse_Whitespace( #state, &mut * global ).and_then(|ParseOk{state, ..}| {
                 #parse_fn_ident (state, #additional_params)
             })
         )
@@ -318,6 +309,34 @@ pub fn generate_enum_type(
         #derives
         pub enum #ident {
             #(#type_idents(#type_idents),)*
+        }
+    )
+}
+
+pub fn generate_inner_parse_function(parse_body: TokenStream) -> TokenStream {
+    quote!(
+        #[inline(always)]
+        pub fn parse<'a, TT: ParseTracer, TUD>(
+            state: ParseState<'a>,
+            global: &mut ParseGlobal<TT, ParseCache<'a>, TUD>,
+        ) -> ParseResult<'a, Parsed> {
+            #parse_body
+        }
+    )
+}
+
+pub fn generate_rule_parse_function(
+    parser_name: Ident,
+    rule_type: Ident,
+    parse_body: TokenStream,
+) -> TokenStream {
+    quote!(
+        #[inline]
+        pub(super) fn #parser_name <'a, TT: ParseTracer, TUD>(
+            state: ParseState<'a>,
+            global: &mut ParseGlobal<TT, ParseCache<'a>, TUD>,
+        ) -> ParseResult<'a, #rule_type> {
+            #parse_body
         }
     )
 }

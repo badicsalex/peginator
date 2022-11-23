@@ -7,7 +7,8 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
 use super::common::{
-    generate_field_type, safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor,
+    generate_field_type, generate_inner_parse_function, safe_ident, Arity, CloneState, Codegen,
+    CodegenSettings, FieldDescriptor,
 };
 use crate::grammar::{Closure, Grammar};
 
@@ -28,7 +29,7 @@ impl Codegen for Closure {
             parse_call = inline_body;
         } else {
             closure_body = self.body.generate_code(rule_fields, grammar, settings)?;
-            parse_call = quote!(closure::parse(state.clone(), tracer, cache));
+            parse_call = quote!(closure::parse(state.clone(), global));
         };
 
         let fields = self.body.get_filtered_rule_fields(rule_fields, grammar)?;
@@ -66,37 +67,35 @@ impl Codegen for Closure {
         } else {
             quote!()
         };
+        let parse_body = quote!(
+            let mut iterations:usize = 0;
+            let mut state = state;
+            #declarations
+            loop {
+                match #parse_call {
+                    Ok(ParseOk{result: __result, state:new_state, ..}) => {
+                        #assignments
+                        state = new_state;
+                    },
+                    Err(err) => {
+                        state = state.record_error(err);
+                        break;
+                    }
+                }
+                iterations += 1;
+            }
+            #at_least_one_check
+            Ok(ParseOk{result:#parse_result, state})
+
+        );
+        let parse_function = generate_inner_parse_function(parse_body);
 
         Ok(quote!(
             mod closure{
                 use super::*;
                 #closure_body
             }
-            #[inline(always)]
-            pub fn parse<'a>(
-                state: ParseState<'a>,
-                tracer: impl ParseTracer,
-                cache: &mut ParseCache<'a>
-            ) -> ParseResult<'a, Parsed> {
-                let mut iterations:usize = 0;
-                let mut state = state;
-                #declarations
-                loop {
-                    match #parse_call {
-                        Ok(ParseOk{result: __result, state:new_state, ..}) => {
-                            #assignments
-                            state = new_state;
-                        },
-                        Err(err) => {
-                            state = state.record_error(err);
-                            break;
-                        }
-                    }
-                    iterations += 1;
-                }
-                #at_least_one_check
-                Ok(ParseOk{result:#parse_result, state})
-            }
+            #parse_function
         ))
     }
 

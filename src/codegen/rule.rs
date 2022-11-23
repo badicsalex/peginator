@@ -7,8 +7,9 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
 use super::common::{
-    generate_derives, generate_enum_type, generate_field_type, safe_ident, Arity, Codegen,
-    CodegenRule, CodegenSettings, FieldDescriptor, PublicType, RecordPosition,
+    generate_derives, generate_enum_type, generate_field_type, generate_rule_parse_function,
+    safe_ident, Arity, Codegen, CodegenRule, CodegenSettings, FieldDescriptor, PublicType,
+    RecordPosition,
 };
 use crate::grammar::{DirectiveExpression, Grammar, Rule};
 
@@ -34,7 +35,7 @@ impl CodegenRule for Rule {
         let parser_name = format_ident!("parse_{name}");
         let choice_body = self.definition.generate_code(&fields, grammar, &settings)?;
 
-        let (types, inner_code) = if flags.string {
+        let (types, inner_decls, parse_body) = if flags.string {
             self.generate_string_rule(&settings)?
         } else if fields.len() == 1 && fields[0].name == "_override" {
             self.generate_override_rule(&fields, &settings)?
@@ -42,9 +43,16 @@ impl CodegenRule for Rule {
             self.generate_normal_rule(&fields, grammar, &settings, flags.position.into())?
         };
 
-        let position_impls = self.generate_impl_position(&fields);
+        let rule_parser_call = self.generate_memoized_body(parse_body);
+        let parse_body = quote!(
+            global.tracer.print_trace_start(&state, #name);
+            let result = { #rule_parser_call };
+            global.tracer.print_trace_result(&result);
+            result
+        );
 
-        let rule_parser_call = self.generate_memoized_rule_call();
+        let parse_function = generate_rule_parse_function(parser_name, rule_type, parse_body);
+        let position_impls = self.generate_impl_position(&fields);
 
         Ok((
             types,
@@ -52,21 +60,9 @@ impl CodegenRule for Rule {
                 mod #rule_mod{
                     use super::*;
                     #choice_body
-                    #inner_code
+                    #inner_decls
                 }
-                #[inline]
-                pub(super) fn #parser_name <'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>
-                ) -> ParseResult<'a, #rule_type> {
-                    tracer.run_traced(
-                        #name, state,
-                        |state, tracer| {
-                            #rule_parser_call
-                        },
-                    )
-                }
+                #parse_function
                 #position_impls
             ),
         ))
@@ -116,7 +112,8 @@ impl Rule {
     fn generate_string_rule(
         &self,
         settings: &CodegenSettings,
-    ) -> Result<(TokenStream, TokenStream)> {
+    ) -> Result<(TokenStream, TokenStream, TokenStream)> {
+        let rule_mod = self.rule_module_ident();
         let rule_type_ident = safe_ident(&self.name);
         let check_calls = self.generate_check_calls()?;
         let flags = self.flags();
@@ -142,24 +139,18 @@ impl Rule {
         };
         Ok((
             type_decl,
+            quote!(),
             quote!(
-                #[inline(always)]
-                pub fn rule_parser<'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>,
-                ) -> ParseResult<'a, #rule_type_ident> {
-                    let result =
-                        parse(state.clone(), tracer, cache)?
-                        .map_with_state(
-                            |_, new_state| {
-                                let string = state.slice_until(new_state).to_string();
-                                #return_value
-                            }
-                        );
-                    #check_calls
-                    Ok(result)
-                }
+                let result =
+                    #rule_mod::parse(state.clone(), global)?
+                    .map_with_state(
+                        |_, new_state| {
+                            let string = state.slice_until(new_state).to_string();
+                            #return_value
+                        }
+                    );
+                #check_calls
+                Ok(result)
             ),
         ))
     }
@@ -167,7 +158,7 @@ impl Rule {
         &self,
         fields: &[FieldDescriptor],
         settings: &CodegenSettings,
-    ) -> Result<(TokenStream, TokenStream)> {
+    ) -> Result<(TokenStream, TokenStream, TokenStream)> {
         let field = &fields[0];
         if field.type_names.len() <= 1 {
             let flags = self.flags();
@@ -190,7 +181,8 @@ impl Rule {
         &self,
         field: &FieldDescriptor,
         settings: &CodegenSettings,
-    ) -> Result<(TokenStream, TokenStream)> {
+    ) -> Result<(TokenStream, TokenStream, TokenStream)> {
+        let rule_mod = self.rule_module_ident();
         let rule_type = safe_ident(&self.name);
         let override_type = generate_field_type(&self.name, field, settings);
         let check_calls = self.generate_check_calls()?;
@@ -200,16 +192,11 @@ impl Rule {
             ),
             quote!(
                 use super::#rule_type as Parsed__override;
-                #[inline(always)]
-                pub fn rule_parser <'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>
-                ) -> ParseResult<'a, super::#rule_type> {
-                    let result = parse(state, tracer, cache)?;
-                    #check_calls
-                    Ok(result)
-                }
+            ),
+            quote!(
+                let result = #rule_mod::parse(state, global)?;
+                #check_calls
+                Ok(result)
             ),
         ))
     }
@@ -218,7 +205,8 @@ impl Rule {
         &self,
         field: &FieldDescriptor,
         settings: &CodegenSettings,
-    ) -> Result<(TokenStream, TokenStream)> {
+    ) -> Result<(TokenStream, TokenStream, TokenStream)> {
+        let rule_mod = self.rule_module_ident();
         let rule_type = safe_ident(&self.name);
         let enum_type = generate_enum_type(&self.name, field, settings);
         let check_calls = self.generate_check_calls()?;
@@ -228,16 +216,11 @@ impl Rule {
             ),
             quote!(
                 use super::#rule_type as Parsed__override;
-                #[inline(always)]
-                pub fn rule_parser <'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>
-                ) -> ParseResult<'a, super::#rule_type> {
-                    let result = parse(state, tracer, cache)?;
-                    #check_calls
-                    Ok(result)
-                }
+            ),
+            quote!(
+                let result = #rule_mod::parse(state, global)?;
+                #check_calls
+                Ok(result)
             ),
         ))
     }
@@ -248,7 +231,8 @@ impl Rule {
         grammar: &Grammar,
         settings: &CodegenSettings,
         record_position: RecordPosition,
-    ) -> Result<(TokenStream, TokenStream)> {
+    ) -> Result<(TokenStream, TokenStream, TokenStream)> {
+        let rule_mod = self.rule_module_ident();
         let rule_type = safe_ident(&self.name);
         let parsed_enum_types: TokenStream = fields
             .iter()
@@ -284,7 +268,7 @@ impl Rule {
         let rule_parser_body = if record_position == RecordPosition::Yes {
             quote!(
                 let result =
-                    parse(state.clone(), tracer, cache)?
+                    #rule_mod::parse(state.clone(), global)?
                     .map_with_state(
                         |r, new_state| super::#rule_type{
                             #field_assignments
@@ -297,7 +281,7 @@ impl Rule {
         } else {
             quote!(
                 let result =
-                    parse(state, tracer, cache)?
+                    #rule_mod::parse(state, global)?
                     .map(
                         |r| super::#rule_type{
                             #field_assignments
@@ -312,17 +296,8 @@ impl Rule {
                 #parsed_struct_type
                 #parsed_enum_types
             ),
-            quote!(
-                #inner_enum_uses
-                #[inline(always)]
-                pub fn rule_parser <'a>(
-                    state: ParseState<'a>,
-                    tracer: impl ParseTracer,
-                    cache: &mut ParseCache<'a>
-                ) -> ParseResult<'a, super::#rule_type> {
-                    #rule_parser_body
-                }
-            ),
+            inner_enum_uses,
+            rule_parser_body,
         ))
     }
 
@@ -380,41 +355,41 @@ impl Rule {
         }
     }
 
-    fn generate_memoized_rule_call(&self) -> TokenStream {
+    fn generate_memoized_body(&self, parse_body: TokenStream) -> TokenStream {
         let flags = self.flags();
         let cache_entry_ident = format_ident!("c_{}", self.name);
-        let rule_mod = self.rule_module_ident();
         if flags.left_recursive {
             quote!(
                 let cache_key = state.cache_key();
-                if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
-                    tracer.print_informative("Cache hit (left recursive)");
+                if let Some(cached) = global.cache.#cache_entry_ident.get(&cache_key) {
+                    global.tracer.print_informative("Cache hit (left recursive)");
                     cached.clone()
                 } else {
                     let mut best_result = Err(state.clone().report_error(ParseErrorSpecifics::LeftRecursionSentinel));
-                    cache.#cache_entry_ident.insert(cache_key, best_result.clone());
+                    global.cache.#cache_entry_ident.insert(cache_key, best_result.clone());
                     loop {
-                        tracer.print_informative("Starting new left recursive loop");
-                        let new_result = #rule_mod::rule_parser(state.clone(), tracer, cache);
+                        global.tracer.print_informative("Starting new left recursive loop");
+                        let state = state.clone();
+                        let new_result = { #parse_body };
                         match (new_result, &best_result) {
                             (Ok(nro), Ok(bro)) => {
                                 if nro.state.is_further_than(&bro.state) {
                                     best_result = Ok(nro);
-                                    cache.#cache_entry_ident.insert(cache_key, best_result.clone());
+                                    global.cache.#cache_entry_ident.insert(cache_key, best_result.clone());
                                 } else {
                                     break;
                                 }
                             }
                             (Ok(nro), Err(bre)) => {
                                 best_result = Ok(nro);
-                                cache.#cache_entry_ident.insert(cache_key, best_result.clone());
+                                global.cache.#cache_entry_ident.insert(cache_key, best_result.clone());
                             }
                             (Err(nre), Ok(bro)) => {
                                 break;
                             }
                             (Err(nre), Err(bre)) => {
                                 best_result = Err(nre);
-                                cache.#cache_entry_ident.insert(cache_key, best_result.clone());
+                                global.cache.#cache_entry_ident.insert(cache_key, best_result.clone());
                                 break;
                             }
                         }
@@ -425,17 +400,17 @@ impl Rule {
         } else if flags.memoize {
             quote!(
                 let cache_key = state.cache_key();
-                if let Some(cached) = cache.#cache_entry_ident.get(&cache_key) {
-                    tracer.print_informative("Cache hit");
+                if let Some(cached) = global.cache.#cache_entry_ident.get(&cache_key) {
+                    global.tracer.print_informative("Cache hit");
                     cached.clone()
                 } else {
-                    let result = #rule_mod::rule_parser(state, tracer, cache);
-                    cache.#cache_entry_ident.insert(cache_key, result.clone());
+                    let result = { #parse_body };
+                    global.cache.#cache_entry_ident.insert(cache_key, result.clone());
                     result
                 }
             )
         } else {
-            quote!(#rule_mod::rule_parser(state, tracer, cache))
+            parse_body
         }
     }
 
