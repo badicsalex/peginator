@@ -46,7 +46,7 @@ impl Codegen for Choice {
             .collect::<Result<TokenStream>>()?;
         let parse_body =
             self.generate_parse_body(rule_fields, grammar, settings, CloneState::No)?;
-        let parse_function = generate_inner_parse_function(parse_body);
+        let parse_function = generate_inner_parse_function(parse_body, settings);
         Ok(quote!(
             #choice_bodies
             #parse_function

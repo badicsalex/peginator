@@ -22,10 +22,10 @@ impl Codegen for Sequence {
         settings: &CodegenSettings,
     ) -> Result<TokenStream> {
         if self.parts.is_empty() {
-            return Ok(generate_inner_parse_function(quote!(Ok(ParseOk {
-                result: (),
-                state
-            }))));
+            return Ok(generate_inner_parse_function(
+                quote!(Ok(ParseOk { result: (), state })),
+                settings,
+            ));
         }
         if self.parts.len() < 2 {
             return self.parts[0].generate_code_spec(rule_fields, grammar, settings);
@@ -178,6 +178,6 @@ impl Sequence {
             #calls
             Ok(ParseOk{result:#parse_result, state})
         );
-        Ok(generate_inner_parse_function(parse_body))
+        Ok(generate_inner_parse_function(parse_body, settings))
     }
 }

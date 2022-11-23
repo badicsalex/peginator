@@ -51,7 +51,8 @@ impl CodegenRule for Rule {
             result
         );
 
-        let parse_function = generate_rule_parse_function(parser_name, rule_type, parse_body);
+        let parse_function =
+            generate_rule_parse_function(parser_name, rule_type, parse_body, &settings);
         let position_impls = self.generate_impl_position(&fields);
 
         Ok((
@@ -304,7 +305,7 @@ impl Rule {
     fn generate_check_calls(&self) -> Result<TokenStream> {
         let check_name_parts = self.directives.iter().filter_map(|d| {
             if let DirectiveExpression::CheckDirective(c) = d {
-                Some(&c.name_parts)
+                Some(&c.function)
             } else {
                 None
             }

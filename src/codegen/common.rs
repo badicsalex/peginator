@@ -15,6 +15,7 @@ pub struct CodegenSettings {
     pub skip_whitespace: bool,
     pub peginator_crate_name: String,
     pub derives: Vec<String>,
+    pub user_defined_type: TokenStream,
 }
 
 impl Default for CodegenSettings {
@@ -23,7 +24,15 @@ impl Default for CodegenSettings {
             skip_whitespace: true,
             peginator_crate_name: "peginator".into(),
             derives: vec!["Debug".into(), "Clone".into()],
+            user_defined_type: quote!(()),
         }
+    }
+}
+
+impl CodegenSettings {
+    pub fn set_user_defined_type(&mut self, t: &str) {
+        let idents = t.split("::").map(safe_ident);
+        self.user_defined_type = quote!(#(#idents)::*);
     }
 }
 
@@ -96,7 +105,7 @@ pub trait Codegen {
         if let Some(parse_body) =
             self.generate_inline_body(rule_fields, grammar, settings, CloneState::No)?
         {
-            Ok(generate_inner_parse_function(parse_body))
+            Ok(generate_inner_parse_function(parse_body, settings))
         } else {
             panic!(
                 "Neither generate_code_spec, nor generate_inline_body was implemented for {}",
@@ -313,12 +322,16 @@ pub fn generate_enum_type(
     )
 }
 
-pub fn generate_inner_parse_function(parse_body: TokenStream) -> TokenStream {
+pub fn generate_inner_parse_function(
+    parse_body: TokenStream,
+    settings: &CodegenSettings,
+) -> TokenStream {
+    let user_defined_type = &settings.user_defined_type;
     quote!(
         #[inline(always)]
-        pub fn parse<'a, TT: ParseTracer, TUD>(
+        pub fn parse<'a, TT: ParseTracer>(
             state: ParseState<'a>,
-            global: &mut ParseGlobal<TT, ParseCache<'a>, TUD>,
+            global: &mut ParseGlobal<TT, ParseCache<'a>, #user_defined_type>,
         ) -> ParseResult<'a, Parsed> {
             #parse_body
         }
@@ -329,12 +342,14 @@ pub fn generate_rule_parse_function(
     parser_name: Ident,
     rule_type: Ident,
     parse_body: TokenStream,
+    settings: &CodegenSettings,
 ) -> TokenStream {
+    let user_defined_type = &settings.user_defined_type;
     quote!(
         #[inline]
-        pub(super) fn #parser_name <'a, TT: ParseTracer, TUD>(
+        pub(super) fn #parser_name <'a, TT: ParseTracer>(
             state: ParseState<'a>,
-            global: &mut ParseGlobal<TT, ParseCache<'a>, TUD>,
+            global: &mut ParseGlobal<TT, ParseCache<'a>, #user_defined_type>,
         ) -> ParseResult<'a, #rule_type> {
             #parse_body
         }

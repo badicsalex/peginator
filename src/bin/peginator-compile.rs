@@ -10,6 +10,7 @@ use colored::*;
 use peginator::codegen::{generate_source_header, CodegenGrammar, CodegenSettings};
 use peginator::grammar::Grammar;
 use peginator::{PegParser, PrettyParseError};
+use quote::quote;
 
 /// Compile EBNF grammar into rust parser code.
 #[derive(Parser, Debug)]
@@ -56,6 +57,7 @@ fn main_wrap() -> Result<()> {
         } else {
             args.derives
         },
+        user_defined_type: quote!(()),
     };
     let generated_code = parsed_grammar.generate_code(&settings)?;
     println!("{}", generate_source_header(&grammar, false));

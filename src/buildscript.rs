@@ -149,6 +149,12 @@ impl Compile {
         Compile { prefix, ..self }
     }
 
+    /// Set the type of global.user_defined. Experimental feature, may change without notice.
+    pub fn user_defined_type(mut self, user_defined_type: &str) -> Self {
+        self.settings.set_user_defined_type(user_defined_type);
+        self
+    }
+
     fn run_on_single_file(&self, source: &PathBuf, destination: &PathBuf) -> Result<()> {
         let grammar = fs::read_to_string(source)?;
         let source_header = format!(

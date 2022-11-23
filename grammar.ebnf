@@ -130,13 +130,16 @@ ExportDirective = "@export";
 PositionDirective = "@position";
 MemoizeDirective = "@memoize";
 LeftrecDirective = "@leftrec";
-CheckDirective = "@check" "(" name_parts:RustNamePart { '::' name_parts:RustNamePart } ")";
+CheckDirective = "@check" "(" function:NamespacedRustName ")";
 ExternDirective = 
     "@extern" "("
-        name_parts:RustNamePart { '::' name_parts:RustNamePart } 
-        [ '->' type_parts:RustNamePart { '::' type_parts:RustNamePart } ]
+        ( function:UserDefinedMethod | function:NamespacedRustName )
+        [ '->' return_type:NamespacedRustName ]
     ")"
     ;
+
+UserDefinedMethod = "user_defined" "." @:RustNamePart;
+NamespacedRustName = @:RustNamePart { '::' @:RustNamePart };
 
 @string
 RustNamePart = {!( '-' | ')' |':' ) char}+;

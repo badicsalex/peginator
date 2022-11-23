@@ -37,7 +37,7 @@ impl Codegen for Optional {
             parse_call = quote!(optional::parse(state.clone(), global));
         };
         let parse_body = quote!(#parse_call #postprocess);
-        let parse_function = generate_inner_parse_function(parse_body);
+        let parse_function = generate_inner_parse_function(parse_body, settings);
         Ok(quote!(
             #body
             #parse_function

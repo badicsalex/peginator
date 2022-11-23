@@ -6,7 +6,10 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::common::{generate_rule_parse_function, safe_ident};
+use super::{
+    common::{generate_rule_parse_function, safe_ident},
+    CodegenSettings,
+};
 use crate::grammar::{CharRule, CharRulePart};
 
 impl CharRulePart {
@@ -30,7 +33,7 @@ impl CharRulePart {
 }
 
 impl CharRule {
-    pub fn generate_code(&self) -> Result<TokenStream> {
+    pub fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let name = &self.name;
         let rule_type = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
@@ -50,6 +53,7 @@ impl CharRule {
             parser_name,
             rule_type,
             parse_body,
+            settings,
         ))
     }
 
@@ -59,7 +63,7 @@ impl CharRule {
         }
         let name = &self.name;
         let check_idents = self.directives.iter().map(|d| {
-            let part_idents = d.name_parts.iter().map(safe_ident);
+            let part_idents = d.function.iter().map(safe_ident);
             quote!(#(#part_idents)::*)
         });
 

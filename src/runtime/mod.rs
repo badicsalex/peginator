@@ -24,7 +24,7 @@ pub use choice_helper::ChoiceHelper;
 pub use error::{ParseError, ParseErrorSpecifics, PrettyParseError};
 pub use global::ParseGlobal;
 pub use parse_result::{ParseOk, ParseResult, ParseResultExtras};
-pub use peg_parser::{ParseSettings, PegParser};
+pub use peg_parser::{ParseSettings, PegParser, PegParserAdvanced};
 pub use state::ParseState;
 pub use trace::{IndentedTracer, NoopTracer, ParseTracer};
 

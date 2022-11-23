@@ -88,7 +88,7 @@ impl Codegen for Closure {
             Ok(ParseOk{result:#parse_result, state})
 
         );
-        let parse_function = generate_inner_parse_function(parse_body);
+        let parse_function = generate_inner_parse_function(parse_body, settings);
 
         Ok(quote!(
             mod closure{

@@ -6,19 +6,30 @@ use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::common::{generate_rule_parse_function, safe_ident};
-use crate::grammar::ExternRule;
+use super::{
+    common::{generate_rule_parse_function, safe_ident},
+    CodegenSettings,
+};
+use crate::grammar::{ExternDirective_function, ExternRule};
 
 impl ExternRule {
-    pub fn generate_code(&self) -> Result<(TokenStream, TokenStream)> {
-        let result_type = if self.directive.type_parts.is_empty() {
-            quote!(String)
-        } else {
-            let part_idents = self.directive.type_parts.iter().map(safe_ident);
+    pub fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)> {
+        let return_type = if let Some(return_type) = &self.directive.return_type {
+            let part_idents = return_type.iter().map(safe_ident);
             quote!(#(#part_idents)::*)
+        } else {
+            quote!(String)
         };
-        let name_idents = self.directive.name_parts.iter().map(safe_ident);
-        let function_ident = quote!(#(#name_idents)::*);
+        let function_ident = match &self.directive.function {
+            ExternDirective_function::NamespacedRustName(name) => {
+                let name_idents = name.iter().map(safe_ident);
+                quote!(#(#name_idents)::*)
+            }
+            ExternDirective_function::UserDefinedMethod(name) => {
+                let name_ident = safe_ident(name);
+                quote!( global . user_defined . #name_ident )
+            }
+        };
 
         let rule_type = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
@@ -39,8 +50,8 @@ impl ExternRule {
             }
         );
         Ok((
-            quote!(pub type #rule_type = #result_type;),
-            generate_rule_parse_function(parser_name, rule_type, parse_body),
+            quote!(pub type #rule_type = #return_type;),
+            generate_rule_parse_function(parser_name, rule_type, parse_body, settings),
         ))
     }
 }

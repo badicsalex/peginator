@@ -21,7 +21,7 @@ impl Codegen for NegativeLookahead {
             Ok(_) => Err(state.report_error(ParseErrorSpecifics::NegativeLookaheadFailed)),
             Err(_) => Ok(ParseOk { result: (), state }),
         });
-        let parse_function = generate_inner_parse_function(parse_body);
+        let parse_function = generate_inner_parse_function(parse_body, settings);
         Ok(quote!(
             mod negative_lookahead{
                 use super::*;
@@ -51,7 +51,7 @@ impl Codegen for PositiveLookahead {
             positive_lookahead::parse (state.clone(), global)?;
             Ok(ParseOk{result:(), state})
         );
-        let parse_function = generate_inner_parse_function(parse_body);
+        let parse_function = generate_inner_parse_function(parse_body, settings);
         Ok(quote!(
             mod positive_lookahead{
                 use super::*;
