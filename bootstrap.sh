@@ -1,8 +1,12 @@
 #/usr/bin/env sh
-cargo run \
-    --bin peginator-compile -- \
-    -p crate \
-    grammar.ebnf \
-    >src/grammar/generated2.rs &&\
-    mv src/grammar/generated2.rs src/grammar/generated.rs &&\
-    rustfmt src/grammar/generated.rs
+
+OUTPUT="src/grammar/generated.rs"
+
+if cargo run -- -p crate grammar.ebnf | rustfmt > $OUTPUT.new; then
+    if mv -f $OUTPUT.new $OUTPUT; then
+        exit 0
+    fi
+fi
+
+rm -f $OUTPUT.new
+exit 1
