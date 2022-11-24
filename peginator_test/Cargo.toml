@@ -18,4 +18,4 @@ peginator = { path = "../" }
 peginator = { path = "../" }
 
 [dev-dependencies]
-ntest = "0.7.5"
+ntest = "0.9"
