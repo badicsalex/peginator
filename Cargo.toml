@@ -1,5 +1,5 @@
 [workspace]
-members = ["peginator_macro", "peginator_test"]
+members = ["macro", "test"]
 
 [package]
 name = "peginator"
