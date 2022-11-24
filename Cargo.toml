@@ -1,5 +1,5 @@
 [workspace]
-members = ["macro", "test"]
+members = ["macro", "test", "runtime"]
 
 [package]
 name = "peginator"
@@ -18,10 +18,10 @@ license = "MIT"
 name = "peginator-compile"
 
 [dependencies]
+peginator_runtime = { version="=0.4.0", path = "runtime" }
 quote = "1.0"
 proc-macro2 = "1.0"
 anyhow = "1.0"
 clap = { version = "4.0", features = ["derive"]}
 colored = "2.0"
-nohash-hasher = "0.2.0"
 crc = "3.0"

@@ -173,7 +173,7 @@ pub mod buildscript;
 #[doc(hidden)]
 pub mod codegen;
 #[doc(hidden)]
-pub mod runtime;
+pub use peginator_runtime as runtime;
 
 pub use runtime::{
     ParseError, ParseErrorSpecifics, ParseSettings, PegParser, PegPosition, PrettyParseError,
