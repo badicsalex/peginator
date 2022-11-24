@@ -24,4 +24,4 @@ anyhow = "1.0"
 clap = { version = "4.0", features = ["derive"]}
 colored = "2.0"
 nohash-hasher = "0.2.0"
-sha2 = "0.10"
+crc = "3.0"
