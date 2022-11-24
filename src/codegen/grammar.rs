@@ -15,7 +15,6 @@ impl CodegenGrammar for Grammar {
         let mut all_parsers = TokenStream::new();
         let mut all_impls = TokenStream::new();
         let mut cache_entries = TokenStream::new();
-        let peginator_crate = safe_ident(&settings.peginator_crate_name);
         for rule_entry in &self.rules {
             match rule_entry {
                 Grammar_rules::Rule(rule) => {
@@ -79,11 +78,11 @@ impl CodegenGrammar for Grammar {
             )]
             mod peginator_generated {
                 use super::*;
-                pub use #peginator_crate::runtime::{
+                pub use peginator_runtime::{
                     ParseError, ParseSettings, ParseState, PegParser, IndentedTracer, ParseTracer,
                     PegPosition, ParseGlobal, PegParserAdvanced,
                 };
-                use #peginator_crate::runtime::*;
+                use peginator_runtime::*;
 
                 #[derive(Default)]
                 pub struct ParseCache<'a> {

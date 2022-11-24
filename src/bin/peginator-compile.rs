@@ -16,10 +16,6 @@ use quote::quote;
 #[derive(Parser, Debug)]
 #[clap(version, about)]
 struct Args {
-    /// Module path of the built-in peginator code
-    #[clap(short, long, default_value_t = String::from("peginator"))]
-    peginator_crate_name: String,
-
     /// Print the parsed AST and exit
     #[clap(short, long)]
     ast_only: bool,
@@ -51,7 +47,6 @@ fn main_wrap() -> Result<()> {
 
     let settings = CodegenSettings {
         skip_whitespace: true,
-        peginator_crate_name: args.peginator_crate_name,
         derives: if args.derives.is_empty() {
             CodegenSettings::default().derives
         } else {

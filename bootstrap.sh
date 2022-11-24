@@ -2,7 +2,7 @@
 
 OUTPUT="src/grammar/generated.rs"
 
-if cargo run -- -p crate grammar.ebnf | rustfmt > $OUTPUT.new; then
+if cargo run -- grammar.ebnf | rustfmt > $OUTPUT.new; then
     if mv -f $OUTPUT.new $OUTPUT; then
         exit 0
     fi

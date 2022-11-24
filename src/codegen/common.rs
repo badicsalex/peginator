@@ -13,7 +13,6 @@ use crate::grammar::Grammar;
 #[derive(Debug, Clone)]
 pub struct CodegenSettings {
     pub skip_whitespace: bool,
-    pub peginator_crate_name: String,
     pub derives: Vec<String>,
     pub user_defined_type: TokenStream,
 }
@@ -22,7 +21,6 @@ impl Default for CodegenSettings {
     fn default() -> Self {
         Self {
             skip_whitespace: true,
-            peginator_crate_name: "peginator".into(),
             derives: vec!["Debug".into(), "Clone".into()],
             user_defined_type: quote!(()),
         }
