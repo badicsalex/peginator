@@ -60,7 +60,7 @@ fn main_wrap() -> Result<()> {
         user_defined_type: quote!(()),
     };
     let generated_code = parsed_grammar.generate_code(&settings)?;
-    println!("{}", generate_source_header(&grammar, false));
+    println!("{}", generate_source_header(&grammar));
     println!("{}", generated_code);
     Ok(())
 }

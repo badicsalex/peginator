@@ -63,7 +63,6 @@ pub struct Compile {
     destination_path: Option<PathBuf>,
     format: bool,
     recursive: bool,
-    use_peginator_build_time: bool,
     settings: CodegenSettings,
     prefix: String,
 }
@@ -75,7 +74,6 @@ impl Compile {
             destination_path: None,
             format: false,
             recursive: false,
-            use_peginator_build_time: false,
             settings: Default::default(),
             prefix: String::new(),
         }
@@ -121,19 +119,6 @@ impl Compile {
         }
     }
 
-    /// Include the build time of the peginator library in the peginator version part of the
-    /// generated header.
-    ///
-    /// In effect, this will recompile grammar files if the peginator library changed without a
-    /// version bump. This is mostly only useful during the development of peginator itself, and is
-    /// only used in the peginator_tests package.
-    pub fn use_peginator_build_time(self) -> Self {
-        Compile {
-            use_peginator_build_time: true,
-            ..self
-        }
-    }
-
     /// Use a specific set of derives when declaring structs.
     ///
     /// The default set is `#[derive(Debug, Clone)]`
@@ -157,11 +142,7 @@ impl Compile {
 
     fn run_on_single_file(&self, source: &PathBuf, destination: &PathBuf) -> Result<()> {
         let grammar = fs::read_to_string(source)?;
-        let source_header = format!(
-            "{}\n{}",
-            generate_source_header(&grammar, self.use_peginator_build_time),
-            self.prefix
-        );
+        let source_header = format!("{}\n{}", generate_source_header(&grammar), self.prefix);
         if let Ok(f) = File::open(destination) {
             let mut existing_header = String::new();
             if f.take(source_header.len() as u64)
