@@ -4,9 +4,7 @@
 
 #![doc = include_str!("../README.md")]
 
-use peginator::codegen::{CodegenGrammar, CodegenSettings};
-use peginator::grammar::Grammar;
-use peginator::PegParser;
+use peginator_codegen::{grammar::Grammar, runtime::PegParser, CodegenGrammar, CodegenSettings};
 use proc_macro::TokenStream;
 
 /// Compile peginator grammar in-place

@@ -5,7 +5,7 @@
 #[allow(non_camel_case_types)]
 mod grammar;
 use grammar::*;
-use peginator::PegParser;
+use peginator_runtime::PegParser;
 
 #[test]
 fn test_macro() {

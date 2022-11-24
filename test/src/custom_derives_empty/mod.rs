@@ -6,7 +6,7 @@ mod grammar;
 use std::fmt::Debug;
 
 use grammar::*;
-use peginator::PegParser;
+use peginator_runtime::PegParser;
 
 impl Clone for Simple {
     fn clone(&self) -> Self {

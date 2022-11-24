@@ -5,7 +5,7 @@
 mod grammar;
 use grammar::*;
 use ntest::timeout;
-use peginator::PegParser;
+use peginator_runtime::PegParser;
 
 #[test]
 #[timeout(1000)]

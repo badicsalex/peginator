@@ -4,10 +4,7 @@
 
 mod grammar;
 use grammar::*;
-use peginator::{
-    runtime::{NoopTracer, PegParserAdvanced},
-    ParseSettings,
-};
+use peginator_runtime::{NoopTracer, ParseSettings, PegParserAdvanced};
 
 pub struct TheState {
     a: u32,

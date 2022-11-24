@@ -4,7 +4,7 @@
 
 mod grammar;
 use grammar::*;
-use peginator::PegParser;
+use peginator_runtime::PegParser;
 
 trait CustomTrait {
     fn numeric(self) -> i32;

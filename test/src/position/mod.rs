@@ -4,7 +4,7 @@
 
 mod grammar;
 use grammar::*;
-use peginator::{runtime::PegPosition, PegParser};
+use peginator_runtime::{PegParser, PegPosition};
 
 #[test]
 fn test_positions() {

@@ -4,7 +4,7 @@
 
 mod grammar;
 use grammar::*;
-use peginator::PegParser;
+use peginator_runtime::PegParser;
 
 use crate::test_utils::assert_type_eq;
 

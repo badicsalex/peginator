@@ -4,7 +4,7 @@
 
 mod grammar;
 use grammar::*;
-use peginator::{PegParser, PrettyParseError};
+use peginator_runtime::{PegParser, PrettyParseError};
 
 const PARSE_ME: &str = "result = (1 - 2 + 3) * (13 - 37 * 4 + 20);";
 

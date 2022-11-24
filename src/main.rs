@@ -145,36 +145,122 @@
 //! To use peginator grammars in your project, you should write the grammar and save it in the
 //! project directory with the `.ebnf` extension.
 //!
-//! Then run the `peginator-compile` command on it, and (optionally) rustfmt:
+//! Then run the `peginator` command on it, and (optionally) rustfmt:
 //!
 //! ```text
-//! peginator-compile your_grammar.ebnf >src/grammar.rs
-//! rustfmt src/grammar.rs
+//! peginator your_grammar.ebnf | rustfmt >src/grammar.rs
+//! ```
+//!
+//! Make sure you also add the `peginator_runtime` crate as a dependency in your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! peginator_runtime = "0.4"
 //! ```
 //!
 //! Once you have compiled your grammar, you can import the types, and the
-//! [`PegParser`] trait, and you can start parsing strings:
+//! [PegParser] trait, and you can start parsing strings:
 //! ```ignore
 //! use crate::grammar::YourRootType;
-//! use peginator::PegParser;
+//! use peginator_runtime::PegParser;
 //!
 //! let parse_result = YourRootType::parse("some string (maybe?)");
 //! println!("{:?}", parse_result);
 //! ```
 //!
-//! Alternatively, you can use a buildscript using the [`buildscript::Compile`] struct.
+//! Alternatively, you can use a buildscript using the [`peginator_codegen::Compile`]
+//! struct by adding `peginator_codegen` as a build dependency in your `Cargo.toml`:
 //!
+//! ```toml
+//! [build-dependencies]
+//! peginator_codegen = "0.4"
+//! ```
+//!
+//! And then in your `build.rs`:
+//!
+//! ```ignore
+//! use peginator_codegen::Compile;
+//!
+//! fn main() {
+//!     let out = format!("{}/grammar.rs", std::env::var("OUT_DIR").unwrap());
+//!
+//!     peginator_codegen::Compile::file("grammar.ebnf")
+//!         .destination(out)
+//!         .format()
+//!         .run_exit_on_error();
+//!
+//!     println!("cargo:rerun-if-changed=grammar.ebnf");
+//! }
+//! ```
+//!
+//! For additional information, see the documentation of the [peginator_codegen] and
+//! [peginator_runtime] crates.
+//!
+//! [peginator_codegen]: https://docs.rs/peginator_codegen/latest/peginator_codegen
+//! [peginator_runtime]: https://docs.rs/peginator_runtime/latest/peginator_runtime
+//! [PegParser]: https://docs.rs/peginator_runtime/latest/peginator_runtime/trait.PegParser.html
 #![doc = include_str!("../doc/syntax.md")]
 
-#[doc(hidden)]
-pub mod grammar;
+use std::fs;
 
-pub mod buildscript;
-#[doc(hidden)]
-pub mod codegen;
-#[doc(hidden)]
-pub use peginator_runtime as runtime;
+use anyhow::Result;
+use clap::Parser;
+use colored::*;
+use peginator_codegen::grammar::Grammar;
+use peginator_codegen::runtime::{PegParser, PrettyParseError};
+use peginator_codegen::{generate_source_header, CodegenGrammar, CodegenSettings};
 
-pub use runtime::{
-    ParseError, ParseErrorSpecifics, ParseSettings, PegParser, PegPosition, PrettyParseError,
-};
+/// Compile EBNF grammar into rust parser code.
+#[derive(Parser, Debug)]
+#[clap(version, about)]
+struct Args {
+    /// Print the parsed AST and exit
+    #[clap(short, long)]
+    ast_only: bool,
+
+    /// Trace rule matching
+    #[clap(short, long)]
+    trace: bool,
+
+    /// Use a custom set of derives for the generated types
+    #[clap(short, long)]
+    derives: Vec<String>,
+
+    grammar_file: String,
+}
+
+fn main_wrap() -> Result<()> {
+    let args = Args::parse();
+    let grammar = fs::read_to_string(&args.grammar_file)?;
+    let parsed_grammar = if args.trace {
+        Grammar::parse_with_trace(&grammar)
+    } else {
+        Grammar::parse(&grammar)
+    }
+    .map_err(|err| PrettyParseError::from_parse_error(&err, &grammar, Some(&args.grammar_file)))?;
+    if args.ast_only {
+        println!("{:#?}", parsed_grammar);
+        return Ok(());
+    }
+
+    let derives = if args.derives.is_empty() {
+        CodegenSettings::default().derives
+    } else {
+        args.derives
+    };
+
+    let settings = CodegenSettings {
+        derives,
+        ..Default::default()
+    };
+    let generated_code = parsed_grammar.generate_code(&settings)?;
+    println!("{}", generate_source_header(&grammar));
+    println!("{}", generated_code);
+    Ok(())
+}
+
+fn main() {
+    if let Err(e) = main_wrap() {
+        println!("{}: {}", "Error".red().bold(), e)
+    }
+}

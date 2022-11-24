@@ -16,23 +16,22 @@ use std::{
 
 use anyhow::Result;
 use colored::*;
+use peginator_runtime::{PegParser, PrettyParseError};
 
-use crate::codegen::{generate_source_header, CodegenGrammar, CodegenSettings};
-use crate::grammar::Grammar;
-use crate::{PegParser, PrettyParseError};
+use crate::{generate_source_header, grammar::Grammar, CodegenGrammar, CodegenSettings};
 
 /// Compiles peginator grammars into rust code with a builder interface.
 ///
 /// It only recompiles files if it detects (based on the generated file header in the `.rs` file)
 /// change in either the peginator library, or the grammar file.
 ///
-/// It is meant to be used as `peginator::buildscript::Compile`, hence the generic name.
+/// It is meant to be used as `Compile`, hence the generic name.
 ///
 /// Example `build.rs` for using a single grammar file and putting the result in the target directory:
 /// ```no_run
 ///# #[allow(clippy::needless_doctest_main)]
 /// fn main() {
-///     peginator::buildscript::Compile::file("my_grammar.ebnf")
+///     peginator_codegen::Compile::file("my_grammar.ebnf")
 ///        .destination(format!("{}/my_grammar.rs", std::env::var("OUT_DIR").unwrap()))
 ///        .format()
 ///        .run_exit_on_error();
@@ -50,7 +49,7 @@ use crate::{PegParser, PrettyParseError};
 /// ```no_run
 ///# #[allow(clippy::needless_doctest_main)]
 /// fn main() {
-///     peginator::buildscript::Compile::directory("src")
+///     peginator_codegen::Compile::directory("src")
 ///        .format()
 ///        .run_exit_on_error()
 /// }
@@ -182,8 +181,8 @@ impl Compile {
 
     /// Run the compilation, returning an error.
     ///
-    /// In case of a parse error, [crate::PrettyParseError] is thrown, which will print a pretty
-    /// error with `format!` or `print!`.
+    /// In case of a parse error, [crate::runtime::PrettyParseError] is thrown,
+    /// which will print a pretty error with `format!` or `print!`.
     pub fn run(self) -> Result<()> {
         if self.recursive {
             self.run_recursively(&self.source_path)

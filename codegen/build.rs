@@ -4,6 +4,6 @@ fn main() {
         .unwrap()
         .as_secs();
 
-    println!("cargo:rerun-if-changed=src/codegen/mod.rs");
+    println!("cargo:rerun-if-changed=src/lib.rs");
     println!("cargo:rustc-env=PEGINATOR_BUILD_TIME={}", build_time);
 }

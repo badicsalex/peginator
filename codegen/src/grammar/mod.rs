@@ -2,12 +2,15 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+mod generated;
+
+pub use generated::*;
+
 use anyhow::Result;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use super::common::{safe_ident, CodegenGrammar, CodegenRule, CodegenSettings};
-use crate::grammar::{Grammar, Grammar_rules};
 
 impl CodegenGrammar for Grammar {
     fn generate_code(&self, settings: &CodegenSettings) -> Result<TokenStream> {
