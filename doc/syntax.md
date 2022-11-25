@@ -237,7 +237,7 @@ Overrides cannot be boxed.
 
 #### `@export`
 
-Exports the rule as a parse root, i.e. implements the [`PegParser`] traits on it.
+Exports the rule as a parse root, i.e. implements the [PegParser] traits on it.
 
 #### `@no_skip_ws`
 
@@ -249,7 +249,7 @@ of matched rules.
 Record the start and end positions (byte indexes) of the rule match in the Rule `struct`.
 
 The position is recorded in a field named `position`, but you can also access it with
-the trait function `position` if you use the [`PegPosition`] trait.
+the trait function `position` if you use the [PegPosition] trait.
 
 If the rule is marked `@string`, a struct will be generated with two fields: `string` and
 `position`.
@@ -422,3 +422,6 @@ Comment = '#' {!'\n' char} '\n';
 
 Be sure to use `@no_skip_ws` on the `Whitespace` rule, and all rules it calls, or else the code will
 most likely run into infinite recursion.
+
+[PegParser]: https://docs.rs/peginator_runtime/latest/peginator_runtime/trait.PegParser.html
+[PegPosition]: https://docs.rs/peginator_runtime/latest/peginator_runtime/trait.PegPosition.html

@@ -1,0 +1,20 @@
+[package]
+name = "peginator_macro"
+description = "Macros for peginator"
+version = "0.4.0"
+edition = "2021"
+
+authors = ["Alex Badics <admin@stickman.hu>"]
+repository = "https://github.com/badicsalex/peginator"
+documentation = "https://docs.rs/peginator_macro"
+keywords = ["parsing", "parser", "grammar", "ast", "peg"]
+categories = ["parsing"]
+license = "MIT"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+peginator_runtime = { version="=0.4.0", path = "../runtime" }
+peginator_codegen = { version="=0.4.0", path = "../codegen" }
+syn = { version = "1.0", default-features = false, features = ["parsing", "proc-macro"] }

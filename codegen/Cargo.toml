@@ -1,0 +1,20 @@
+[package]
+name = "peginator_codegen"
+description = "PEG parser generator library for creating ASTs in Rust"
+version = "0.4.0"
+edition = "2021"
+
+authors = ["Alex Badics <admin@stickman.hu>"]
+repository = "https://github.com/badicsalex/peginator"
+documentation = "https://docs.rs/peginator_codegen"
+keywords = ["parsing", "parser", "grammar", "ast", "peg"]
+categories = ["parsing"]
+license = "MIT"
+
+[dependencies]
+peginator_runtime = { version="=0.4.0", path = "../runtime" }
+quote = "1.0"
+proc-macro2 = "1.0"
+anyhow = "1.0"
+colored = "2.0"
+crc = "3.0"

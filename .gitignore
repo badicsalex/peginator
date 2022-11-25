@@ -4,4 +4,4 @@
 target
 Cargo.lock
 
-peginator_test/src/**/grammar.rs
+test/src/**/grammar.rs
