@@ -1,7 +1,11 @@
 // Copyright (C) 2022, Alex Badics
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+#[cfg(feature = "colored")]
 use colored::*;
+
+#[cfg(not(feature = "colored"))]
+use super::colored_shim::*;
 
 use super::{ParseResult, ParseState};
 

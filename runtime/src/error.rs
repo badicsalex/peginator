@@ -4,7 +4,11 @@
 
 use std::error::Error;
 
+#[cfg(feature = "colored")]
 use colored::*;
+
+#[cfg(not(feature = "colored"))]
+use super::colored_shim::*;
 
 /// The type and specifics of the atomic match, used by [`ParseError`].
 #[derive(Debug, Clone)]

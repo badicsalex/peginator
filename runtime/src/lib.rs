@@ -32,6 +32,7 @@ mod parse_result;
 mod peg_parser;
 mod state;
 mod trace;
+mod colored_shim;
 
 #[doc(hidden)]
 pub use builtin_parsers::{
