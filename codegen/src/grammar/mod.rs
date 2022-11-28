@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 use anyhow::Result;
 pub use generated::*;
-use peginator_runtime::{ParseError, PegParser};
+use peginator::{ParseError, PegParser};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
@@ -83,11 +83,11 @@ impl CodegenGrammar for Grammar {
             )]
             mod peginator_generated {
                 use super::*;
-                pub use peginator_runtime::{
+                pub use peginator::{
                     ParseError, ParseSettings, ParseState, PegParser, IndentedTracer, ParseTracer,
                     PegPosition, ParseGlobal, PegParserAdvanced,
                 };
-                use peginator_runtime::*;
+                use peginator::*;
 
                 #[derive(Default)]
                 pub struct ParseCache<'a> {

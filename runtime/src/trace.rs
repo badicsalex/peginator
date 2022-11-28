@@ -6,7 +6,6 @@ use colored::*;
 
 #[cfg(not(feature = "colored"))]
 use super::colored_shim::*;
-
 use super::{ParseResult, ParseState};
 
 pub trait ParseTracer: Clone + Copy {

@@ -4,7 +4,7 @@
 
 mod grammar;
 use grammar::*;
-use peginator_runtime::PegParser;
+use peginator::PegParser;
 
 fn to_palindrome_struct(s: &str) -> Palindrome {
     let result: Option<Box<Palindrome>> = s.chars().rev().fold(None, |p, c| {

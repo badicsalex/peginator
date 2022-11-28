@@ -232,8 +232,8 @@ impl peginator_generated::PegParserAdvanced<()> for Grammar {
     dead_code
 )]
 mod peginator_generated {
-    use peginator_runtime::*;
-    pub use peginator_runtime::{
+    use peginator::*;
+    pub use peginator::{
         IndentedTracer, ParseError, ParseGlobal, ParseSettings, ParseState, ParseTracer, PegParser,
         PegParserAdvanced, PegPosition,
     };

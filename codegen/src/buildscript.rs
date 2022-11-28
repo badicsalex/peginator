@@ -17,7 +17,7 @@ use std::{
 
 use anyhow::Result;
 use colored::*;
-use peginator_runtime::PrettyParseError;
+use peginator::PrettyParseError;
 
 use crate::{generate_source_header, grammar::Grammar, CodegenGrammar, CodegenSettings};
 

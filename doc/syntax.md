@@ -423,5 +423,5 @@ Comment = '#' {!'\n' char} '\n';
 Be sure to use `@no_skip_ws` on the `Whitespace` rule, and all rules it calls, or else the code will
 most likely run into infinite recursion.
 
-[PegParser]: https://docs.rs/peginator_runtime/latest/peginator_runtime/trait.PegParser.html
-[PegPosition]: https://docs.rs/peginator_runtime/latest/peginator_runtime/trait.PegPosition.html
+[PegParser]: https://docs.rs/peginator/latest/peginator/trait.PegParser.html
+[PegPosition]: https://docs.rs/peginator/latest/peginator/trait.PegPosition.html

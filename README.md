@@ -25,7 +25,7 @@ Peginator is bootstrapped using its own
 which is somewhat easy-to-read.
 
 Please see [the syntax reference](doc/syntax.md) and
-[the API documentation](https://docs.rs/peginator_runtime)
+[the API documentation](https://docs.rs/peginator)
 
 The [tests](peginator_test/src) can also be used as examples.
 
@@ -142,7 +142,7 @@ And parse tracing (opt-in, no cost if not used):
 
 There are multiple ways to integrate a Peginator grammar to your project:
 
-* Compile your grammars directly with the `peginator` binary
+* Compile your grammars directly with the `peginator-cli` binary
 * Inline your grammars with the `peginate!` macro from the [peginator\_macro](https://docs.rs/peginator_macro) package
 * Or you can use the [buildscript helper](https://docs.rs/peginator_codegen)
 

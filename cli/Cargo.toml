@@ -1,20 +1,19 @@
 [package]
-name = "peginator_codegen"
-description = "Buildscript support for peginator (a PEG parser generator)"
+name = "peginator-cli"
+description = "Command line interface for peginator (a PEG parser generator)"
 version = "0.6.0"
 edition = "2021"
 
 authors = ["Alex Badics <admin@stickman.hu>"]
 repository = "https://github.com/badicsalex/peginator"
-documentation = "https://docs.rs/peginator_codegen"
+documentation = "https://docs.rs/peginator"
 keywords = ["parsing", "parser", "grammar", "ast", "peg"]
 categories = ["parsing"]
 license = "MIT"
 
 [dependencies]
+peginator_codegen = { version="=0.6.0", path = "../codegen" }
 peginator = { version="=0.6.0", path = "../runtime" }
-quote = "1.0"
-proc-macro2 = "1.0"
-anyhow = "1.0"
+clap = { version = "4.0", features = ["derive"]}
 colored = "2.0"
-crc = "3.0"
+anyhow = "1.0"

@@ -11,7 +11,7 @@
 //!
 //! ```toml
 //! [build-dependencies]
-//! peginator_codegen = "0.5"
+//! peginator_codegen = "0.6"
 //! ```
 //!
 //! And then in your `build.rs`:
@@ -32,8 +32,6 @@
 //! ```
 //!
 //! See the documentation of [`Compile`] for more advanced options.
-//!
-//! [`peginator`]: https://docs.rs/peginator
 
 mod grammar;
 

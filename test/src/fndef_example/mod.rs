@@ -4,7 +4,7 @@
 
 mod grammar;
 use grammar::*;
-use peginator_runtime::{PegParser, PrettyParseError};
+use peginator::{PegParser, PrettyParseError};
 
 const PARSE_ME: &str = "fn example(&self, input:&str, rectified:&mut Rect) -> ExampleResult;";
 

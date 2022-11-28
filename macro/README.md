@@ -6,7 +6,7 @@ documentation and other goodies on the main project.
 Usage:
 ```rust
 use peginator_macro::peginate;
-use peginator_runtime::PegParser;
+use peginator::PegParser;
 
 peginate!("
 @export

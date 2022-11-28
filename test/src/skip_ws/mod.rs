@@ -4,7 +4,7 @@
 
 mod grammar;
 use grammar::*;
-use peginator_runtime::PegParser;
+use peginator::PegParser;
 
 #[test]
 fn test_string() {
