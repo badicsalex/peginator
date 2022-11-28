@@ -11,7 +11,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! peginator_runtime = "0.4"
+//! peginator_runtime = "0.5"
 //! ```
 //!
 //! The rest of the peginator crates are meant to be dev or build dependencies.
