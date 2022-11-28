@@ -4,7 +4,7 @@
 
 //! Buildscript helpers for peginator
 //!
-//! See [Compile] for examples.
+//! See [`Compile`] for examples.
 
 use std::{
     ffi::OsStr,
@@ -12,6 +12,7 @@ use std::{
     io::Read,
     path::PathBuf,
     process::Command,
+    str::FromStr,
 };
 
 use anyhow::Result;
@@ -25,7 +26,7 @@ use crate::{generate_source_header, grammar::Grammar, CodegenGrammar, CodegenSet
 /// It only recompiles files if it detects (based on the generated file header in the `.rs` file)
 /// change in either the peginator library, or the grammar file.
 ///
-/// It is meant to be used as `Compile`, hence the generic name.
+/// It is meant to be used as `peginator_codegen::Compile`, hence the generic name.
 ///
 /// Example `build.rs` for using a single grammar file and putting the result in the target directory:
 /// ```no_run
@@ -181,7 +182,7 @@ impl Compile {
 
     /// Run the compilation, returning an error.
     ///
-    /// In case of a parse error, [crate::runtime::PrettyParseError] is thrown,
+    /// In case of a parse error, [`PrettyParseError`] is thrown,
     /// which will print a pretty error with `format!` or `print!`.
     pub fn run(self) -> Result<()> {
         if self.recursive {
@@ -201,11 +202,11 @@ impl Compile {
     ///
     /// It also makes sure to pretty-print the error, should one occur.
     pub fn run_exit_on_error(self) {
+        // I absolutely hate how this is a global, because there is no way to know if it was forced
+        // already. Thankfully we are exiting right after this.
         colored::control::set_override(true);
         let result = self.run();
         if let Err(error) = result {
-            // I absolutely hate how this is a global, because there is no way to know if it was forced
-            // already. Thankfully we are exiting right after this.
             eprintln!(
                 "{red_error}{colon} {error}",
                 red_error = "error".red().bold(),

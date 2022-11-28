@@ -25,7 +25,7 @@ Peginator is bootstrapped using its own
 which is somewhat easy-to-read.
 
 Please see [the syntax reference](doc/syntax.md) and
-[the API documentation](https://docs.rs/peginator/latest/peginator/)
+[the API documentation](https://docs.rs/peginator_runtime)
 
 The [tests](peginator_test/src) can also be used as examples.
 
@@ -142,13 +142,13 @@ And parse tracing (opt-in, no cost if not used):
 
 There are multiple ways to integrate a Peginator grammar to your project:
 
-* Compile your grammars directly with the `peginator-compile` binary
-* Inline your grammars with the `peginate!` macro from the [peginator_macro](https://crates.io/crates/peginator_macro) package
-* Or you can use the [buildscript helper](https://docs.rs/peginator/latest/peginator/buildscript/struct.Compile.html)
+* Compile your grammars directly with the `peginator` binary
+* Inline your grammars with the `peginate!` macro from the [peginator\_macro](https://docs.rs/peginator_macro) package
+* Or you can use the [buildscript helper](https://docs.rs/peginator_codegen)
 
 ## Contribution
 
-At this point, I'd be happy if someone other than me used this code. Please reach out if you need any help.
+At this point, I'd be happy if simply more people used this code. Please reach out if you need any help.
 
 ## See also
 

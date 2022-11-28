@@ -13,19 +13,24 @@ pub enum ParseErrorSpecifics {
     ExpectedAnyCharacter,
     /// Expected a specific character.
     ExpectedCharacter {
+        /// The character that was expected
         c: char,
     },
     /// Expected a character from a specific range.
     ExpectedCharacterRange {
+        /// Start of the character range that was expected
         from: char,
+        /// End of the character range that was expected (inclusive)
         to: char,
     },
     /// Expected a specific string.
     ExpectedString {
+        /// The string that was expected
         s: &'static str,
     },
     /// Expected to match a @char rule.
     ExpectedCharacterClass {
+        /// The character class  that was expected
         name: &'static str,
     },
     /// Expected the end of file, but found additional characters.
@@ -34,12 +39,15 @@ pub enum ParseErrorSpecifics {
     NegativeLookaheadFailed,
     /// A custom check function failed
     CheckFunctionFailed {
+        /// The name of the function that failed
         function_name: &'static str,
     },
     /// A custom extern rule failed
     ExternRuleFailed {
+        /// The string that was returned as an error
         error_string: &'static str,
     },
+    /// Left recursion error reached. Should not be returned from a normal parse call.
     LeftRecursionSentinel,
 
     /// An unknown error happened. Usually means there is a problem with peginator itself.

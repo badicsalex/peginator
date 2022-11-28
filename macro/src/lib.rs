@@ -3,6 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
 #![doc = include_str!("../README.md")]
+#![warn(missing_docs)]
 
 use std::str::FromStr;
 

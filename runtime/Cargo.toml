@@ -1,6 +1,6 @@
 [package]
 name = "peginator_runtime"
-description = "runtime support library for peginator"
+description = "Runtime support for peginator (a PEG parser generator)"
 version = "0.4.0"
 edition = "2021"
 

@@ -232,12 +232,13 @@ impl peginator_generated::PegParserAdvanced<()> for Grammar {
     dead_code
 )]
 mod peginator_generated {
-    use super::*;
     use peginator_runtime::*;
     pub use peginator_runtime::{
         IndentedTracer, ParseError, ParseGlobal, ParseSettings, ParseState, ParseTracer, PegParser,
         PegParserAdvanced, PegPosition,
     };
+
+    use super::*;
     #[derive(Default)]
     pub struct ParseCache<'a> {
         _please_dont_complain: std::marker::PhantomData<&'a ()>,

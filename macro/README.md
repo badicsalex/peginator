@@ -1,7 +1,7 @@
 # Peginator macro
 
 Proc-macro support for [peginator](https://github.com/badicsalex/peginator). Please find
-doucmentation and other goodies on the main project.
+documentation and other goodies on the main project.
 
 Usage:
 ```rust

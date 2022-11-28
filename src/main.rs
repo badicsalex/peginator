@@ -14,8 +14,6 @@
 //! * [Whitespace skipping](#whitespace-skipping)
 //!
 //!
-//!
-//!
 //! # Description
 //!
 //! PEG parser generator for creating ASTs in Rust
@@ -30,6 +28,19 @@
 //!
 //! There is an opt-in memoization feature that makes it a proper packrat parser that can parse
 //! any input in linear time and space.
+//!
+//! Left-recursion is also supported using said memoization feature (also opt-in).
+//!
+//! #### Crate structure
+//!
+//! The crates in peginator are:
+//! - [`peginator`](crate): This crate, providing the `peginator` cli command.
+//! - [`peginator_runtime`]: The crate used by generated code and the crates calling it.
+//!   It should be a "normal" dependency of all `peginator`-using code.
+//! - [`peginator_codegen`]: Helper crate with reduced dependencies for direct buildscript
+//!   integration. It should be a build-depenednecy if used.
+//! - [`peginator_macro`]: Macro support for small grammars directly included in code.
+//!
 //!
 //! #### About PEGs
 //!
@@ -159,7 +170,7 @@
 //! ```
 //!
 //! Once you have compiled your grammar, you can import the types, and the
-//! [PegParser] trait, and you can start parsing strings:
+//! [`PegParser`] trait, and you can start parsing strings:
 //! ```ignore
 //! use crate::grammar::YourRootType;
 //! use peginator_runtime::PegParser;
@@ -168,51 +179,29 @@
 //! println!("{:?}", parse_result);
 //! ```
 //!
-//! Alternatively, you can use a buildscript using the [`peginator_codegen::Compile`]
-//! struct by adding `peginator_codegen` as a build dependency in your `Cargo.toml`:
+//! Alternatively, you can use a buildscript using the [`peginator_codegen`] crate,
+//! or a macro using the [`peginator_macro`] crate.
 //!
-//! ```toml
-//! [build-dependencies]
-//! peginator_codegen = "0.4"
-//! ```
+//! For additional information about runtime usage, see the documentation of the
+//! [`peginator_runtime`] crate, especially [`peginator_runtime::PegParser`]
 //!
-//! And then in your `build.rs`:
-//!
-//! ```ignore
-//! use peginator_codegen::Compile;
-//!
-//! fn main() {
-//!     let out = format!("{}/grammar.rs", std::env::var("OUT_DIR").unwrap());
-//!
-//!     peginator_codegen::Compile::file("grammar.ebnf")
-//!         .destination(out)
-//!         .format()
-//!         .run_exit_on_error();
-//!
-//!     println!("cargo:rerun-if-changed=grammar.ebnf");
-//! }
-//! ```
-//!
-//! For additional information, see the documentation of the [peginator_codegen] and
-//! [peginator_runtime] crates.
-//!
-//! [peginator_codegen]: https://docs.rs/peginator_codegen/latest/peginator_codegen
-//! [peginator_runtime]: https://docs.rs/peginator_runtime/latest/peginator_runtime
-//! [PegParser]: https://docs.rs/peginator_runtime/latest/peginator_runtime/trait.PegParser.html
+//! [`peginator_macro`]: https://docs.rs/peginator_macro
 #![doc = include_str!("../doc/syntax.md")]
+#![warn(missing_docs)]
 
 use std::fs;
 
 use anyhow::Result;
 use clap::Parser;
 use colored::*;
-use peginator_codegen::grammar::Grammar;
-use peginator_codegen::runtime::{PegParser, PrettyParseError};
+use peginator_codegen::Grammar;
 use peginator_codegen::{generate_source_header, CodegenGrammar, CodegenSettings};
+use peginator_runtime::{PegParser, PrettyParseError};
 
 /// Compile EBNF grammar into rust parser code.
 #[derive(Parser, Debug)]
 #[clap(version, about)]
+#[doc(hidden)]
 struct Args {
     /// Print the parsed AST and exit
     #[clap(short, long)]
@@ -229,6 +218,7 @@ struct Args {
     grammar_file: String,
 }
 
+#[doc(hidden)]
 fn main_wrap() -> Result<()> {
     let args = Args::parse();
     let grammar = fs::read_to_string(&args.grammar_file)?;
@@ -259,6 +249,7 @@ fn main_wrap() -> Result<()> {
     Ok(())
 }
 
+#[doc(hidden)]
 fn main() {
     if let Err(e) = main_wrap() {
         println!("{}: {}", "Error".red().bold(), e)
