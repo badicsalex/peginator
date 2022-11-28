@@ -4,9 +4,11 @@
 
 mod generated;
 
-pub use generated::*;
+use std::str::FromStr;
 
 use anyhow::Result;
+pub use generated::*;
+use peginator_runtime::{ParseError, PegParser};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
@@ -95,5 +97,13 @@ impl CodegenGrammar for Grammar {
                 #all_impls
             }
         ))
+    }
+}
+
+impl FromStr for Grammar {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        PegParser::parse(s)
     }
 }

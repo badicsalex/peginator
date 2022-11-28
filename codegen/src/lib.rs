@@ -8,7 +8,7 @@
 //!
 //! [peginator]: https://docs.rs/peginator/latest/peginator
 
-pub mod grammar;
+mod grammar;
 
 mod buildscript;
 mod char_rule;
@@ -26,8 +26,6 @@ mod optional;
 mod rule;
 mod sequence;
 mod string;
-
-pub use peginator_runtime as runtime;
 
 pub use buildscript::Compile;
 pub use common::{CodegenGrammar, CodegenSettings};

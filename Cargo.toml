@@ -16,6 +16,7 @@ license = "MIT"
 
 [dependencies]
 peginator_codegen = { version="=0.4.0", path = "codegen" }
+peginator_runtime = { version="=0.4.0", path = "runtime" }
 clap = { version = "4.0", features = ["derive"]}
 colored = "2.0"
 anyhow = "1.0"

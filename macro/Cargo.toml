@@ -15,6 +15,8 @@ license = "MIT"
 proc-macro = true
 
 [dependencies]
-peginator_runtime = { version="=0.4.0", path = "../runtime" }
 peginator_codegen = { version="=0.4.0", path = "../codegen" }
 syn = { version = "1.0", default-features = false, features = ["parsing", "proc-macro"] }
+
+[dev-dependencies]
+peginator_runtime = { version="=0.4.0", path = "../runtime" }

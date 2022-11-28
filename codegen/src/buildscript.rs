@@ -16,7 +16,7 @@ use std::{
 
 use anyhow::Result;
 use colored::*;
-use peginator_runtime::{PegParser, PrettyParseError};
+use peginator_runtime::PrettyParseError;
 
 use crate::{generate_source_header, grammar::Grammar, CodegenGrammar, CodegenSettings};
 
@@ -153,7 +153,7 @@ impl Compile {
             }
         };
 
-        let parsed_grammar = Grammar::parse(&grammar)
+        let parsed_grammar = Grammar::from_str(&grammar)
             .map_err(|err| PrettyParseError::from_parse_error(&err, &grammar, source.to_str()))?;
         let generated_code = format!(
             "{}\n{}",
