@@ -166,7 +166,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! peginator_runtime = "0.4"
+//! peginator_runtime = "0.5"
 //! ```
 //!
 //! Once you have compiled your grammar, you can import the types, and the

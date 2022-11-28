@@ -1,7 +1,7 @@
 [package]
 name = "peginator_test"
 description = "Test package for peginator"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 
 authors = ["Alex Badics <admin@stickman.hu>"]
@@ -12,10 +12,10 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-peginator_runtime = { version="=0.4.0", path = "../runtime" }
+peginator_runtime = { version="=0.5.0", path = "../runtime" }
 
 [build-dependencies]
-peginator_codegen = { version="=0.4.0", path = "../codegen" }
+peginator_codegen = { version="=0.5.0", path = "../codegen" }
 
 [dev-dependencies]
 ntest = "0.9"

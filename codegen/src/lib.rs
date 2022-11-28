@@ -11,7 +11,7 @@
 //!
 //! ```toml
 //! [build-dependencies]
-//! peginator_codegen = "0.4"
+//! peginator_codegen = "0.5"
 //! ```
 //!
 //! And then in your `build.rs`:
