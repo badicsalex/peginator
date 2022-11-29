@@ -225,13 +225,12 @@ impl peginator_generated::PegParserAdvanced<()> for Grammar {
     dead_code
 )]
 mod peginator_generated {
+    use super::*;
     use peginator::*;
     pub use peginator::{
         IndentedTracer, ParseError, ParseGlobal, ParseSettings, ParseState, ParseTracer, PegParser,
         PegParserAdvanced, PegPosition,
     };
-
-    use super::*;
     #[derive(Default)]
     pub struct ParseCache<'a> {
         _please_dont_complain: std::marker::PhantomData<&'a ()>,
@@ -338,10 +337,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Grammar> {
         global.tracer.print_trace_start(&state, "Grammar");
-        let result = {
+        let result = (|| {
             let result = Grammar_impl::parse(state, global)?.map(|r| super::Grammar { rules: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -432,14 +431,14 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Rule> {
         global.tracer.print_trace_start(&state, "Rule");
-        let result = {
+        let result = (|| {
             let result = Rule_impl::parse(state, global)?.map(|r| super::Rule {
                 directives: r.directives,
                 name: r.name,
                 definition: r.definition,
             });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -639,14 +638,14 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, CharRule> {
         global.tracer.print_trace_start(&state, "CharRule");
-        let result = {
+        let result = (|| {
             let result = CharRule_impl::parse(state, global)?.map(|r| super::CharRule {
                 directives: r.directives,
                 name: r.name,
                 choices: r.choices,
             });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -684,10 +683,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, CharRulePart> {
         global.tracer.print_trace_start(&state, "CharRulePart");
-        let result = {
+        let result = (|| {
             let result = CharRulePart_impl::parse(state, global)?;
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -724,13 +723,13 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, ExternRule> {
         global.tracer.print_trace_start(&state, "ExternRule");
-        let result = {
+        let result = (|| {
             let result = ExternRule_impl::parse(state, global)?.map(|r| super::ExternRule {
                 directive: r.directive,
                 name: r.name,
             });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -822,10 +821,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Choice> {
         global.tracer.print_trace_start(&state, "Choice");
-        let result = {
+        let result = (|| {
             let result = Choice_impl::parse(state, global)?.map(|r| super::Choice { choices: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -877,10 +876,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Sequence> {
         global.tracer.print_trace_start(&state, "Sequence");
-        let result = {
+        let result = (|| {
             let result = Sequence_impl::parse(state, global)?.map(|r| super::Sequence { parts: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -915,10 +914,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Group> {
         global.tracer.print_trace_start(&state, "Group");
-        let result = {
+        let result = (|| {
             let result = Group_impl::parse(state, global)?.map(|r| super::Group { body: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -953,10 +952,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Optional> {
         global.tracer.print_trace_start(&state, "Optional");
-        let result = {
+        let result = (|| {
             let result = Optional_impl::parse(state, global)?.map(|r| super::Optional { body: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1006,13 +1005,13 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Closure> {
         global.tracer.print_trace_start(&state, "Closure");
-        let result = {
+        let result = (|| {
             let result = Closure_impl::parse(state, global)?.map(|r| super::Closure {
                 body: r.body,
                 at_least_one: r.at_least_one,
             });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1035,11 +1034,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, AtLeastOneMarker> {
         global.tracer.print_trace_start(&state, "AtLeastOneMarker");
-        let result = {
+        let result = (|| {
             let result =
                 AtLeastOneMarker_impl::parse(state, global)?.map(|r| super::AtLeastOneMarker {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1072,11 +1071,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, NegativeLookahead> {
         global.tracer.print_trace_start(&state, "NegativeLookahead");
-        let result = {
+        let result = (|| {
             let result = NegativeLookahead_impl::parse(state, global)?
                 .map(|r| super::NegativeLookahead { expr: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1109,11 +1108,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, PositiveLookahead> {
         global.tracer.print_trace_start(&state, "PositiveLookahead");
-        let result = {
+        let result = (|| {
             let result = PositiveLookahead_impl::parse(state, global)?
                 .map(|r| super::PositiveLookahead { expr: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1150,14 +1149,14 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, CharacterRange> {
         global.tracer.print_trace_start(&state, "CharacterRange");
-        let result = {
+        let result = (|| {
             let result =
                 CharacterRange_impl::parse(state, global)?.map(|r| super::CharacterRange {
                     from: r.from,
                     to: r.to,
                 });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1188,10 +1187,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, CharRangePart> {
         global.tracer.print_trace_start(&state, "CharRangePart");
-        let result = {
+        let result = (|| {
             let result = CharRangePart_impl::parse(state, global)?;
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1453,13 +1452,13 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, StringLiteral> {
         global.tracer.print_trace_start(&state, "StringLiteral");
-        let result = {
+        let result = (|| {
             let result = StringLiteral_impl::parse(state, global)?.map(|r| super::StringLiteral {
                 insensitive: r.insensitive,
                 body: r.body,
             });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1484,11 +1483,11 @@ mod peginator_generated {
         global
             .tracer
             .print_trace_start(&state, "CaseInsensitiveMarker");
-        let result = {
+        let result = (|| {
             let result = CaseInsensitiveMarker_impl::parse(state, global)?
                 .map(|r| super::CaseInsensitiveMarker {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1587,14 +1586,14 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Field> {
         global.tracer.print_trace_start(&state, "Field");
-        let result = {
+        let result = (|| {
             let result = Field_impl::parse(state, global)?.map(|r| super::Field {
                 name: r.name,
                 boxed: r.boxed,
                 typ: r.typ,
             });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1617,10 +1616,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, BoxMarker> {
         global.tracer.print_trace_start(&state, "BoxMarker");
-        let result = {
+        let result = (|| {
             let result = BoxMarker_impl::parse(state, global)?.map(|r| super::BoxMarker {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1649,11 +1648,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, OverrideField> {
         global.tracer.print_trace_start(&state, "OverrideField");
-        let result = {
+        let result = (|| {
             let result =
                 OverrideField_impl::parse(state, global)?.map(|r| super::OverrideField { typ: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1685,11 +1684,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, IncludeRule> {
         global.tracer.print_trace_start(&state, "IncludeRule");
-        let result = {
+        let result = (|| {
             let result =
                 IncludeRule_impl::parse(state, global)?.map(|r| super::IncludeRule { rule: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1769,10 +1768,10 @@ mod peginator_generated {
         global
             .tracer
             .print_trace_start(&state, "DelimitedExpression");
-        let result = {
+        let result = (|| {
             let result = DelimitedExpression_impl::parse(state, global)?;
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1817,14 +1816,14 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Identifier> {
         global.tracer.print_trace_start(&state, "Identifier");
-        let result = {
+        let result = (|| {
             let result =
                 Identifier_impl::parse(state.clone(), global)?.map_with_state(|_, new_state| {
                     let string = state.slice_until(new_state).to_string();
                     string
                 });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1948,10 +1947,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, StringItem> {
         global.tracer.print_trace_start(&state, "StringItem");
-        let result = {
+        let result = (|| {
             let result = StringItem_impl::parse(state, global)?;
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -1998,10 +1997,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, SimpleEscape> {
         global.tracer.print_trace_start(&state, "SimpleEscape");
-        let result = {
+        let result = (|| {
             let result = SimpleEscape_impl::parse(state, global)?;
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2024,11 +2023,11 @@ mod peginator_generated {
         global
             .tracer
             .print_trace_start(&state, "SimpleEscapeNewline");
-        let result = {
+        let result = (|| {
             let result = SimpleEscapeNewline_impl::parse(state, global)?
                 .map(|r| super::SimpleEscapeNewline {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2051,11 +2050,11 @@ mod peginator_generated {
         global
             .tracer
             .print_trace_start(&state, "SimpleEscapeCarriageReturn");
-        let result = {
+        let result = (|| {
             let result = SimpleEscapeCarriageReturn_impl::parse(state, global)?
                 .map(|r| super::SimpleEscapeCarriageReturn {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2076,11 +2075,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, SimpleEscapeTab> {
         global.tracer.print_trace_start(&state, "SimpleEscapeTab");
-        let result = {
+        let result = (|| {
             let result =
                 SimpleEscapeTab_impl::parse(state, global)?.map(|r| super::SimpleEscapeTab {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2103,11 +2102,11 @@ mod peginator_generated {
         global
             .tracer
             .print_trace_start(&state, "SimpleEscapeBackslash");
-        let result = {
+        let result = (|| {
             let result = SimpleEscapeBackslash_impl::parse(state, global)?
                 .map(|r| super::SimpleEscapeBackslash {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2128,11 +2127,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, SimpleEscapeQuote> {
         global.tracer.print_trace_start(&state, "SimpleEscapeQuote");
-        let result = {
+        let result = (|| {
             let result =
                 SimpleEscapeQuote_impl::parse(state, global)?.map(|r| super::SimpleEscapeQuote {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2155,11 +2154,11 @@ mod peginator_generated {
         global
             .tracer
             .print_trace_start(&state, "SimpleEscapeDQuote");
-        let result = {
+        let result = (|| {
             let result = SimpleEscapeDQuote_impl::parse(state, global)?
                 .map(|r| super::SimpleEscapeDQuote {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2189,11 +2188,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, HexaEscape> {
         global.tracer.print_trace_start(&state, "HexaEscape");
-        let result = {
+        let result = (|| {
             let result = HexaEscape_impl::parse(state, global)?
                 .map(|r| super::HexaEscape { c1: r.c1, c2: r.c2 });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2606,7 +2605,7 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Utf8Escape> {
         global.tracer.print_trace_start(&state, "Utf8Escape");
-        let result = {
+        let result = (|| {
             let result = Utf8Escape_impl::parse(state, global)?.map(|r| super::Utf8Escape {
                 c1: r.c1,
                 c2: r.c2,
@@ -2616,7 +2615,7 @@ mod peginator_generated {
                 c6: r.c6,
             });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2676,10 +2675,10 @@ mod peginator_generated {
         global
             .tracer
             .print_trace_start(&state, "DirectiveExpression");
-        let result = {
+        let result = (|| {
             let result = DirectiveExpression_impl::parse(state, global)?;
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2702,11 +2701,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, StringDirective> {
         global.tracer.print_trace_start(&state, "StringDirective");
-        let result = {
+        let result = (|| {
             let result =
                 StringDirective_impl::parse(state, global)?.map(|r| super::StringDirective {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2729,10 +2728,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, CharDirective> {
         global.tracer.print_trace_start(&state, "CharDirective");
-        let result = {
+        let result = (|| {
             let result = CharDirective_impl::parse(state, global)?.map(|r| super::CharDirective {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2755,11 +2754,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, NoSkipWsDirective> {
         global.tracer.print_trace_start(&state, "NoSkipWsDirective");
-        let result = {
+        let result = (|| {
             let result =
                 NoSkipWsDirective_impl::parse(state, global)?.map(|r| super::NoSkipWsDirective {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2782,11 +2781,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, ExportDirective> {
         global.tracer.print_trace_start(&state, "ExportDirective");
-        let result = {
+        let result = (|| {
             let result =
                 ExportDirective_impl::parse(state, global)?.map(|r| super::ExportDirective {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2809,11 +2808,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, PositionDirective> {
         global.tracer.print_trace_start(&state, "PositionDirective");
-        let result = {
+        let result = (|| {
             let result =
                 PositionDirective_impl::parse(state, global)?.map(|r| super::PositionDirective {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2836,11 +2835,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, MemoizeDirective> {
         global.tracer.print_trace_start(&state, "MemoizeDirective");
-        let result = {
+        let result = (|| {
             let result =
                 MemoizeDirective_impl::parse(state, global)?.map(|r| super::MemoizeDirective {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2863,11 +2862,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, LeftrecDirective> {
         global.tracer.print_trace_start(&state, "LeftrecDirective");
-        let result = {
+        let result = (|| {
             let result =
                 LeftrecDirective_impl::parse(state, global)?.map(|r| super::LeftrecDirective {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2905,11 +2904,11 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, CheckDirective> {
         global.tracer.print_trace_start(&state, "CheckDirective");
-        let result = {
+        let result = (|| {
             let result = CheckDirective_impl::parse(state, global)?
                 .map(|r| super::CheckDirective { function: r });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -2998,14 +2997,14 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, ExternDirective> {
         global.tracer.print_trace_start(&state, "ExternDirective");
-        let result = {
+        let result = (|| {
             let result =
                 ExternDirective_impl::parse(state, global)?.map(|r| super::ExternDirective {
                     function: r.function,
                     return_type: r.return_type,
                 });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -3100,10 +3099,10 @@ mod peginator_generated {
         global
             .tracer
             .print_trace_start(&state, "NamespacedRustName");
-        let result = {
+        let result = (|| {
             let result = NamespacedRustName_impl::parse(state, global)?;
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -3209,14 +3208,14 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, RustNamePart> {
         global.tracer.print_trace_start(&state, "RustNamePart");
-        let result = {
+        let result = (|| {
             let result =
                 RustNamePart_impl::parse(state.clone(), global)?.map_with_state(|_, new_state| {
                     let string = state.slice_until(new_state).to_string();
                     string
                 });
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -3239,10 +3238,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, EndOfInput> {
         global.tracer.print_trace_start(&state, "EndOfInput");
-        let result = {
+        let result = (|| {
             let result = EndOfInput_impl::parse(state, global)?.map(|r| super::EndOfInput {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -3292,10 +3291,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Whitespace> {
         global.tracer.print_trace_start(&state, "Whitespace");
-        let result = {
+        let result = (|| {
             let result = Whitespace_impl::parse(state, global)?.map(|r| super::Whitespace {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }
@@ -3389,10 +3388,10 @@ mod peginator_generated {
         global: &mut ParseGlobal<TT, ParseCache<'a>, ()>,
     ) -> ParseResult<'a, Comment> {
         global.tracer.print_trace_start(&state, "Comment");
-        let result = {
+        let result = (|| {
             let result = Comment_impl::parse(state, global)?.map(|r| super::Comment {});
             Ok(result)
-        };
+        })();
         global.tracer.print_trace_result(&result);
         result
     }

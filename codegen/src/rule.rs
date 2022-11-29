@@ -46,7 +46,7 @@ impl CodegenRule for Rule {
         let rule_parser_call = self.generate_memoized_body(parse_body);
         let parse_body = quote!(
             global.tracer.print_trace_start(&state, #name);
-            let result = { #rule_parser_call };
+            let result = (||{ #rule_parser_call })();
             global.tracer.print_trace_result(&result);
             result
         );
