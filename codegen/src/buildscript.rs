@@ -134,9 +134,9 @@ impl Compile {
         Compile { prefix, ..self }
     }
 
-    /// Set the type of global.user_defined. Experimental feature, may change without notice.
-    pub fn user_defined_type(mut self, user_defined_type: &str) -> Self {
-        self.settings.set_user_defined_type(user_defined_type);
+    /// Set the type of global.user_context. Experimental feature, may change without notice.
+    pub fn user_context_type(mut self, user_context_type: &str) -> Self {
+        self.settings.set_user_context_type(user_context_type);
         self
     }
 

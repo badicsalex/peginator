@@ -14,7 +14,7 @@ use crate::grammar::Grammar;
 pub struct CodegenSettings {
     pub skip_whitespace: bool,
     pub derives: Vec<String>,
-    pub user_defined_type: TokenStream,
+    pub user_context_type: TokenStream,
 }
 
 impl Default for CodegenSettings {
@@ -22,15 +22,15 @@ impl Default for CodegenSettings {
         Self {
             skip_whitespace: true,
             derives: vec!["Debug".into(), "Clone".into()],
-            user_defined_type: quote!(()),
+            user_context_type: quote!(()),
         }
     }
 }
 
 impl CodegenSettings {
-    pub fn set_user_defined_type(&mut self, t: &str) {
+    pub fn set_user_context_type(&mut self, t: &str) {
         let idents = t.split("::").map(safe_ident);
-        self.user_defined_type = quote!(#(#idents)::*);
+        self.user_context_type = quote!(&mut #(#idents)::*);
     }
 }
 
@@ -324,12 +324,12 @@ pub fn generate_inner_parse_function(
     parse_body: TokenStream,
     settings: &CodegenSettings,
 ) -> TokenStream {
-    let user_defined_type = &settings.user_defined_type;
+    let user_context_type = &settings.user_context_type;
     quote!(
         #[inline(always)]
         pub fn parse<'a, TT: ParseTracer>(
             state: ParseState<'a>,
-            global: &mut ParseGlobal<TT, ParseCache<'a>, #user_defined_type>,
+            global: &mut ParseGlobal<TT, ParseCache<'a>, #user_context_type>,
         ) -> ParseResult<'a, Parsed> {
             #parse_body
         }
@@ -342,12 +342,12 @@ pub fn generate_rule_parse_function(
     parse_body: TokenStream,
     settings: &CodegenSettings,
 ) -> TokenStream {
-    let user_defined_type = &settings.user_defined_type;
+    let user_context_type = &settings.user_context_type;
     quote!(
         #[inline]
         pub(super) fn #parser_name <'a, TT: ParseTracer>(
             state: ParseState<'a>,
-            global: &mut ParseGlobal<TT, ParseCache<'a>, #user_defined_type>,
+            global: &mut ParseGlobal<TT, ParseCache<'a>, #user_context_type>,
         ) -> ParseResult<'a, #rule_type> {
             #parse_body
         }

@@ -29,23 +29,23 @@ impl CodegenGrammar for Grammar {
                     all_impls.extend(impls);
                     let rule_ident = safe_ident(&rule.name);
                     let internal_parser_name = format_ident!("parse_{}", rule.name);
-                    let user_defined_type = &settings.user_defined_type;
+                    let user_context_type = &settings.user_context_type;
                     if flags.export {
                         all_parsers.extend(quote!(
-                            impl peginator_generated::PegParserAdvanced<#user_defined_type> for #rule_ident {
+                            impl peginator_generated::PegParserAdvanced<#user_context_type> for #rule_ident {
                                 fn parse_advanced<TT: peginator_generated::ParseTracer>(
                                     s: &str,
                                     settings: &peginator_generated::ParseSettings,
-                                    user_defined: #user_defined_type,
+                                    user_context: #user_context_type,
                                 ) -> Result<Self, peginator_generated::ParseError> {
                                     Ok(peginator_generated::#internal_parser_name(
                                         peginator_generated::ParseState::new(s, settings),
                                         &mut peginator_generated
                                             ::ParseGlobal
-                                            ::<TT, peginator_generated::ParseCache, #user_defined_type>
+                                            ::<TT, peginator_generated::ParseCache, #user_context_type>
                                             ::new(
                                                 Default::default(),
-                                                user_defined,
+                                                user_context,
                                         ),
                                     )?.result)
                                 }

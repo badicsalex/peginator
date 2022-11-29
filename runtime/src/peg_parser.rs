@@ -33,7 +33,7 @@ pub trait PegParserAdvanced<TUD>: Sized {
     fn parse_advanced<TT: ParseTracer>(
         s: &str,
         settings: &ParseSettings,
-        user_defined: TUD,
+        user_context: TUD,
     ) -> Result<Self, ParseError>;
 }
 

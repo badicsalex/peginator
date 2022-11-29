@@ -27,7 +27,7 @@ impl ExternRule {
             }
             ExternDirective_function::UserDefinedMethod(name) => {
                 let name_ident = safe_ident(name);
-                quote!( global . user_defined . #name_ident )
+                quote!( global . user_context . #name_ident )
             }
         };
 

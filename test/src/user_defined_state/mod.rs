@@ -19,9 +19,10 @@ impl TheState {
 
 #[test]
 fn test() {
+    let mut state = TheState { a: 42 };
     assert_eq!(
-        Test::parse_advanced::<NoopTracer>("abc", &ParseSettings::default(), TheState { a: 42 })
-            .unwrap(),
+        Test::parse_advanced::<NoopTracer>("abc", &ParseSettings::default(), &mut state).unwrap(),
         Test { f1: 43, f2: 44 }
     );
+    assert_eq!(state.a, 45);
 }

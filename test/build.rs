@@ -25,6 +25,6 @@ fn main() {
             "PartialEq".into(),
             "Eq".into(),
         ])
-        .user_defined_type("crate::user_defined_state::TheState")
+        .user_context_type("crate::user_defined_state::TheState")
         .run_exit_on_error();
 }

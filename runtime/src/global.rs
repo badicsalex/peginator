@@ -8,15 +8,15 @@ use super::ParseTracer;
 pub struct ParseGlobal<TT: ParseTracer, TC, TUD> {
     pub tracer: TT,
     pub cache: TC,
-    pub user_defined: TUD,
+    pub user_context: TUD,
 }
 
 impl<TT: ParseTracer, TC, TUD> ParseGlobal<TT, TC, TUD> {
-    pub fn new(cache: TC, user_defined: TUD) -> Self {
+    pub fn new(cache: TC, user_context: TUD) -> Self {
         Self {
             tracer: TT::new(),
             cache,
-            user_defined,
+            user_context,
         }
     }
 }
