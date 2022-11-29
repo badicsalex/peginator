@@ -116,7 +116,7 @@ impl Rule {
     ) -> Result<(TokenStream, TokenStream, TokenStream)> {
         let rule_mod = self.rule_module_ident();
         let rule_type_ident = safe_ident(&self.name);
-        let check_calls = self.generate_check_calls()?;
+        let check_calls = self.generate_check_calls(settings)?;
         let flags = self.flags();
         let type_decl = if flags.position {
             let derives = generate_derives(settings);
@@ -186,7 +186,7 @@ impl Rule {
         let rule_mod = self.rule_module_ident();
         let rule_type = safe_ident(&self.name);
         let override_type = generate_field_type(&self.name, field, settings);
-        let check_calls = self.generate_check_calls()?;
+        let check_calls = self.generate_check_calls(settings)?;
         Ok((
             quote!(
                 pub type #rule_type = #override_type;
@@ -210,7 +210,7 @@ impl Rule {
         let rule_mod = self.rule_module_ident();
         let rule_type = safe_ident(&self.name);
         let enum_type = generate_enum_type(&self.name, field, settings);
-        let check_calls = self.generate_check_calls()?;
+        let check_calls = self.generate_check_calls(settings)?;
         Ok((
             quote!(
                 #enum_type
@@ -264,7 +264,7 @@ impl Rule {
             quote!(#( #field_names:r.#field_names, )*)
         };
 
-        let check_calls = self.generate_check_calls()?;
+        let check_calls = self.generate_check_calls(settings)?;
 
         let rule_parser_body = if record_position == RecordPosition::Yes {
             quote!(
@@ -302,7 +302,7 @@ impl Rule {
         ))
     }
 
-    fn generate_check_calls(&self) -> Result<TokenStream> {
+    fn generate_check_calls(&self, settings: &CodegenSettings) -> Result<TokenStream> {
         let check_name_parts = self.directives.iter().filter_map(|d| {
             if let DirectiveExpression::CheckDirective(c) = d {
                 Some(&c.function)
@@ -315,10 +315,15 @@ impl Rule {
             quote!(#(#part_idents)::*)
         });
         let check_names = check_name_parts.map(|ps| ps.join("::"));
+        let user_context_param = if settings.has_user_context {
+            quote!(, global.user_context)
+        } else {
+            quote!()
+        };
 
         Ok(quote!(
             #(
-                if !#check_idents(&result.result) {
+                if !#check_idents(&result.result #user_context_param) {
                     return Err(result.state.report_error(
                         ParseErrorSpecifics::CheckFunctionFailed{function_name: #check_names}
                     ));

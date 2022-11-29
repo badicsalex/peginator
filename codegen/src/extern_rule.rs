@@ -10,7 +10,7 @@ use super::{
     common::{generate_rule_parse_function, safe_ident},
     CodegenSettings,
 };
-use crate::grammar::{ExternDirective_function, ExternRule};
+use crate::grammar::ExternRule;
 
 impl ExternRule {
     pub fn generate_code(&self, settings: &CodegenSettings) -> Result<(TokenStream, TokenStream)> {
@@ -20,22 +20,19 @@ impl ExternRule {
         } else {
             quote!(String)
         };
-        let function_ident = match &self.directive.function {
-            ExternDirective_function::NamespacedRustName(name) => {
-                let name_idents = name.iter().map(safe_ident);
-                quote!(#(#name_idents)::*)
-            }
-            ExternDirective_function::UserDefinedMethod(name) => {
-                let name_ident = safe_ident(name);
-                quote!( global . user_context . #name_ident )
-            }
-        };
+        let name_idents = self.directive.function.iter().map(safe_ident);
+        let function_ident = quote!(#(#name_idents)::*);
 
         let rule_type = safe_ident(&self.name);
         let parser_name = format_ident!("parse_{}", self.name);
+        let user_context_param = if settings.has_user_context {
+            quote!(, global.user_context)
+        } else {
+            quote!()
+        };
 
         let parse_body = quote!(
-            match #function_ident(state.s()) {
+            match #function_ident(state.s() #user_context_param) {
                 Ok((result, advance)) => {
                     Ok(ParseOk {
                         result: result.into(),

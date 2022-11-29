@@ -3,7 +3,10 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 
 @export
-Test = f1: UserDefined f2:UserDefined;
+Test = f1: UserDefined f2:UserDefined {f3:ManyAs}+;
 
-@extern(user_defined.do_parse -> u32)
+@extern(crate::user_defined_state::stateful_parser -> u32)
 UserDefined;
+
+@check(crate::user_defined_state::stateful_checker)
+ManyAs = 'a';

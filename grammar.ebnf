@@ -133,12 +133,11 @@ LeftrecDirective = "@leftrec";
 CheckDirective = "@check" "(" function:NamespacedRustName ")";
 ExternDirective = 
     "@extern" "("
-        ( function:UserDefinedMethod | function:NamespacedRustName )
+        function:NamespacedRustName
         [ '->' return_type:NamespacedRustName ]
     ")"
     ;
 
-UserDefinedMethod = "user_defined" "." @:RustNamePart;
 NamespacedRustName = @:RustNamePart { '::' @:RustNamePart };
 
 @string

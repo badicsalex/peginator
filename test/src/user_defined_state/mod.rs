@@ -7,22 +7,43 @@ use grammar::*;
 use peginator::{NoopTracer, ParseSettings, PegParserAdvanced};
 
 pub struct TheState {
-    a: u32,
+    retval: u32,
+    a_count: u32,
 }
 
 impl TheState {
     pub fn do_parse(&mut self, _s: &str) -> Result<(u32, usize), &'static str> {
-        self.a += 1;
-        Ok((self.a, 1))
+        self.retval += 1;
+        Ok((self.retval, 1))
+    }
+}
+
+pub fn stateful_parser(s: &str, state: &mut TheState) -> Result<(u32, usize), &'static str> {
+    state.do_parse(s)
+}
+pub fn stateful_checker(_a: &ManyAs, state: &mut TheState) -> bool {
+    if state.a_count > 0 {
+        state.a_count -= 1;
+        true
+    } else {
+        false
     }
 }
 
 #[test]
 fn test() {
-    let mut state = TheState { a: 42 };
+    let mut state = TheState {
+        retval: 42,
+        a_count: 4,
+    };
     assert_eq!(
-        Test::parse_advanced::<NoopTracer>("abc", &ParseSettings::default(), &mut state).unwrap(),
-        Test { f1: 43, f2: 44 }
+        Test::parse_advanced::<NoopTracer>("ab a a a a a a", &ParseSettings::default(), &mut state)
+            .unwrap(),
+        Test {
+            f1: 43,
+            f2: 44,
+            f3: vec![ManyAs, ManyAs, ManyAs, ManyAs]
+        }
     );
-    assert_eq!(state.a, 45);
+    assert_eq!(state.retval, 44);
 }

@@ -14,7 +14,11 @@ use crate::grammar::Grammar;
 pub struct CodegenSettings {
     pub skip_whitespace: bool,
     pub derives: Vec<String>,
+    // This should probably be an Option, and not as two separate fields,
+    // but we need to put "()"-s everywhere as default,
+    // and this was the easiest way to do it.
     pub user_context_type: TokenStream,
+    pub has_user_context: bool,
 }
 
 impl Default for CodegenSettings {
@@ -23,6 +27,7 @@ impl Default for CodegenSettings {
             skip_whitespace: true,
             derives: vec!["Debug".into(), "Clone".into()],
             user_context_type: quote!(()),
+            has_user_context: false,
         }
     }
 }
@@ -31,6 +36,7 @@ impl CodegenSettings {
     pub fn set_user_context_type(&mut self, t: &str) {
         let idents = t.split("::").map(safe_ident);
         self.user_context_type = quote!(&mut #(#idents)::*);
+        self.has_user_context = true;
     }
 }
 
