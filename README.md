@@ -146,6 +146,12 @@ There are multiple ways to integrate a Peginator grammar to your project:
 * Inline your grammars with the `peginate!` macro from the [peginator\_macro](https://docs.rs/peginator_macro) package
 * Or you can use the [buildscript helper](https://docs.rs/peginator_codegen)
 
+## Railroad graphs
+
+The Peginator CLI can also create a nice railroad graph of your grammar:
+
+![Railroad graph](doc/railroad.png)
+
 ## Contribution
 
 At this point, I'd be happy if simply more people used this code. Please reach out if you need any help.

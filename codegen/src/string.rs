@@ -69,6 +69,18 @@ impl TryFrom<&Utf8Escape> for char {
     }
 }
 
+impl TryFrom<&StringLiteral> for String {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &StringLiteral) -> Result<Self, Self::Error> {
+        value
+            .body
+            .iter()
+            .map(|item| -> Result<char> { item.try_into() })
+            .collect::<Result<String>>()
+    }
+}
+
 impl Codegen for CharacterRange {
     fn generate_inline_body(
         &self,
@@ -103,11 +115,7 @@ impl Codegen for StringLiteral {
     ) -> Result<Option<TokenStream>> {
         let parser_name;
         let additional_params;
-        let literal = &self
-            .body
-            .iter()
-            .map(|item| -> Result<char> { item.try_into() })
-            .collect::<Result<String>>()?;
+        let literal = String::try_from(self)?;
         if self.insensitive.is_some() {
             if !literal.is_ascii() {
                 bail!("Case insensitive matching only works for ascii strings. ({literal:?} was not ascii)");

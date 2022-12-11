@@ -11,6 +11,10 @@ use peginator::{PegParser, PrettyParseError};
 use peginator_codegen::Grammar;
 use peginator_codegen::{generate_source_header, CodegenGrammar, CodegenSettings};
 
+use crate::peg_railroad::print_railroad_svg;
+
+mod peg_railroad;
+
 /// Compile EBNF grammar into rust parser code.
 #[derive(Parser, Debug)]
 #[clap(version, about)]
@@ -18,6 +22,10 @@ struct Args {
     /// Print the parsed AST and exit
     #[clap(short, long)]
     ast_only: bool,
+
+    /// Output a railroad graph representation of the grammar as SVG
+    #[clap(short, long)]
+    railroad: bool,
 
     /// Trace rule matching
     #[clap(short, long)]
@@ -41,6 +49,11 @@ fn main_wrap() -> Result<()> {
     .map_err(|err| PrettyParseError::from_parse_error(&err, &grammar, Some(&args.grammar_file)))?;
     if args.ast_only {
         println!("{:#?}", parsed_grammar);
+        return Ok(());
+    }
+
+    if args.railroad {
+        print_railroad_svg(&parsed_grammar);
         return Ok(());
     }
 

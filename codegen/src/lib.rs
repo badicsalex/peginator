@@ -33,7 +33,8 @@
 //!
 //! See the documentation of [`Compile`] for more advanced options.
 
-mod grammar;
+#[doc(hidden)]
+pub mod grammar;
 
 mod buildscript;
 mod char_rule;

@@ -12,8 +12,9 @@ categories = ["parsing"]
 license = "MIT"
 
 [dependencies]
-peginator_codegen = { version="=0.6.0", path = "../codegen" }
-peginator = { version="=0.6.0", path = "../runtime" }
+anyhow = "1.0"
 clap = { version = "4.0", features = ["derive"]}
 colored = "2.0"
-anyhow = "1.0"
+peginator = { version="=0.6.0", path = "../runtime" }
+peginator_codegen = { version="=0.6.0", path = "../codegen" }
+railroad = "0.1.1"
