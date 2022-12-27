@@ -1,4 +1,6 @@
 # Peginator
+[![Crates.io](https://img.shields.io/crates/v/peginator.svg)](https://crates.io/crates/peginator)
+[![Docs.rs](https://docs.rs/peginator/badge.svg)](https://docs.rs/peginator)
 
 Peginator is a PEG (Parsing Expression Grammar) parser generator written in Rust. It
 is specifically made to parse into ASTs (Abstract Syntax Trees), as opposed to most,
