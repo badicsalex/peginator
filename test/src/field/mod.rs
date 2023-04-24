@@ -2,6 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+#[allow(clippy::module_inception)]
 mod grammar;
 use grammar::*;
 use peginator::PegParser;

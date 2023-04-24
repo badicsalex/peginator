@@ -2,6 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
+#[allow(clippy::useless_conversion)]
 mod grammar;
 use grammar::*;
 use peginator::PegParser;
@@ -19,7 +20,7 @@ fn test() {
 
 pub fn raw_string_parser(s: &str) -> Result<(&str, usize), &'static str> {
     let sb = s.as_bytes();
-    if *sb.get(0).ok_or("expected 'r', found end of string")? != b'r' {
+    if *sb.first().ok_or("expected 'r', found end of string")? != b'r' {
         return Err("expected 'r'");
     }
     let num_hashes = sb[1..]

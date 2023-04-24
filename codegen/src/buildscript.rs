@@ -161,7 +161,7 @@ impl Compile {
             source_header,
             parsed_grammar.generate_code(&self.settings)?
         );
-        fs::write(destination, &generated_code)?;
+        fs::write(destination, generated_code)?;
         if self.format {
             Command::new("rustfmt").arg(destination).status()?;
         };
