@@ -7,8 +7,6 @@ mod grammar;
 use grammar::*;
 use peginator::PegParser;
 
-use crate::test_utils::assert_type_eq;
-
 #[test]
 fn test_enums() {
     match EnumTest::parse("a(123;456)").unwrap().a {
@@ -75,38 +73,5 @@ fn test_overrides() {
                 y: "10".to_string()
             }
         ]
-    );
-}
-
-#[test]
-fn test_boxes() {
-    assert_type_eq!(BoxedSimple, p, Box<Point>);
-    assert_type_eq!(BoxedOptional, p, Option<Box<Point>>);
-    assert_type_eq!(BoxedVec, p, Vec<Point>);
-
-    assert_eq!(
-        *BoxedSimple::parse("(3;45)").unwrap().p,
-        Point {
-            x: "3".to_string(),
-            y: "45".to_string()
-        }
-    );
-
-    assert_eq!(
-        *BoxedOptional::parse("(3;45)").unwrap().p.unwrap(),
-        Point {
-            x: "3".to_string(),
-            y: "45".to_string()
-        }
-    );
-
-    assert_eq!(BoxedOptional::parse("()").unwrap().p, None);
-
-    assert_eq!(
-        BoxedVec::parse("(3;45)").unwrap().p,
-        vec![Point {
-            x: "3".to_string(),
-            y: "45".to_string()
-        }]
     );
 }

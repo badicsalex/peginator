@@ -1,0 +1,36 @@
+# Copyright (C) 2022, Alex Badics
+# This file is part of peginator
+# Licensed under the MIT license. See LICENSE file in the project root for details.
+
+@export
+BoxedSimple = p:*Point;
+
+@export
+BoxedOptional = [p:*Point];
+
+@export
+BoxedVec = {p:*Point};
+
+@export
+HalfBoxedEnum = p:Point | p:*Coordinate;
+
+@export
+FullBoxedEnum = p:*Point | p:*Coordinate;
+
+@export
+Point = '(' x:Coordinate ';' y:Coordinate ')';
+
+@string
+@no_skip_ws
+Coordinate = {'0'..'9'}+;
+
+@export
+OverrideTest = s:SimpleOverride e:EnumOverride o:OptionOverride v:VecOverride;
+
+SimpleOverride = @:*Point;
+
+EnumOverride = @:*Point | @:Coordinate;
+
+OptionOverride = [@:*Point];
+
+VecOverride = {@:*Point};

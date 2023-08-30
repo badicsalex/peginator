@@ -12,7 +12,7 @@ use super::common::{
     generate_inner_parse_function, safe_ident, Arity, CloneState, Codegen, CodegenSettings,
     FieldDescriptor,
 };
-use crate::grammar::{Grammar, Sequence};
+use crate::{grammar::{Grammar, Sequence}, common::combine_field_types};
 
 impl Codegen for Sequence {
     fn generate_code_spec(
@@ -85,7 +85,7 @@ impl Codegen for Sequence {
             for new_field in new_fields {
                 if let Some(original) = all_fields.iter_mut().find(|f| f.name == new_field.name) {
                     original.arity = Arity::Multiple;
-                    original.type_names.extend(&new_field.type_names);
+                    combine_field_types(&mut original.types, &new_field.types);
                 } else {
                     all_fields.push(new_field);
                 }

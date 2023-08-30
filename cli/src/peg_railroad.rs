@@ -5,8 +5,8 @@
 use peginator_codegen::{
     grammar::{
         CharRangePart, CharRule, CharRulePart, CharacterRange, Choice, Closure,
-        DelimitedExpression, DirectiveExpression, EndOfInput, ExternRule, Field, Grammar_rules,
-        Group, IncludeRule, NegativeLookahead, Optional, OverrideField, PositiveLookahead, Rule,
+        DelimitedExpression, DirectiveExpression, EndOfInput, ExternRule, Field, Field_name,
+        Grammar_rules, Group, IncludeRule, NegativeLookahead, Optional, PositiveLookahead, Rule,
         Sequence, StringLiteral,
     },
     Grammar,
@@ -147,7 +147,6 @@ impl GenerateRailroad for DelimitedExpression {
             DelimitedExpression::IncludeRule(x) => x.generate_railroad(),
             DelimitedExpression::NegativeLookahead(x) => x.generate_railroad(),
             DelimitedExpression::Optional(x) => x.generate_railroad(),
-            DelimitedExpression::OverrideField(x) => x.generate_railroad(),
             DelimitedExpression::PositiveLookahead(x) => x.generate_railroad(),
             DelimitedExpression::StringLiteral(x) => x.generate_railroad(),
         }
@@ -178,19 +177,18 @@ impl GenerateRailroad for Field {
     fn generate_railroad(&self) -> Box<dyn RailroadNode> {
         let nonterminal = Box::new(railroad::NonTerminal::new(self.typ.clone()));
         if let Some(name) = &self.name {
-            Box::new(railroad::LabeledBox::new(
-                nonterminal,
-                railroad::Comment::new(name.clone()),
-            ))
+            match name {
+                Field_name::Identifier(name) => Box::new(railroad::LabeledBox::new(
+                    nonterminal,
+                    railroad::Comment::new(name.clone()),
+                )),
+                Field_name::OverrideMarker(_) => {
+                    Box::new(railroad::NonTerminal::new(self.typ.clone()))
+                }
+            }
         } else {
             nonterminal
         }
-    }
-}
-
-impl GenerateRailroad for OverrideField {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
-        Box::new(railroad::NonTerminal::new(self.typ.clone()))
     }
 }
 

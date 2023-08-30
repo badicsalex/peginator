@@ -229,9 +229,10 @@ or the matched field is rare and big):
 boxed_field:*BigRule
 ```
 
-In case of Vec fields, `Box`-ing it is not needed, and will not be done even if `*` is used.
+In case of `enum` fields and overrides, you can pick and choose which variants to box.
+The inner part of the choice will be boxed, even if every variant is boxed.
 
-Overrides cannot be boxed.
+In case of `Vec` fields, the field will become a vector of boxes (i.e. `Vec<Box<...>>`).
 
 ### Directives
 

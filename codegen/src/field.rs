@@ -9,7 +9,10 @@ use quote::{format_ident, quote};
 use super::common::{
     generate_skip_ws, safe_ident, Arity, CloneState, Codegen, CodegenSettings, FieldDescriptor,
 };
-use crate::grammar::{Field, Grammar, OverrideField};
+use crate::{
+    common::FieldProperties,
+    grammar::{Field, Field_name, Grammar},
+};
 
 impl Codegen for Field {
     fn generate_inline_body(
@@ -20,7 +23,14 @@ impl Codegen for Field {
         clone_state: CloneState,
     ) -> Result<Option<TokenStream>> {
         let postprocess = if let Some(field_name) = &self.name {
-            generate_postprocess_calls(field_name, &self.typ, rule_fields)
+            generate_postprocess_calls(
+                match field_name {
+                    Field_name::Identifier(field_name) => field_name,
+                    Field_name::OverrideMarker(_) => "_override",
+                },
+                &self.typ,
+                rule_fields,
+            )
         } else {
             quote!(.discard_result())
         };
@@ -36,42 +46,22 @@ impl Codegen for Field {
     fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
         if let Some(field_name) = &self.name {
             Ok(vec![FieldDescriptor {
-                name: field_name,
-                type_names: [&self.typ as &str].into(),
+                name: match field_name {
+                    Field_name::Identifier(field_name) => field_name,
+                    Field_name::OverrideMarker(_) => "_override",
+                },
+                types: [(
+                    &self.typ as &str,
+                    FieldProperties {
+                        boxed: self.boxed.is_some(),
+                    },
+                )]
+                .into(),
                 arity: Arity::One,
-                boxed: self.boxed.is_some(),
             }])
         } else {
             Ok(Vec::new())
         }
-    }
-}
-
-impl Codegen for OverrideField {
-    fn generate_inline_body(
-        &self,
-        rule_fields: &[FieldDescriptor],
-        _grammar: &Grammar,
-        settings: &CodegenSettings,
-        clone_state: CloneState,
-    ) -> Result<Option<TokenStream>> {
-        let postprocess = generate_postprocess_calls("_override", &self.typ, rule_fields);
-        let parser_call = generate_skip_ws(
-            settings,
-            &format!("parse_{}", self.typ),
-            quote!(global),
-            clone_state,
-        );
-        Ok(Some(quote!(#parser_call #postprocess)))
-    }
-
-    fn get_fields(&self, _grammar: &Grammar) -> Result<Vec<FieldDescriptor>> {
-        Ok(vec![FieldDescriptor {
-            name: "_override",
-            type_names: [&self.typ as &str].into(),
-            arity: Arity::One,
-            boxed: false,
-        }])
     }
 }
 
@@ -87,44 +77,28 @@ fn generate_postprocess_calls(
     let enum_type_name = format_ident!("Parsed_{field_name}");
     let field_type_ident = safe_ident(field_type_name);
 
-    // Special cases for the most common cases
-    if !field.boxed {
-        if field.type_names.len() == 1 && field.arity == Arity::One {
-            return TokenStream::new();
-        }
-        if field.type_names.len() > 1 && field.arity == Arity::One {
-            return quote!(.map_inner(#enum_type_name::#field_type_ident));
-        }
-        if field.type_names.len() == 1 && field.arity == Arity::Optional {
-            return quote!(.map_inner(Some));
-        }
-    } else if field.type_names.len() == 1 && field.arity == Arity::One {
-        return quote!(.map_inner(Box::new));
-    }
-
-    let enumified_field = if field.type_names.len() > 1 {
-        quote!(#enum_type_name::#field_type_ident(result))
+    let field_properties = field
+        .types
+        .get(field_type_name)
+        .expect("Field type not found in field");
+    let boxify = if field_properties.boxed {
+        quote!(.map_inner(Box::new))
     } else {
-        quote!(result)
+        TokenStream::new()
     };
-    let field_conversion = match field.arity {
-        Arity::One => {
-            if field.boxed {
-                quote!(Box::new(#enumified_field))
-            } else {
-                quote!(#enumified_field)
-            }
-        }
-        Arity::Optional => {
-            if field.boxed {
-                quote!(Some(Box::new(#enumified_field)))
-            } else {
-                quote!(Some(#enumified_field))
-            }
-        }
-        Arity::Multiple => quote!(vec![#enumified_field]),
+    let enumify = if field.types.len() > 1 {
+        quote!(.map_inner(#enum_type_name::#field_type_ident))
+    } else {
+        TokenStream::new()
+    };
+    let aritify = match field.arity {
+        Arity::One => TokenStream::new(),
+        Arity::Optional => quote!(.map_inner(Some)),
+        Arity::Multiple => quote!(.map_inner(|result| vec![result])),
     };
     quote!(
-        .map_inner(|result| #field_conversion )
+        #boxify
+        #enumify
+        #aritify
     )
 }

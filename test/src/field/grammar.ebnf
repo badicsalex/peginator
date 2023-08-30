@@ -23,18 +23,8 @@ VecOverride = {@:Point};
 NoFieldName = "dontcare:" Coordinate f:Coordinate;
 
 @export
-BoxedSimple = p:*Point;
-
-@export
-BoxedOptional = [p:*Point];
-
-@export
-BoxedVec = {p:*Point};
-
-@export
 Point = '(' x:Coordinate ';' y:Coordinate ')';
 
 @string
 @no_skip_ws
 Coordinate = {'0'..'9'}+;
-

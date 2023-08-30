@@ -10,7 +10,10 @@ use super::common::{
     generate_inner_parse_function, safe_ident, Arity, CloneState, Codegen, CodegenSettings,
     FieldDescriptor,
 };
-use crate::grammar::{Choice, Grammar};
+use crate::{
+    common::combine_field_types,
+    grammar::{Choice, Grammar},
+};
 
 impl Codegen for Choice {
     fn generate_code_spec(
@@ -98,7 +101,7 @@ impl Codegen for Choice {
             for new_field in new_fields {
                 if let Some(original) = all_fields.iter_mut().find(|f| f.name == new_field.name) {
                     original.arity = combine_arities_for_choice(&original.arity, &new_field.arity);
-                    original.type_names.extend(&new_field.type_names);
+                    combine_field_types(&mut original.types, &new_field.types);
                 } else if first_iteration || new_field.arity != Arity::One {
                     all_fields.push(new_field);
                 } else {

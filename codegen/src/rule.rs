@@ -161,7 +161,7 @@ impl Rule {
         settings: &CodegenSettings,
     ) -> Result<(TokenStream, TokenStream, TokenStream)> {
         let field = &fields[0];
-        if field.type_names.len() <= 1 {
+        if field.types.len() <= 1 {
             let flags = self.flags();
             if flags.export {
                 bail!("Simply overridden (containing '@:') rules cannot be @export-ed. Try the > operator instead.");
@@ -237,7 +237,7 @@ impl Rule {
         let rule_type = safe_ident(&self.name);
         let parsed_enum_types: TokenStream = fields
             .iter()
-            .filter(|f| f.type_names.len() > 1)
+            .filter(|f| f.types.len() > 1)
             .map(|f| generate_enum_type(&format!("{}_{}", self.name, f.name), f, settings))
             .collect();
         let parsed_struct_type = self.definition.generate_struct_type(
@@ -250,7 +250,7 @@ impl Rule {
         )?;
         let inner_enum_uses: TokenStream = fields
             .iter()
-            .filter(|f| f.type_names.len() > 1)
+            .filter(|f| f.types.len() > 1)
             .map(|f| {
                 let outer_name = format_ident!("{}_{}", self.name, f.name);
                 let inner_name = format_ident!("Parsed_{}", f.name);
@@ -335,9 +335,9 @@ impl Rule {
     fn generate_impl_position(&self, fields: &[FieldDescriptor]) -> TokenStream {
         let rule_type = safe_ident(&self.name);
         if self.flags().position {
-            if fields.len() == 1 && fields[0].name == "_override" && fields[0].type_names.len() > 1
+            if fields.len() == 1 && fields[0].name == "_override" && fields[0].types.len() > 1
             {
-                let cases = fields[0].type_names.iter().map(safe_ident);
+                let cases = fields[0].types.keys().map(safe_ident);
                 quote!(
                     impl PegPosition for #rule_type {
                         fn position(&self) -> &std::ops::Range<usize> {

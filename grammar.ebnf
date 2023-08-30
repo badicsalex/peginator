@@ -44,11 +44,11 @@ StringLiteral =
 
 CaseInsensitiveMarker = 'i';
 
-Field = [name:Identifier ":" [boxed:BoxMarker]] typ:Identifier;
+Field = [(name:Identifier | name:OverrideMarker) ":" [boxed:BoxMarker]] typ:Identifier;
 
 BoxMarker = '*';
 
-OverrideField = "@" ":" typ:Identifier;
+OverrideMarker = "@";
 
 IncludeRule = ">" rule:Identifier;
 
@@ -61,7 +61,6 @@ DelimitedExpression =
     @:CharacterRange |
     @:StringLiteral |
     @:EndOfInput |
-    @:OverrideField |
     @:IncludeRule |
     @:Field
 ;

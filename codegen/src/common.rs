@@ -2,7 +2,7 @@
 // This file is part of peginator
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 
-use std::{any::type_name, collections::BTreeSet};
+use std::{any::type_name, collections::BTreeMap};
 
 use anyhow::Result;
 use proc_macro2::{Ident, Span, TokenStream};
@@ -62,8 +62,12 @@ pub enum Arity {
 #[derive(Debug, Clone)]
 pub struct FieldDescriptor<'a> {
     pub name: &'a str,
-    pub type_names: BTreeSet<&'a str>,
+    pub types: BTreeMap<&'a str, FieldProperties>,
     pub arity: Arity,
+}
+
+#[derive(Debug, Clone)]
+pub struct FieldProperties {
     pub boxed: bool,
 }
 
@@ -277,33 +281,30 @@ pub fn generate_field_type(
     field: &FieldDescriptor,
     _settings: &CodegenSettings,
 ) -> TokenStream {
-    let field_inner_type_ident: TokenStream = if field.type_names.len() > 1 {
+    let field_inner_type_ident: TokenStream = if field.types.len() > 1 {
         let field_name = &field.name;
         let ident = format_ident!("{parent_type}_{field_name}");
         quote!(#ident)
     } else {
-        let type_name = field.type_names.iter().next().unwrap();
+        let (type_name, type_properties) = field.types.iter().next().unwrap();
         let ident = safe_ident(type_name);
-        if type_name == &"char" {
+        let raw_type = if type_name == &"char" {
             quote!(char)
         } else {
             quote!(#ident)
+        };
+        if type_properties.boxed {
+            quote!(Box<#raw_type>)
+        } else {
+            raw_type
         }
     };
     match field.arity {
         Arity::One => {
-            if field.boxed {
-                quote!(Box<#field_inner_type_ident>)
-            } else {
-                quote!(#field_inner_type_ident)
-            }
+            quote!(#field_inner_type_ident)
         }
         Arity::Optional => {
-            if field.boxed {
-                quote!(Option<Box<#field_inner_type_ident>>)
-            } else {
-                quote!(Option<#field_inner_type_ident>)
-            }
+            quote!(Option<#field_inner_type_ident>)
         }
         Arity::Multiple => quote!(Vec<#field_inner_type_ident>),
     }
@@ -316,12 +317,23 @@ pub fn generate_enum_type(
 ) -> TokenStream {
     let ident = safe_ident(name);
     let derives = generate_derives(settings);
-    let type_idents: Vec<Ident> = field.type_names.iter().map(safe_ident).collect();
+    let entries: TokenStream = field
+        .types
+        .iter()
+        .map(|(k, v)| {
+            let ident = safe_ident(k);
+            if v.boxed {
+                quote!(#ident(Box<#ident>),)
+            } else {
+                quote!(#ident(#ident),)
+            }
+        })
+        .collect();
     quote!(
         #[allow(non_camel_case_types)]
         #derives
         pub enum #ident {
-            #(#type_idents(#type_idents),)*
+            #entries
         }
     )
 }
@@ -366,6 +378,16 @@ pub fn safe_ident(name: impl AsRef<str>) -> Ident {
         format_ident!("r#{name}")
     } else {
         format_ident!("{name}")
+    }
+}
+
+pub fn combine_field_types<'a>(
+    left: &mut BTreeMap<&'a str, FieldProperties>,
+    right: &BTreeMap<&'a str, FieldProperties>,
+) {
+    for (k, v) in right {
+        let entry = left.entry(k).or_insert_with(|| v.clone());
+        entry.boxed = entry.boxed || v.boxed;
     }
 }
 
