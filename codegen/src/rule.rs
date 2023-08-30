@@ -233,6 +233,10 @@ impl Rule {
         settings: &CodegenSettings,
         record_position: RecordPosition,
     ) -> Result<(TokenStream, TokenStream, TokenStream)> {
+        if fields.iter().any(|f| f.name == "_override") {
+            bail!("Mixing simple and override fields is not allowed.");
+        }
+
         let rule_mod = self.rule_module_ident();
         let rule_type = safe_ident(&self.name);
         let parsed_enum_types: TokenStream = fields
