@@ -208,7 +208,7 @@ impl Compile {
         let result = self.run();
         if let Err(error) = result {
             eprintln!(
-                "{red_error}{colon} {error}",
+                "{red_error}{colon} {error:?}",
                 red_error = "error".red().bold(),
                 colon = ":".bold().white(),
                 error = error

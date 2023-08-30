@@ -6,7 +6,7 @@ mod generated;
 
 use std::str::FromStr;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 pub use generated::*;
 use peginator::{ParseError, PegParser};
 use proc_macro2::TokenStream;
@@ -24,7 +24,9 @@ impl CodegenGrammar for Grammar {
             match rule_entry {
                 Grammar_rules::Rule(rule) => {
                     let flags = rule.flags();
-                    let (types, impls) = rule.generate_code(self, settings)?;
+                    let (types, impls) = rule
+                        .generate_code(self, settings)
+                        .with_context(|| format!("Error processing rule {}", rule.name))?;
                     all_types.extend(types);
                     all_impls.extend(impls);
                     let rule_ident = safe_ident(&rule.name);
@@ -59,13 +61,18 @@ impl CodegenGrammar for Grammar {
                             .extend(quote!(pub #cache_entry_ident: CacheEntries<'a, #rule_ident>,));
                     }
                 }
-                Grammar_rules::CharRule(char_rule) => {
-                    let rule_ident = safe_ident(&char_rule.name);
+                Grammar_rules::CharRule(rule) => {
+                    let rule_ident = safe_ident(&rule.name);
                     all_types.extend(quote!(pub type #rule_ident = char;));
-                    all_impls.extend(char_rule.generate_code(settings));
+                    all_impls.extend(
+                        rule.generate_code(settings)
+                            .with_context(|| format!("Error processing @char rule {}", rule.name))?,
+                    );
                 }
-                Grammar_rules::ExternRule(extern_rule) => {
-                    let (types, impls) = extern_rule.generate_code(settings)?;
+                Grammar_rules::ExternRule(rule) => {
+                    let (types, impls) = rule
+                        .generate_code(settings)
+                        .with_context(|| format!("Error processing @extern rule {}", rule.name))?;
                     all_types.extend(types);
                     all_impls.extend(impls);
                 }
