@@ -11,7 +11,7 @@ use peginator_codegen::{
     },
     Grammar,
 };
-use railroad::RailroadNode;
+use railroad::Node;
 
 pub fn print_railroad_svg(grammar: &Grammar) {
     let mut dia = railroad::Diagram::new(grammar.generate_railroad());
@@ -22,11 +22,11 @@ pub fn print_railroad_svg(grammar: &Grammar) {
 }
 
 trait GenerateRailroad {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode>;
+    fn generate_railroad(&self) -> Box<dyn Node>;
 }
 
 impl GenerateRailroad for Grammar {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::Diagram::new(railroad::VerticalGrid::new(
             self.rules.iter().map(|r| r.generate_railroad()).collect(),
         )))
@@ -34,7 +34,7 @@ impl GenerateRailroad for Grammar {
 }
 
 impl GenerateRailroad for Grammar_rules {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         match self {
             Grammar_rules::CharRule(x) => x.generate_railroad(),
             Grammar_rules::ExternRule(x) => x.generate_railroad(),
@@ -44,8 +44,8 @@ impl GenerateRailroad for Grammar_rules {
 }
 
 impl GenerateRailroad for Rule {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
-        let mut seq = railroad::Sequence::default();
+    fn generate_railroad(&self) -> Box<dyn Node> {
+        let mut seq = railroad::Sequence::<Box<dyn Node>>::default();
         let is_exported = self
             .directives
             .iter()
@@ -67,8 +67,8 @@ impl GenerateRailroad for Rule {
 }
 
 impl GenerateRailroad for CharRule {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
-        let mut seq = railroad::Sequence::default();
+    fn generate_railroad(&self) -> Box<dyn Node> {
+        let mut seq = railroad::Sequence::<Box<dyn Node>>::default();
         seq.push(Box::new(railroad::SimpleStart));
         seq.push(Box::new(railroad::Comment::new(self.name.clone())));
         seq.push(Box::new(railroad::Choice::new(
@@ -80,8 +80,8 @@ impl GenerateRailroad for CharRule {
 }
 
 impl GenerateRailroad for ExternRule {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
-        let mut seq = railroad::Sequence::default();
+    fn generate_railroad(&self) -> Box<dyn Node> {
+        let mut seq = railroad::Sequence::<Box<dyn Node>>::default();
         seq.push(Box::new(railroad::SimpleStart));
         seq.push(Box::new(railroad::Comment::new(self.name.clone())));
         seq.push(Box::new(railroad::NonTerminal::new(
@@ -93,7 +93,7 @@ impl GenerateRailroad for ExternRule {
 }
 
 impl GenerateRailroad for CharRulePart {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         match self {
             CharRulePart::CharRangePart(x) => x.generate_railroad(),
             CharRulePart::CharacterRange(x) => x.generate_railroad(),
@@ -103,7 +103,7 @@ impl GenerateRailroad for CharRulePart {
 }
 
 impl GenerateRailroad for CharRangePart {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::Terminal::new(
             char::try_from(self).unwrap().escape_debug().to_string(),
         ))
@@ -111,7 +111,7 @@ impl GenerateRailroad for CharRangePart {
 }
 
 impl GenerateRailroad for CharacterRange {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::Terminal::new(format!(
             "{}..{}",
             char::try_from(&self.from).unwrap().escape_debug(),
@@ -121,7 +121,7 @@ impl GenerateRailroad for CharacterRange {
 }
 
 impl GenerateRailroad for Choice {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::Choice::new(
             self.choices.iter().map(|c| c.generate_railroad()).collect(),
         ))
@@ -129,7 +129,7 @@ impl GenerateRailroad for Choice {
 }
 
 impl GenerateRailroad for Sequence {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::Sequence::new(
             self.parts.iter().map(|c| c.generate_railroad()).collect(),
         ))
@@ -137,7 +137,7 @@ impl GenerateRailroad for Sequence {
 }
 
 impl GenerateRailroad for DelimitedExpression {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         match self {
             DelimitedExpression::CharacterRange(x) => x.generate_railroad(),
             DelimitedExpression::Closure(x) => x.generate_railroad(),
@@ -154,7 +154,7 @@ impl GenerateRailroad for DelimitedExpression {
 }
 
 impl GenerateRailroad for Closure {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         let closure = Box::new(railroad::Repeat::new(
             self.body.generate_railroad(),
             railroad::Empty,
@@ -168,13 +168,13 @@ impl GenerateRailroad for Closure {
 }
 
 impl GenerateRailroad for EndOfInput {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::NonTerminal::new("EOI".to_string()))
     }
 }
 
 impl GenerateRailroad for Field {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         let nonterminal = Box::new(railroad::NonTerminal::new(self.typ.clone()));
         if let Some(name) = &self.name {
             match name {
@@ -193,19 +193,19 @@ impl GenerateRailroad for Field {
 }
 
 impl GenerateRailroad for Group {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         self.body.generate_railroad()
     }
 }
 
 impl GenerateRailroad for IncludeRule {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::NonTerminal::new(self.rule.clone()))
     }
 }
 
 impl GenerateRailroad for NegativeLookahead {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::LabeledBox::new(
             railroad::NonTerminal::new("Inverse of the above".to_string()),
             self.expr.generate_railroad(),
@@ -214,7 +214,7 @@ impl GenerateRailroad for NegativeLookahead {
 }
 
 impl GenerateRailroad for PositiveLookahead {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::LabeledBox::new(
             railroad::NonTerminal::new("Lookahead of the above".to_string()),
             self.expr.generate_railroad(),
@@ -223,13 +223,13 @@ impl GenerateRailroad for PositiveLookahead {
 }
 
 impl GenerateRailroad for Optional {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::Optional::new(self.body.generate_railroad()))
     }
 }
 
 impl GenerateRailroad for StringLiteral {
-    fn generate_railroad(&self) -> Box<dyn RailroadNode> {
+    fn generate_railroad(&self) -> Box<dyn Node> {
         Box::new(railroad::Terminal::new(
             String::try_from(self).unwrap().escape_debug().collect(),
         ))

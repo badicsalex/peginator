@@ -17,4 +17,4 @@ clap = { version = "4.0", features = ["derive"]}
 colored = "2.0"
 peginator = { version="=0.6.0", path = "../runtime" }
 peginator_codegen = { version="=0.6.0", path = "../codegen" }
-railroad = "0.1.1"
+railroad = "0.2.0"
