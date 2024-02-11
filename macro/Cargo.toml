@@ -16,7 +16,7 @@ proc-macro = true
 
 [dependencies]
 peginator_codegen = { version="=0.6.0", path = "../codegen" }
-syn = { version = "1.0", default-features = false, features = ["parsing", "proc-macro"] }
+syn = { version = "2.0", default-features = false, features = ["parsing", "proc-macro"] }
 
 [dev-dependencies]
 peginator = { version="=0.6.0", path = "../runtime" }
