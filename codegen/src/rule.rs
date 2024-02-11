@@ -339,8 +339,7 @@ impl Rule {
     fn generate_impl_position(&self, fields: &[FieldDescriptor]) -> TokenStream {
         let rule_type = safe_ident(&self.name);
         if self.flags().position {
-            if fields.len() == 1 && fields[0].name == "_override" && fields[0].types.len() > 1
-            {
+            if fields.len() == 1 && fields[0].name == "_override" && fields[0].types.len() > 1 {
                 let cases = fields[0].types.keys().map(safe_ident);
                 quote!(
                     impl PegPosition for #rule_type {

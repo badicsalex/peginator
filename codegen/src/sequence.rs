@@ -12,7 +12,10 @@ use super::common::{
     generate_inner_parse_function, safe_ident, Arity, CloneState, Codegen, CodegenSettings,
     FieldDescriptor,
 };
-use crate::{grammar::{Grammar, Sequence}, common::combine_field_types};
+use crate::{
+    common::combine_field_types,
+    grammar::{Grammar, Sequence},
+};
 
 impl Codegen for Sequence {
     fn generate_code_spec(

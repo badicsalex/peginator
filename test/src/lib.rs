@@ -6,6 +6,7 @@
 pub(crate) mod test_utils;
 
 mod additional_traits;
+mod boxing;
 mod calculator_example;
 mod char_rule;
 pub mod check;
@@ -33,4 +34,3 @@ mod skip_ws;
 mod string;
 mod string_insensitive;
 pub mod user_defined_state;
-mod boxing;

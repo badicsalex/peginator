@@ -65,8 +65,9 @@ impl CodegenGrammar for Grammar {
                     let rule_ident = safe_ident(&rule.name);
                     all_types.extend(quote!(pub type #rule_ident = char;));
                     all_impls.extend(
-                        rule.generate_code(settings)
-                            .with_context(|| format!("Error processing @char rule {}", rule.name))?,
+                        rule.generate_code(settings).with_context(|| {
+                            format!("Error processing @char rule {}", rule.name)
+                        })?,
                     );
                 }
                 Grammar_rules::ExternRule(rule) => {
